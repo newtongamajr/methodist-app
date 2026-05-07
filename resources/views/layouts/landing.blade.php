@@ -8,8 +8,8 @@
     <title>{{ config('app.name') }} — {{ __('Methodist Church in Brazil') }}</title>
     <meta name="description" content="{{ __('A national fasting and prayer campaign of the Methodist Church in Brazil. Join believers across all eight regional conferences in seeking God together.') }}">
 
-    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
+    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />

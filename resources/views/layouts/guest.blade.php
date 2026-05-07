@@ -7,8 +7,8 @@
 
     <title>{{ config('app.name') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
+    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
@@ -26,7 +26,7 @@
     </script>
 </head>
 <body class="font-sans antialiased text-zinc-900 dark:text-zinc-100">
-    <div class="relative min-h-screen overflow-hidden bg-gradient-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
+    <div class="relative min-h-screen overflow-hidden bg-linear-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
         <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]"></div>
 
         <header class="relative z-20">
@@ -47,7 +47,7 @@
         </header>
 
         <main class="relative z-10 flex min-h-[calc(100vh-200px)] items-start justify-center px-6 pb-20 pt-6">
-            <div class="w-full max-w-md rounded-2xl bg-white/95 p-8 shadow-2xl ring-1 ring-white/15 backdrop-blur dark:bg-zinc-900/95 dark:ring-white/10">
+            <div class="w-full max-w-md rounded-2xl bg-white/95 p-8 shadow-2xl ring-1 ring-white/15 backdrop-blur-sm dark:bg-zinc-900/95 dark:ring-white/10">
                 <div class="text-zinc-900 dark:text-zinc-100">
                     {{ $slot }}
                 </div>

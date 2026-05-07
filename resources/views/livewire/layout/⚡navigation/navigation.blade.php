@@ -9,10 +9,20 @@
     <flux:header container class="border-b border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
-        <a href="{{ route('home') }}" wire:navigate class="me-6 flex items-center gap-2">
-            <img src="{{ Vite::asset('resources/assets/metodista-favicon.png') }}" alt="" class="h-8 w-auto">
-            <span class="font-semibold tracking-tight">{{ config('app.name') }}</span>
-        </a>
+        <flux:brand
+            :href="route('home')"
+            wire:navigate
+            :logo="Vite::asset('resources/assets/metodista-brand-light.jpg')"
+            :name="__('Methodist Church')"
+            class="me-6 dark:hidden"
+        />
+        <flux:brand
+            :href="route('home')"
+            wire:navigate
+            :logo="Vite::asset('resources/assets/metodista-brand-dark.jpg')"
+            :name="__('Methodist Church')"
+            class="me-6 hidden dark:flex"
+        />
 
         <flux:navbar class="-mb-px max-lg:hidden">
             <flux:navbar.item :href="route('posts.index')" wire:navigate>{{ __('Posts') }}</flux:navbar.item>
@@ -23,7 +33,7 @@
                 @if ($hasPostMgmt || $hasSettings)
                     <flux:dropdown>
                         <flux:navbar.item icon="cog-6-tooth" icon:trailing="chevron-down">{{ __('Admin') }}</flux:navbar.item>
-                        <flux:menu class="min-w-[14rem]">
+                        <flux:menu class="min-w-56">
                             @if ($hasPostMgmt)
                                 <flux:menu.group :heading="__('Posts management')">
                                     @can('posts.create.local')
@@ -128,7 +138,7 @@
                             @php $isCurrent = $option['value'] === $this->appearance; @endphp
                             <flux:menu.item
                                 :icon="$option['icon']"
-                                :class="$isCurrent ? '!text-accent-content' : ''"
+                                :class="$isCurrent ? 'text-accent-content!' : ''"
                                 x-on:click="window.applyAppearance('{{ $option['value'] }}'); $wire.switchAppearance('{{ $option['value'] }}');"
                             >
                                 {{ $option['label'] }}
@@ -144,7 +154,7 @@
                             @php $isCurrent = $option['value'] === $this->locale; @endphp
                             <flux:menu.item
                                 icon="flag"
-                                :class="$isCurrent ? '!text-accent-content' : ''"
+                                :class="$isCurrent ? 'text-accent-content!' : ''"
                                 wire:click="switchLocale('{{ $option['value'] }}')"
                             >
                                 {{ $option['label'] }}
@@ -173,9 +183,10 @@
     <flux:sidebar sticky stashable collapsible="mobile" class="lg:hidden border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
         <flux:sidebar.header>
             <flux:sidebar.brand
-                href="{{ route('home') }}"
-                :logo="Vite::asset('resources/assets/metodista-favicon.png')"
-                :name="config('app.name')"
+                :href="route('home')"
+                :logo="Vite::asset('resources/assets/metodista-brand-light.jpg')"
+                :logo:dark="Vite::asset('resources/assets/metodista-brand-dark.jpg')"
+                :name="__('Methodist Church')"
             />
             <flux:sidebar.collapse class="lg:hidden" />
         </flux:sidebar.header>

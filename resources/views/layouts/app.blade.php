@@ -7,8 +7,8 @@
 
     <title>{{ config('app.name') }}</title>
 
-    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
-    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon.png') }}">
+    <link rel="icon" type="image/png" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
+    <link rel="apple-touch-icon" href="{{ Vite::asset('resources/assets/metodista-favicon-v2.png') }}">
 
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
