@@ -189,9 +189,9 @@
                     @foreach ($embeds as $embed)
                         <li wire:key="embed-{{ $embed->id }}" class="flex items-center gap-3 py-2 text-sm">
                             @if ($embed->thumbnail_url)
-                                <img src="{{ $embed->thumbnail_url }}" alt="" class="h-12 w-20 flex-none rounded object-cover">
+                                <img src="{{ $embed->thumbnail_url }}" alt="" class="h-12 w-20 flex-none rounded-sm object-cover">
                             @else
-                                <div class="flex h-12 w-20 flex-none items-center justify-center rounded bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-700">
+                                <div class="flex h-12 w-20 flex-none items-center justify-center rounded-sm bg-zinc-100 text-xs text-zinc-500 dark:bg-zinc-700">
                                     {{ $embed->provider->label() }}
                                 </div>
                             @endif

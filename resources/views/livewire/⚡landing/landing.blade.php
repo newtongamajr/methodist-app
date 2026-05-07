@@ -29,7 +29,7 @@
         </div>
     </header>
 
-    <section class="relative isolate overflow-hidden bg-gradient-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
+    <section class="relative isolate overflow-hidden bg-linear-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
         <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]"></div>
 
         <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-16 pt-32 lg:grid-cols-2 lg:gap-16 lg:px-10 lg:pb-24 lg:pt-40">
@@ -47,7 +47,7 @@
                 </p>
 
                 <div class="mt-10 flex flex-wrap items-center gap-3">
-                    <flux:button :href="route('register')" variant="primary" icon-trailing="arrow-right" class="!bg-white !text-[#c8202f] hover:!bg-rose-50">
+                    <flux:button :href="route('register')" variant="primary" icon-trailing="arrow-right" class="bg-white! text-[#c8202f]! hover:bg-rose-50!">
                         {{ __('Join the campaign') }}
                     </flux:button>
                     <flux:button :href="route('posts.index')" variant="ghost" icon="newspaper" class="text-white hover:bg-white/10">
@@ -74,7 +74,7 @@
 
     <section class="bg-[#f7f1e7] py-20 dark:bg-zinc-900">
         <div class="mx-auto max-w-7xl px-6 lg:px-10">
-            <flux:heading size="xl" class="text-center !text-[#c8202f] dark:!text-rose-300">
+            <flux:heading size="xl" class="text-center text-[#c8202f]! dark:text-rose-300!">
                 {{ __('What you can do') }}
             </flux:heading>
 
@@ -146,7 +146,7 @@
 
     <section class="bg-[#00529b] py-14 text-white">
         <div class="mx-auto max-w-7xl px-6 text-center lg:px-10">
-            <flux:heading size="lg" class="!text-white">
+            <flux:heading size="lg" class="text-white!">
                 {{ __('All Brazilian Methodist regions are participating') }}
             </flux:heading>
             <p class="mx-auto mt-3 max-w-3xl text-sky-100">
@@ -161,7 +161,7 @@
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <flux:button :href="route('register')" variant="primary" class="!bg-white !text-[#00529b] hover:!bg-sky-50">
+                <flux:button :href="route('register')" variant="primary" class="bg-white! text-[#00529b]! hover:bg-sky-50!">
                     {{ __('Join the campaign') }}
                 </flux:button>
                 <flux:button :href="route('posts.index')" variant="ghost" icon="newspaper" class="text-white hover:bg-white/10">

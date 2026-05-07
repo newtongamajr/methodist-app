@@ -41,7 +41,7 @@
                             type="button"
                             wire:key="img-{{ $image->id }}"
                             @click.prevent="open = true; src = '{{ $image->getUrl() }}'"
-                            class="block overflow-hidden rounded-md focus:outline-none focus:ring-2 focus:ring-[#c8202f]"
+                            class="block overflow-hidden rounded-md focus:outline-hidden focus:ring-2 focus:ring-[#c8202f]"
                         >
                             <img
                                 src="{{ $image->getUrl('card') ?: $image->getUrl() }}"
@@ -116,7 +116,7 @@
                                 class="flex items-center gap-3 rounded-lg border border-zinc-200 p-3 hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
                             >
                                 @if ($embed->thumbnail_url)
-                                    <img src="{{ $embed->thumbnail_url }}" alt="" class="h-16 w-24 flex-none rounded object-cover">
+                                    <img src="{{ $embed->thumbnail_url }}" alt="" class="h-16 w-24 flex-none rounded-sm object-cover">
                                 @endif
                                 <div class="min-w-0 flex-1">
                                     <div class="truncate font-medium">{{ $embed->title ?? $embed->url }}</div>

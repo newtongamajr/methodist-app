@@ -3,7 +3,7 @@
 
     <div class="space-y-4">
         @forelse ($this->posts as $post)
-            <article wire:key="post-{{ $post->id }}" class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <article wire:key="post-{{ $post->id }}" class="rounded-lg border border-zinc-200 bg-white p-6 shadow-xs dark:border-zinc-700 dark:bg-zinc-900">
                 @if ($coverUrl = $post->coverUrl('card'))
                     <img src="{{ $coverUrl }}" alt="" class="mb-4 h-48 w-full rounded-md object-cover">
                 @endif

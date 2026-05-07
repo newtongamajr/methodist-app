@@ -1,25 +1,46 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@plugin '@tailwindcss/forms';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+    --font-sans:
+        Figtree, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+        'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Methodist Church Brazil identity colors. */
+    --color-methodist-red: #c8202f;
+    --color-methodist-red-700: #9c1825;
+    --color-methodist-red-300: #fda4af;
+    --color-methodist-blue: #00529b;
+    --color-methodist-cream: #f7f1e7;
+
+    /* Flux accent tokens — drive variant="primary", links, tabs, navbar.item. */
+    --color-accent: var(--color-methodist-red);
+    --color-accent-content: var(--color-methodist-red-700);
+    --color-accent-foreground: #ffffff;
+}
 
 @layer base {
-    :root {
-        /* Methodist Church Brazil identity colors. */
-        --methodist-red: #c8202f;
-        --methodist-red-700: #9c1825;
-        --methodist-red-300: #fda4af;
-        --methodist-blue: #00529b;
-        --methodist-cream: #f7f1e7;
-
-        /* Flux accent tokens — drive variant="primary", links, tabs, navbar.item. */
-        --color-accent: var(--methodist-red);
-        --color-accent-content: var(--methodist-red-700);
-        --color-accent-foreground: #ffffff;
+    /*
+      Default border color was `gray-200` in v3, became `currentColor` in v4.
+      Restore v3 behavior so existing Breeze/Flux layouts keep their borders.
+    */
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-gray-200, currentcolor);
     }
 
+    /* Lighter accent text for dark mode readability. */
     .dark {
-        --color-accent: var(--methodist-red);
-        --color-accent-content: var(--methodist-red-300);
-        --color-accent-foreground: #ffffff;
+        --color-accent-content: var(--color-methodist-red-300);
     }
 }

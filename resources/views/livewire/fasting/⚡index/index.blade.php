@@ -3,7 +3,7 @@
         <flux:heading size="xl">{{ __('Fasting calendar') }}</flux:heading>
 
         @if ($this->campaigns->count() > 1)
-            <flux:select wire:model.live="campaignId" class="min-w-[14rem]">
+            <flux:select wire:model.live="campaignId" class="min-w-56">
                 @foreach ($this->campaigns as $c)
                     <option value="{{ $c->id }}">{{ $c->name }}</option>
                 @endforeach
@@ -73,7 +73,7 @@
 
                     @if ($hasEntry)
                         <div
-                            class="mt-1 inline-block rounded px-1.5 py-0.5 text-sm font-semibold leading-tight text-white"
+                            class="mt-1 inline-block rounded-sm px-1.5 py-0.5 text-sm font-semibold leading-tight text-white"
                             style="background-color: {{ $color }};"
                             title="{{ $entry->type->label() }}"
                         >
@@ -83,7 +83,7 @@
 
                     @if ($clickable && $count > 0)
                         <span
-                            class="absolute right-1 top-1 inline-flex min-w-[1.25rem] items-center justify-center rounded-full bg-zinc-900/85 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-sm dark:bg-white/85 dark:text-zinc-900"
+                            class="absolute right-1 top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900/85 px-1.5 py-0.5 text-[11px] font-bold text-white shadow-xs dark:bg-white/85 dark:text-zinc-900"
                             title="{{ trans_choice(':count member fasting|:count members fasting', $count) }}"
                         >
                             {{ $count }}
@@ -93,7 +93,7 @@
             @endforeach
         </div>
 
-        <flux:modal wire:model.self="isModalOpen" name="fasting-day" class="md:w-[32rem]">
+        <flux:modal wire:model.self="isModalOpen" name="fasting-day" class="md:w-lg">
             @if ($editingDate)
                 <form wire:submit="save" class="space-y-5">
                     <flux:heading size="lg">
@@ -116,7 +116,7 @@
                                             type="checkbox"
                                             value="{{ $r->value }}"
                                             wire:model="restrictions"
-                                            class="rounded text-[#c8202f] focus:ring-[#c8202f]"
+                                            class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
                                         >
                                         {{ $r->label() }}
                                     </label>

@@ -47,7 +47,7 @@
                             type="checkbox"
                             value="{{ $church['id'] }}"
                             wire:model.live="church_ids"
-                            class="rounded text-[#c8202f] focus:ring-[#c8202f]"
+                            class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
                         >
                         <span class="flex-1">{{ $church['name'] }}</span>
                         <input
