@@ -42,7 +42,7 @@
         {{-- Suggestions --}}
         @if ($this->suggestions->isNotEmpty())
             <section class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-900/20">
-                <flux:heading size="lg" class="!text-amber-800 dark:!text-amber-200">
+                <flux:heading size="lg" class="text-amber-800! dark:text-amber-200!">
                     {{ __('Slots needing more prayers') }}
                 </flux:heading>
                 <flux:text class="mt-1 text-sm">
@@ -102,12 +102,12 @@
                         size="sm"
                         :variant="$coverageFilter === 'user' ? 'primary' : 'ghost'"
                     >
-                        {{ __('Specific user') }}
+                        {{ __('Specific member') }}
                     </flux:button>
                 </flux:button.group>
 
                 @if ($coverageFilter === 'user')
-                    <flux:select wire:model.live="userFilterId" :placeholder="__('Pick a user…')" class="min-w-[12rem]">
+                    <flux:select wire:model.live="userFilterId" :placeholder="__('Pick a user…')" class="min-w-48">
                         <option value="">{{ __('— Select —') }}</option>
                         @foreach ($this->churchUsers as $u)
                             <option value="{{ $u->id }}">{{ $u->name }}</option>
@@ -214,7 +214,7 @@
                                     <div class="mt-2 flex items-center gap-2">
                                         <flux:select
                                             wire:model="assignChoice.{{ $slot->id }}"
-                                            class="min-w-[10rem]"
+                                            class="min-w-40"
                                             size="sm"
                                         >
                                             <option value="">{{ __('Add a member to this slot…') }}</option>
