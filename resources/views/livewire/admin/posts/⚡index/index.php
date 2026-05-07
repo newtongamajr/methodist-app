@@ -52,7 +52,7 @@ class extends Component
         }
 
         if ($this->search !== '') {
-            $q->where('title', 'like', '%'.$this->search.'%');
+            $q->where('title', 'like', '%'.addcslashes($this->search, '%_\\').'%');
         }
         if ($this->statusFilter !== '') {
             $q->where('status', $this->statusFilter);

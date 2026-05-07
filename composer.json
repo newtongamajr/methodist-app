@@ -16,6 +16,7 @@
         "livewire/flux-pro": "^2.14",
         "livewire/livewire": "^4.3",
         "livewire/volt": "^1.7.0",
+        "mews/purifier": "^3.4",
         "spatie/laravel-medialibrary": "^11.22",
         "spatie/laravel-permission": "^7.4"
     },

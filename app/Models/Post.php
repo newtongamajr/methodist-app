@@ -7,12 +7,14 @@ use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
+use Mews\Purifier\Facades\Purifier;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -51,6 +53,20 @@ class Post extends Model implements HasMedia
                 $post->slug = static::generateUniqueSlug($post->title);
             }
         });
+    }
+
+    protected function body(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value) => $value === null ? null : Purifier::clean($value, 'post.body'),
+        );
+    }
+
+    protected function excerpt(): Attribute
+    {
+        return Attribute::make(
+            set: fn (?string $value) => $value === null ? null : Purifier::clean($value, 'post.excerpt'),
+        );
     }
 
     public static function generateUniqueSlug(string $title): string

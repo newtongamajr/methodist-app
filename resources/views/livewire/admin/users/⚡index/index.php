@@ -59,8 +59,9 @@ class extends Component
         }
 
         if ($this->search) {
-            $q->where(fn ($qq) => $qq->where('name', 'like', '%'.$this->search.'%')
-                ->orWhere('email', 'like', '%'.$this->search.'%'));
+            $term = '%'.addcslashes($this->search, '%_\\').'%';
+            $q->where(fn ($qq) => $qq->where('name', 'like', $term)
+                ->orWhere('email', 'like', $term));
         }
 
         return $q->paginate(20);
