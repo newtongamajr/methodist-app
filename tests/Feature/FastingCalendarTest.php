@@ -25,10 +25,9 @@ it('renders the fasting calendar for an active campaign', function () {
 
 it('shows a friendly message when there is no active campaign', function () {
     FastingCampaign::factory()->inactive()->create();
-    $user = User::factory()->create();
+    $user = User::factory()->create(['locale' => 'en']);
 
     $this->actingAs($user)
-        ->withSession(['locale' => 'en'])
         ->get(route('fasting.index'))
         ->assertOk()
         ->assertSee('There is no active fasting campaign right now.');
