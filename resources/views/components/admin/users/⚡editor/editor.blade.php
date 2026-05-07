@@ -1,0 +1,82 @@
+<div class="space-y-6">
+    <div class="flex items-center justify-between gap-4">
+        <flux:heading size="xl">
+            {{ $user ? __('Edit administrator') : __('New administrator') }}
+        </flux:heading>
+        <flux:button :href="route('admin.users.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
+    </div>
+
+    @if (session('status'))
+        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+            {{ session('status') }}
+        </div>
+    @endif
+
+    <form wire:submit="save" class="space-y-5">
+        <div class="grid gap-4 sm:grid-cols-2">
+            <flux:input wire:model="name" :label="__('Name')" required />
+            <flux:input wire:model="email" :label="__('Email')" type="email" required />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+            <flux:input wire:model="phone" :label="__('Phone')" type="tel" />
+            <flux:input
+                wire:model="password"
+                :label="$user ? __('New password (leave blank to keep current)') : __('Initial password')"
+                type="password"
+                :required="! $user"
+            />
+        </div>
+
+        <section class="space-y-3">
+            <flux:label>{{ __('Churches this user can administer') }}</flux:label>
+            <flux:text class="text-sm text-zinc-500">
+                {{ __('Tick every church the user should manage. The primary one becomes their default context after sign-in.') }}
+            </flux:text>
+            <div class="grid gap-2 sm:grid-cols-2">
+                @foreach ($this->selectableChurches as $church)
+                    <label class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                        <input
+                            type="checkbox"
+                            value="{{ $church['id'] }}"
+                            wire:model.live="church_ids"
+                            class="rounded text-[#c8202f] focus:ring-[#c8202f]"
+                        >
+                        <span class="flex-1">{{ $church['name'] }}</span>
+                        <input
+                            type="radio"
+                            name="primary_church_id"
+                            value="{{ $church['id'] }}"
+                            wire:model="primary_church_id"
+                            @disabled(! in_array($church['id'], $church_ids, true))
+                            class="text-[#c8202f]"
+                            title="{{ __('Mark as primary') }}"
+                        >
+                    </label>
+                @endforeach
+            </div>
+            @error('church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+        </section>
+
+        @if ($this->isSuper)
+            <flux:select wire:model="role" :label="__('Role')" required>
+                @foreach ($this->availableRoles as $r)
+                    <option value="{{ $r }}">{{ $r }}</option>
+                @endforeach
+            </flux:select>
+        @else
+            <flux:input value="local_manager" :label="__('Role')" disabled />
+        @endif
+
+        <flux:select wire:model="locale" :label="__('Language')">
+            @foreach (\App\Enums\AppLocale::cases() as $loc)
+                <option value="{{ $loc->value }}">{{ $loc->label() }}</option>
+            @endforeach
+        </flux:select>
+
+        <div class="flex justify-end gap-2">
+            <flux:button :href="route('admin.users.index')" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
+            <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+        </div>
+    </form>
+</div>
