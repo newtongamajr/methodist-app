@@ -46,9 +46,9 @@ for ini in "${PHP_INI_FILES[@]}"; do
     fi
 
     # Backup once (don't overwrite on re-runs)
-    if [[ ! -f "${ini}.bak.jejum" ]]; then
-        cp "$ini" "${ini}.bak.jejum"
-        echo "    backup: ${ini}.bak.jejum"
+    if [[ ! -f "${ini}.bak.methodist" ]]; then
+        cp "$ini" "${ini}.bak.methodist"
+        echo "    backup: ${ini}.bak.methodist"
     fi
 
     sed -i -E "s/^[[:space:]]*upload_max_filesize[[:space:]]*=.*/upload_max_filesize = ${TARGET_UPLOAD}/" "$ini"
