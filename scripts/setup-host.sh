@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Host setup for Jejum & Oração Metodista (one-shot, idempotent).
+# Host setup for Methodist App (one-shot, idempotent).
 #
 # What it does:
 #   1. Bumps PHP 8.4 upload_max_filesize / post_max_size to 100M (cli + fpm).
@@ -7,14 +7,14 @@
 #   3. Fixes storage/ + bootstrap/cache permissions for Docker PHP-FPM (www-data).
 #
 # Usage:
-#   sudo bash /tmp/jejum-oracao-host-setup.sh
+#   sudo bash scripts/setup-host.sh
 #
 # Re-running is safe: sed targets specific keys regardless of current value, and
 # chown / chmod / setgid are idempotent.
 
 set -euo pipefail
 
-PROJECT_DIR="/home/galileosoft/git/laravel/jejum-oracao-metodista"
+PROJECT_DIR="/home/galileosoft/git/laravel/methodist-app"
 PHP_INI_FILES=(
     "/etc/php/8.4/cli/php.ini"
     "/etc/php/8.4/fpm/php.ini"

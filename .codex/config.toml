@@ -1,4 +1,4 @@
 [mcp_servers.laravel-boost]
 command = "wsl.exe"
-args = ["/usr/bin/php8.4", "/home/galileosoft/git/laravel/jejum-oracao-metodista/artisan", "boost:mcp"]
-cwd = "/home/galileosoft/git/laravel/jejum-oracao-metodista"
+args = ["/usr/bin/php8.4", "/home/galileosoft/git/laravel/methodist-app/artisan", "boost:mcp"]
+cwd = "/home/galileosoft/git/laravel/methodist-app"

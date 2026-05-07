@@ -4,7 +4,7 @@
             "command": "wsl.exe",
             "args": [
                 "/usr/bin/php8.4",
-                "/home/galileosoft/git/laravel/jejum-oracao-metodista/artisan",
+                "/home/galileosoft/git/laravel/methodist-app/artisan",
                 "boost:mcp"
             ]
         }
