@@ -74,7 +74,7 @@ class extends Component
 
     public function render()
     {
-        return view('components.admin.posts.⚡index.index', [
+        return view('livewire.admin.posts.⚡index.index', [
             'statuses' => PostStatus::cases(),
             'scopes' => PostScope::cases(),
         ]);

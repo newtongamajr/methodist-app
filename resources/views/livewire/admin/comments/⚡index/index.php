@@ -59,7 +59,7 @@ class extends Component
 
     public function render()
     {
-        return view('components.admin.comments.⚡index.index', [
+        return view('livewire.admin.comments.⚡index.index', [
             'statuses' => CommentStatus::cases(),
         ]);
     }
