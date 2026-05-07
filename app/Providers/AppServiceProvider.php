@@ -8,6 +8,7 @@ use App\Policies\CommentPolicy;
 use App\Policies\PostPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Blaze\Blaze;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,5 +21,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Post::class, PostPolicy::class);
         Gate::policy(PostComment::class, CommentPolicy::class);
+
+        Blaze::optimize()->in(resource_path('views/components'));
     }
 }

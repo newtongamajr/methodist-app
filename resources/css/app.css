@@ -7,16 +7,19 @@
         /* Methodist Church Brazil identity colors. */
         --methodist-red: #c8202f;
         --methodist-red-700: #9c1825;
+        --methodist-red-300: #fda4af;
         --methodist-blue: #00529b;
         --methodist-cream: #f7f1e7;
 
-        /* Used by Flux's variant="primary" via the --color-accent token. */
+        /* Flux accent tokens — drive variant="primary", links, tabs, navbar.item. */
         --color-accent: var(--methodist-red);
+        --color-accent-content: var(--methodist-red-700);
         --color-accent-foreground: #ffffff;
     }
 
     .dark {
         --color-accent: var(--methodist-red);
+        --color-accent-content: var(--methodist-red-300);
         --color-accent-foreground: #ffffff;
     }
 }
