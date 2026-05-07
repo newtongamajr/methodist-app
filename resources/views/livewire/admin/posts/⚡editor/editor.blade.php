@@ -15,19 +15,11 @@
     <form wire:submit="save" class="space-y-6">
         <flux:input wire:model="title" :label="__('Title')" required />
 
-        <div>
+        <flux:field>
             <flux:label>{{ __('Excerpt') }}</flux:label>
-            <div wire:ignore>
-                <textarea
-                    data-tinymce="compact"
-                    data-livewire-prop="excerpt"
-                    id="post-excerpt-{{ $post?->id ?? 'new' }}"
-                    rows="3"
-                    class="mt-2"
-                >{!! $excerpt !!}</textarea>
-            </div>
-            @error('excerpt') <flux:text class="mt-1 text-rose-600">{{ $message }}</flux:text> @enderror
-        </div>
+            <flux:editor wire:model="excerpt" toolbar="bold italic underline | bullet ordered | link" />
+            <flux:error name="excerpt" />
+        </flux:field>
 
         <div>
             <flux:label>{{ __('Body') }}</flux:label>
