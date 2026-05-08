@@ -2,7 +2,7 @@
     <div class="flex items-center justify-between gap-4">
         <div>
             <flux:heading size="xl">
-                {{ $assignment ? __('Edit assignment') : __('New assignment') }}
+                {{ $form->assignment ? __('Edit assignment') : __('New assignment') }}
             </flux:heading>
             <flux:text class="mt-1">{{ $church->name }}</flux:text>
         </div>
@@ -18,13 +18,13 @@
     @endif
 
     <form wire:submit="save" class="space-y-5">
-        <flux:radio.group wire:model.live="pastorMode" :label="__('Pastor')">
+        <flux:radio.group wire:model.live="form.pastorMode" :label="__('Pastor')">
             <flux:radio value="existing" :label="__('Existing pastor')" />
             <flux:radio value="new" :label="__('Create a new pastor record')" />
         </flux:radio.group>
 
-        @if ($pastorMode === 'existing')
-            <flux:select wire:model="pastor_id" :label="__('Choose a pastor')" required>
+        @if ($form->pastorMode === 'existing')
+            <flux:select wire:model="form.pastor_id" :label="__('Choose a pastor')" required>
                 <option value="">{{ __('— Select —') }}</option>
                 @foreach ($this->pastors as $p)
                     <option value="{{ $p->id }}">{{ $p->name }}@if ($p->email) — {{ $p->email }}@endif</option>
@@ -32,23 +32,23 @@
             </flux:select>
         @else
             <div class="grid gap-4 sm:grid-cols-3">
-                <flux:input wire:model="pastor_name" :label="__('Name')" required />
-                <flux:input wire:model="pastor_email" :label="__('Email')" type="email" />
-                <flux:input wire:model="pastor_phone" :label="__('Phone')" type="tel" />
+                <flux:input wire:model="form.pastor_name" :label="__('Name')" required />
+                <flux:input wire:model="form.pastor_email" :label="__('Email')" type="email" />
+                <flux:input wire:model="form.pastor_phone" :label="__('Phone')" type="tel" />
             </div>
         @endif
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model="role" :label="__('Role')" required>
+            <flux:select wire:model="form.role" :label="__('Role')" required>
                 @foreach (\App\Enums\PastorRole::cases() as $r)
                     <option value="{{ $r->value }}">{{ $r->label() }}</option>
                 @endforeach
             </flux:select>
-            <flux:input wire:model="start_date" :label="__('Start date')" type="date" />
-            <flux:input wire:model="end_date" :label="__('End date')" type="date" :placeholder="__('Active')" />
+            <flux:input wire:model="form.start_date" :label="__('Start date')" type="date" />
+            <flux:input wire:model="form.end_date" :label="__('End date')" type="date" :placeholder="__('Active')" />
         </div>
 
-        <flux:input wire:model="display_order" :label="__('Display order')" type="number" min="0" max="99" />
+        <flux:input wire:model="form.display_order" :label="__('Display order')" type="number" min="0" max="99" />
 
         <div class="flex justify-end gap-2">
             <flux:button :href="route('admin.churches.pastors.index', $church)" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
