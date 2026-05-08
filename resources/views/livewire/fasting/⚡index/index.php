@@ -153,8 +153,8 @@ class extends Component
 
         return FastingEntry::query()
             ->where('fasting_campaign_id', $this->campaign->id)
-            ->selectRaw('DATE(date) as day, COUNT(DISTINCT user_id) as total')
-            ->groupBy('day')
+            ->selectRaw('`date` as day, COUNT(DISTINCT user_id) as total')
+            ->groupBy('date')
             ->pluck('total', 'day')
             ->all();
     }

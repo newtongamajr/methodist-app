@@ -79,7 +79,7 @@
             <flux:heading size="lg">{{ __('Slots') }}</flux:heading>
             <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($schedule->slots as $slot)
-                    <div class="rounded-md border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
+                    <div wire:key="schedule-slot-{{ $slot->id }}" class="rounded-md border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
                         <div class="font-medium">{{ $slot->starts_at->format('H:i') }} – {{ $slot->ends_at->format('H:i') }}</div>
                         <div class="text-xs text-zinc-500">{{ $slot->confirmedSignups()->count() }} / {{ $slot->capacity }} {{ __('confirmed') }}</div>
                     </div>

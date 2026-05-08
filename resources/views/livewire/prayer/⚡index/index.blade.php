@@ -50,7 +50,7 @@
                 </flux:text>
                 <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($this->suggestions as $slot)
-                        <button type="button" wire:click="join({{ $slot->id }})"
+                        <button type="button" wire:key="suggest-slot-{{ $slot->id }}" wire:click="join({{ $slot->id }})"
                                 class="rounded-md bg-amber-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-600">
                             {{ $slot->starts_at->isoFormat('ddd, D MMM HH:mm') }}
                         </button>
@@ -186,6 +186,7 @@
                                     <div class="flex flex-wrap gap-1">
                                         @foreach ($slot->confirmedSignups as $signup)
                                             <span
+                                                wire:key="signup-{{ $signup->id }}"
                                                 @class([
                                                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
                                                     'bg-[#c8202f]/10 text-[#c8202f] dark:bg-rose-500/15 dark:text-rose-300' => $signup->user_id === $myId,

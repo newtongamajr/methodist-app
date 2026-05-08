@@ -30,7 +30,7 @@
             <flux:label>{{ __('Allowed fasting types') }}</flux:label>
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingType::cases() as $t)
-                    <label class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                    <label wire:key="fasting-type-{{ $t->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
                         <input type="checkbox" value="{{ $t->value }}" wire:model="types" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
                         {{ $t->label() }}
                     </label>
@@ -43,7 +43,7 @@
             <flux:label>{{ __('Allowed restrictions') }}</flux:label>
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingRestriction::cases() as $r)
-                    <label class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                    <label wire:key="fasting-restriction-{{ $r->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
                         <input type="checkbox" value="{{ $r->value }}" wire:model="restrictions" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
                         {{ $r->label() }}
                     </label>

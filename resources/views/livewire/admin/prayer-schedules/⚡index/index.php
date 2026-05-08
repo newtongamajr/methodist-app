@@ -6,11 +6,14 @@ use App\Models\PrayerSchedule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use WithPagination;
+
     public ?int $churchFilter = null;
     public ?int $campaignFilter = null;
 
@@ -20,6 +23,16 @@ class extends Component
         $this->churchFilter = $church ?: $user->currentChurchId();
         $current = PrayerCampaign::current()->orderByDesc('start_date')->first();
         $this->campaignFilter = $current?->id;
+    }
+
+    public function updatingChurchFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCampaignFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]

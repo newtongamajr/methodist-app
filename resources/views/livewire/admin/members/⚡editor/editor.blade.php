@@ -42,7 +42,7 @@
             </flux:text>
             <div class="grid gap-2 sm:grid-cols-2">
                 @foreach ($this->selectableChurches as $church)
-                    <label class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                    <label wire:key="member-edit-church-{{ $church['id'] }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
                         <input
                             type="checkbox"
                             value="{{ $church['id'] }}"

@@ -36,7 +36,10 @@ class extends Component
     {
         $user = auth()->user();
 
-        $q = Post::query()->with(['author', 'church'])->latest('updated_at');
+        $q = Post::query()
+            ->select(['id', 'title', 'slug', 'scope', 'status', 'author_id', 'church_id', 'updated_at', 'published_at', 'created_at', 'deleted_at'])
+            ->with(['author:id,name', 'church:id,name'])
+            ->latest('updated_at');
 
         if (! $user->can('posts.update.any')) {
             $manageable = $user->manageableChurchIds();

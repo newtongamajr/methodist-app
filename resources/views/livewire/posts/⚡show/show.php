@@ -4,7 +4,9 @@ use App\Enums\CommentStatus;
 use App\Models\Post;
 use App\Models\PostComment;
 use App\Models\PostLike;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -28,20 +30,24 @@ class extends Component
         }
     }
 
-    public function getLikedProperty(): bool
+    #[Computed]
+    public function liked(): bool
     {
         if (! auth()->check()) {
             return false;
         }
+
         return $this->post->likes()->where('user_id', auth()->id())->exists();
     }
 
-    public function getLikesCountProperty(): int
+    #[Computed]
+    public function likesCount(): int
     {
         return $this->post->likes()->count();
     }
 
-    public function getApprovedCommentsProperty()
+    #[Computed]
+    public function approvedComments(): Collection
     {
         return $this->post->approvedComments()->with('author')->latest()->get();
     }
@@ -65,6 +71,8 @@ class extends Component
                 'user_id' => auth()->id(),
             ]);
         }
+
+        unset($this->liked, $this->likesCount);
     }
 
     public function submitComment(): void
@@ -93,6 +101,8 @@ class extends Component
         ]);
 
         $this->newComment = '';
+
+        unset($this->approvedComments);
 
         session()->flash(
             'comment-status',
