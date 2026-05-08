@@ -17,7 +17,7 @@
             <a href="{{ route('login') }}" class="text-sm font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>
                 {{ __('Back to login') }}
             </a>
-            <flux:button type="submit" variant="primary">
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="sendPasswordResetLink">
                 {{ __('Email password reset link') }}
             </flux:button>
         </div>

@@ -214,7 +214,7 @@
 
         <div class="flex justify-end gap-2">
             <flux:button :href="route('admin.posts.index')" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
-            <flux:button type="submit" variant="primary" x-on:click="window.tinymceFlushAll && window.tinymceFlushAll()">
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="save" x-on:click="window.tinymceFlushAll && window.tinymceFlushAll()">
                 {{ __('Save') }}
             </flux:button>
         </div>

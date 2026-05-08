@@ -52,7 +52,7 @@
 
         <div class="flex justify-end gap-2">
             <flux:button :href="route('admin.churches.pastors.index', $church)" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
-            <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="save">{{ __('Save') }}</flux:button>
         </div>
     </form>
 </div>

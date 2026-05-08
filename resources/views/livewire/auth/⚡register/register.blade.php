@@ -51,7 +51,7 @@
             <a href="{{ route('login') }}" class="text-sm font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>
                 {{ __('Already registered?') }}
             </a>
-            <flux:button type="submit" variant="primary">
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="register">
                 {{ __('Register') }}
             </flux:button>
         </div>
