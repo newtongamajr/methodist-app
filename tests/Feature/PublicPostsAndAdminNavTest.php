@@ -69,10 +69,10 @@ it('lets a super-user CRUD an ecclesiastical region', function () {
     $this->actingAs($super);
 
     Livewire::test('admin.regions.editor')
-        ->set('code', 'RE9')
-        ->set('name', '9ª Região Eclesiástica')
-        ->set('kind', 'regular')
-        ->set('display_order', 50)
+        ->set('form.code', 'RE9')
+        ->set('form.name', '9ª Região Eclesiástica')
+        ->set('form.kind', 'regular')
+        ->set('form.display_order', 50)
         ->call('save')
         ->assertHasNoErrors();
 
