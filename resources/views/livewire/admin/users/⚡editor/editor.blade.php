@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
-            {{ $user ? __('Edit administrator') : __('New administrator') }}
+            {{ $form->user ? __('Edit administrator') : __('New administrator') }}
         </flux:heading>
         <flux:button :href="route('admin.users.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
     </div>
@@ -14,17 +14,17 @@
 
     <form wire:submit="save" class="space-y-5">
         <div class="grid gap-4 sm:grid-cols-2">
-            <flux:input wire:model="name" :label="__('Name')" required />
-            <flux:input wire:model="email" :label="__('Email')" type="email" required />
+            <flux:input wire:model="form.name" :label="__('Name')" required />
+            <flux:input wire:model="form.email" :label="__('Email')" type="email" required />
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2">
-            <flux:input wire:model="phone" :label="__('Phone')" type="tel" />
+            <flux:input wire:model="form.phone" :label="__('Phone')" type="tel" />
             <flux:input
-                wire:model="password"
-                :label="$user ? __('New password (leave blank to keep current)') : __('Initial password')"
+                wire:model="form.password"
+                :label="$form->user ? __('New password (leave blank to keep current)') : __('Initial password')"
                 type="password"
-                :required="! $user"
+                :required="! $form->user"
             />
         </div>
 
@@ -39,7 +39,7 @@
                         <input
                             type="checkbox"
                             value="{{ $church['id'] }}"
-                            wire:model.live="church_ids"
+                            wire:model.live="form.church_ids"
                             class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
                         >
                         <span class="flex-1">{{ $church['name'] }}</span>
@@ -47,19 +47,19 @@
                             type="radio"
                             name="primary_church_id"
                             value="{{ $church['id'] }}"
-                            wire:model="primary_church_id"
-                            @disabled(! in_array($church['id'], $church_ids, true))
+                            wire:model="form.primary_church_id"
+                            @disabled(! in_array($church['id'], $form->church_ids, true))
                             class="text-[#c8202f]"
                             title="{{ __('Mark as primary') }}"
                         >
                     </label>
                 @endforeach
             </div>
-            @error('church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            @error('form.church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </section>
 
         @if ($this->isSuper)
-            <flux:select wire:model="role" :label="__('Role')" required>
+            <flux:select wire:model="form.role" :label="__('Role')" required>
                 @foreach ($this->availableRoles as $r)
                     <option value="{{ $r }}">{{ $r }}</option>
                 @endforeach
@@ -68,7 +68,7 @@
             <flux:input value="local_manager" :label="__('Role')" disabled />
         @endif
 
-        <flux:select wire:model="locale" :label="__('Language')">
+        <flux:select wire:model="form.locale" :label="__('Language')">
             @foreach (\App\Enums\AppLocale::cases() as $loc)
                 <option value="{{ $loc->value }}">{{ $loc->label() }}</option>
             @endforeach

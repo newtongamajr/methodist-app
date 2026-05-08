@@ -71,13 +71,13 @@ it('master attaching new admin can pick from their pool but not foreign churches
     $this->actingAs($manager);
 
     Livewire::test('admin.users.editor')
-        ->set('name', 'New Helper')
-        ->set('email', 'helper@m.test')
-        ->set('password', 'secret-password')
-        ->set('church_ids', [$a->id, $b->id, $foreign->id])
-        ->set('primary_church_id', $a->id)
-        ->set('role', 'local_manager')
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'New Helper')
+        ->set('form.email', 'helper@m.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.church_ids', [$a->id, $b->id, $foreign->id])
+        ->set('form.primary_church_id', $a->id)
+        ->set('form.role', 'local_manager')
+        ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
 
