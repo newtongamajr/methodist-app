@@ -25,11 +25,15 @@
                     </flux:text>
                 </div>
                 <div class="flex items-center gap-2">
-                    <flux:button wire:click="previousMonth" size="sm" variant="ghost" icon="chevron-left" />
+                    <flux:tooltip :content="__('Previous month')">
+                        <flux:button wire:click="previousMonth" size="sm" variant="ghost" icon="chevron-left" />
+                    </flux:tooltip>
                     <flux:heading>
                         {{ \Illuminate\Support\Carbon::createFromFormat('Y-m', $month)->isoFormat('MMMM YYYY') }}
                     </flux:heading>
-                    <flux:button wire:click="nextMonth" size="sm" variant="ghost" icon="chevron-right" />
+                    <flux:tooltip :content="__('Next month')">
+                        <flux:button wire:click="nextMonth" size="sm" variant="ghost" icon="chevron-right" />
+                    </flux:tooltip>
                 </div>
             </div>
             @if ($this->campaign->description)

@@ -62,11 +62,15 @@
         <section class="space-y-4 rounded-lg border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900">
             <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                    <flux:button wire:click="previousDay" size="sm" variant="ghost" icon="chevron-left" />
+                    <flux:tooltip :content="__('Previous day')">
+                        <flux:button wire:click="previousDay" size="sm" variant="ghost" icon="chevron-left" />
+                    </flux:tooltip>
                     <flux:heading size="lg">
                         {{ $selectedDate ? \Illuminate\Support\Carbon::parse($selectedDate)->isoFormat('dddd, LL') : __('No prayer slots scheduled') }}
                     </flux:heading>
-                    <flux:button wire:click="nextDay" size="sm" variant="ghost" icon="chevron-right" />
+                    <flux:tooltip :content="__('Next day')">
+                        <flux:button wire:click="nextDay" size="sm" variant="ghost" icon="chevron-right" />
+                    </flux:tooltip>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">

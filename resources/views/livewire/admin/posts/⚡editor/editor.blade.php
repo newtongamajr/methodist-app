@@ -95,14 +95,16 @@
                     @foreach ($images as $media)
                         <div wire:key="img-{{ $media->id }}" class="group relative">
                             <img src="{{ $media->getUrl('thumb') ?: $media->getUrl() }}" alt="" class="h-28 w-full rounded-md object-cover">
-                            <flux:button
-                                type="button"
-                                variant="danger"
-                                icon="trash"
-                                size="sm"
-                                class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
-                                wire:click="removeMedia({{ $media->id }})"
-                            />
+                            <flux:tooltip :content="__('Remove image')">
+                                <flux:button
+                                    type="button"
+                                    variant="danger"
+                                    icon="trash"
+                                    size="sm"
+                                    class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
+                                    wire:click="removeMedia({{ $media->id }})"
+                                />
+                            </flux:tooltip>
                         </div>
                     @endforeach
                 </div>
@@ -129,7 +131,9 @@
                                 <span>{{ $media->file_name }}</span>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove video')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -156,7 +160,9 @@
                                 <span>{{ $media->file_name }}</span>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove audio')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -183,7 +189,9 @@
                                 <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" class="hover:underline">{{ $media->file_name }}</a>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove document')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -222,7 +230,9 @@
                                 <div class="truncate font-medium">{{ $embed->title ?? $embed->url }}</div>
                                 <div class="truncate text-xs text-zinc-500">{{ $embed->provider->label() }} — {{ $embed->url }}</div>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeEmbed({{ $embed->id }})" />
+                            <flux:tooltip :content="__('Remove embed')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeEmbed({{ $embed->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
