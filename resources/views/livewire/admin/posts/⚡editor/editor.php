@@ -7,6 +7,8 @@ use App\Models\Church;
 use App\Models\Post;
 use App\Models\PostEmbed;
 use App\Services\EmbedLookupService;
+use Illuminate\Support\Collection;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -67,7 +69,8 @@ class extends Component
         }
     }
 
-    public function getChurchesProperty()
+    #[Computed]
+    public function churches(): Collection
     {
         $user = auth()->user();
         if ($user->can('posts.create.shared')) {

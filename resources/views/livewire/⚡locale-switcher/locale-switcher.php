@@ -3,6 +3,7 @@
 use App\Enums\AppLocale;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Support\Facades\App;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -23,7 +24,8 @@ new class extends Component
         $this->redirect(request()->header('Referer') ?: '/', navigate: false);
     }
 
-    public function getOptionsProperty(): array
+    #[Computed]
+    public function options(): array
     {
         return collect(AppLocale::cases())
             ->map(fn (AppLocale $c) => [
@@ -38,7 +40,8 @@ new class extends Component
             ->all();
     }
 
-    public function getCurrentProperty(): string
+    #[Computed]
+    public function current(): string
     {
         return App::getLocale();
     }

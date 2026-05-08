@@ -1,6 +1,8 @@
 <?php
 
 use App\Models\Post;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -11,7 +13,8 @@ class extends Component
 {
     use WithPagination;
 
-    public function getPostsProperty()
+    #[Computed]
+    public function posts(): LengthAwarePaginator
     {
         return Post::query()
             ->published()

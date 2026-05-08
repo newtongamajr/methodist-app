@@ -9,7 +9,9 @@ use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rules;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -39,12 +41,14 @@ class extends Component
         $this->church_id = null;
     }
 
-    public function getRegionsProperty()
+    #[Computed]
+    public function regions(): Collection
     {
         return EcclesiasticalRegion::query()->orderBy('display_order')->get(['id', 'code', 'name']);
     }
 
-    public function getChurchesProperty()
+    #[Computed]
+    public function churches(): Collection
     {
         if (! $this->region_id) {
             return collect();

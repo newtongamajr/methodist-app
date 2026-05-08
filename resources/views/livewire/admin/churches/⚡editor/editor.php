@@ -7,9 +7,11 @@ use App\Enums\MemberType;
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -62,7 +64,8 @@ class extends Component
         }
     }
 
-    public function getRegionsProperty()
+    #[Computed]
+    public function regions(): Collection
     {
         return EcclesiasticalRegion::orderBy('display_order')->get(['id', 'code', 'name']);
     }
