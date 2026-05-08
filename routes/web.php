@@ -13,7 +13,7 @@ Route::livewire('/', 'landing')->name('home');
 Route::livewire('posts', 'posts.index')->middleware('throttle:60,1')->name('posts.index');
 Route::livewire('posts/{slug}', 'posts.show')->middleware('throttle:60,1')->name('posts.show');
 
-Route::view('profile', 'profile')
+Route::livewire('profile', 'profile.show')
     ->middleware(['auth'])
     ->name('profile');
 
