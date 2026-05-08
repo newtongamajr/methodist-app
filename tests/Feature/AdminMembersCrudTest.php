@@ -39,13 +39,13 @@ it('lets a global manager create a member with multi-church attachments', functi
     $this->actingAs($super);
 
     Livewire::test('admin.members.editor')
-        ->set('name', 'New Member')
-        ->set('email', 'newmember@demo.test')
-        ->set('password', 'secret-password')
-        ->set('member_type', 'interested')
-        ->set('church_ids', [$a->id, $b->id])
-        ->set('primary_church_id', $b->id)
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'New Member')
+        ->set('form.email', 'newmember@demo.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.member_type', 'interested')
+        ->set('form.church_ids', [$a->id, $b->id])
+        ->set('form.primary_church_id', $b->id)
+        ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -67,13 +67,13 @@ it('forces a master\'s new member into the master\'s church pool', function () {
     $this->actingAs($master);
 
     Livewire::test('admin.members.editor')
-        ->set('name', 'Local Newbie')
-        ->set('email', 'newbie@demo.test')
-        ->set('password', 'secret-password')
-        ->set('member_type', 'member')
-        ->set('church_ids', [$foreign->id]) // attempts to escape
-        ->set('primary_church_id', $foreign->id)
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'Local Newbie')
+        ->set('form.email', 'newbie@demo.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.member_type', 'member')
+        ->set('form.church_ids', [$foreign->id]) // attempts to escape
+        ->set('form.primary_church_id', $foreign->id)
+        ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
 
