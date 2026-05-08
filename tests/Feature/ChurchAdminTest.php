@@ -42,13 +42,13 @@ it('creates a church and a master user in the same flow', function () {
     $this->actingAs(makeSuper());
 
     Livewire::test('admin.churches.editor')
-        ->set('ecclesiastical_region_id', $region->id)
-        ->set('name', 'Igreja Demo')
-        ->set('city', 'São Paulo')
-        ->set('state', 'SP')
-        ->set('master_name', 'Pastor Demo')
-        ->set('master_email', 'pastor@demo.test')
-        ->set('master_password', 'secret-password')
+        ->set('form.ecclesiastical_region_id', $region->id)
+        ->set('form.name', 'Igreja Demo')
+        ->set('form.city', 'São Paulo')
+        ->set('form.state', 'SP')
+        ->set('form.master_name', 'Pastor Demo')
+        ->set('form.master_email', 'pastor@demo.test')
+        ->set('form.master_password', 'secret-password')
         ->call('save')
         ->assertHasNoErrors();
 
