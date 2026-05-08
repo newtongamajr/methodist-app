@@ -5,7 +5,6 @@ document.addEventListener('alpine:init', () => {
     window.Alpine.data('avatarCropper', () => ({
         cropper: null,
         srcUrl: null,
-        open: false,
         saving: false,
 
         pickFile(event) {
@@ -16,7 +15,7 @@ document.addEventListener('alpine:init', () => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.srcUrl = e.target.result;
-                this.open = true;
+                window.dispatchEvent(new CustomEvent('modal-show', { detail: { name: 'avatar-cropper' } }));
                 this.$nextTick(() => this.mount());
             };
             reader.readAsDataURL(file);
@@ -86,7 +85,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         close() {
-            this.open = false;
+            window.dispatchEvent(new CustomEvent('modal-close', { detail: { name: 'avatar-cropper' } }));
             this.srcUrl = null;
             this.destroy();
         },

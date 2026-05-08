@@ -74,8 +74,14 @@
                 </div>
             @endif
 
-            <input type="file" wire:model="newCover" accept="image/jpeg,image/png,image/webp" class="block w-full text-sm">
-            <div wire:loading wire:target="newCover" class="text-xs text-zinc-500">{{ __('Uploading…') }}</div>
+            <flux:file-upload wire:model="newCover" accept="image/jpeg,image/png,image/webp">
+                <flux:file-upload.dropzone
+                    inline
+                    icon="photo"
+                    :heading="__('Drop a cover image or click to upload')"
+                    :text="__('JPG, PNG or WebP up to 10 MB')"
+                />
+            </flux:file-upload>
             @error('newCover') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 
@@ -98,8 +104,14 @@
                     @endforeach
                 </div>
             @endif
-            <input type="file" wire:model="newImages" accept="image/*" multiple class="block w-full text-sm">
-            <div wire:loading wire:target="newImages" class="text-xs text-zinc-500">{{ __('Uploading…') }}</div>
+            <flux:file-upload wire:model="newImages" accept="image/*" multiple>
+                <flux:file-upload.dropzone
+                    inline
+                    icon="photo"
+                    :heading="__('Drop images or click to upload')"
+                    :text="__('Multiple JPG, PNG, WebP or GIF, up to 10 MB each')"
+                />
+            </flux:file-upload>
             @error('newImages.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 
@@ -119,8 +131,14 @@
                     @endforeach
                 </ul>
             @endif
-            <input type="file" wire:model="newVideos" accept="video/mp4,video/webm,video/ogg,video/quicktime" multiple class="block w-full text-sm">
-            <div wire:loading wire:target="newVideos" class="text-xs text-zinc-500">{{ __('Uploading…') }}</div>
+            <flux:file-upload wire:model="newVideos" accept="video/mp4,video/webm,video/ogg,video/quicktime" multiple>
+                <flux:file-upload.dropzone
+                    inline
+                    icon="film"
+                    :heading="__('Drop videos or click to upload')"
+                    :text="__('MP4, WebM, OGG or MOV, up to 100 MB each')"
+                />
+            </flux:file-upload>
             @error('newVideos.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 
@@ -140,8 +158,14 @@
                     @endforeach
                 </ul>
             @endif
-            <input type="file" wire:model="newAudios" accept="audio/*" multiple class="block w-full text-sm">
-            <div wire:loading wire:target="newAudios" class="text-xs text-zinc-500">{{ __('Uploading…') }}</div>
+            <flux:file-upload wire:model="newAudios" accept="audio/*" multiple>
+                <flux:file-upload.dropzone
+                    inline
+                    icon="musical-note"
+                    :heading="__('Drop audio files or click to upload')"
+                    :text="__('MP3, M4A, OGG, WAV or WebM, up to 50 MB each')"
+                />
+            </flux:file-upload>
             @error('newAudios.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 
@@ -161,8 +185,14 @@
                     @endforeach
                 </ul>
             @endif
-            <input type="file" wire:model="newDocuments" accept="application/pdf" multiple class="block w-full text-sm">
-            <div wire:loading wire:target="newDocuments" class="text-xs text-zinc-500">{{ __('Uploading…') }}</div>
+            <flux:file-upload wire:model="newDocuments" accept="application/pdf" multiple>
+                <flux:file-upload.dropzone
+                    inline
+                    icon="document"
+                    :heading="__('Drop PDFs or click to upload')"
+                    :text="__('PDF only, up to 20 MB each')"
+                />
+            </flux:file-upload>
             @error('newDocuments.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 

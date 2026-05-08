@@ -44,8 +44,8 @@
                     <option value="{{ $r->value }}">{{ $r->label() }}</option>
                 @endforeach
             </flux:select>
-            <flux:input wire:model="form.start_date" :label="__('Start date')" type="date" />
-            <flux:input wire:model="form.end_date" :label="__('End date')" type="date" :placeholder="__('Active')" />
+            <flux:date-picker wire:model="form.start_date" :label="__('Start date')" />
+            <flux:date-picker wire:model="form.end_date" :label="__('End date')" :placeholder="__('Active')" />
         </div>
 
         <flux:input wire:model="form.display_order" :label="__('Display order')" type="number" min="0" max="99" />
