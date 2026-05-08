@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
-            {{ $post ? __('Edit post') : __('New post') }}
+            {{ $form->post ? __('Edit post') : __('New post') }}
         </flux:heading>
         <flux:button :href="route('admin.posts.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
     </div>
@@ -13,12 +13,12 @@
     @endif
 
     <form wire:submit="save" class="space-y-6">
-        <flux:input wire:model="title" :label="__('Title')" required />
+        <flux:input wire:model="form.title" :label="__('Title')" required />
 
         <flux:field>
             <flux:label>{{ __('Excerpt') }}</flux:label>
-            <flux:editor wire:model="excerpt" toolbar="bold italic underline | bullet ordered | link" />
-            <flux:error name="excerpt" />
+            <flux:editor wire:model="form.excerpt" toolbar="bold italic underline | bullet ordered | link" />
+            <flux:error name="form.excerpt" />
         </flux:field>
 
         <div>
@@ -26,32 +26,32 @@
             <div wire:ignore>
                 <textarea
                     data-tinymce="rich"
-                    data-livewire-prop="body"
-                    id="post-body-{{ $post?->id ?? 'new' }}"
+                    data-livewire-prop="form.body"
+                    id="post-body-{{ $form->post?->id ?? 'new' }}"
                     class="mt-2"
-                >{!! $body !!}</textarea>
+                >{!! $form->body !!}</textarea>
             </div>
-            @error('body') <flux:text class="mt-1 text-rose-600">{{ $message }}</flux:text> @enderror
+            @error('form.body') <flux:text class="mt-1 text-rose-600">{{ $message }}</flux:text> @enderror
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model.live="scope" :label="__('Scope')">
+            <flux:select wire:model.live="form.scope" :label="__('Scope')">
                 @foreach (\App\Enums\PostScope::cases() as $s)
                     <option value="{{ $s->value }}">{{ $s->label() }}</option>
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model="status" :label="__('Status')">
+            <flux:select wire:model="form.status" :label="__('Status')">
                 @foreach (\App\Enums\PostStatus::cases() as $s)
                     <option value="{{ $s->value }}">{{ $s->label() }}</option>
                 @endforeach
             </flux:select>
 
-            <flux:input wire:model="published_at" :label="__('Publish at')" type="datetime-local" />
+            <flux:input wire:model="form.published_at" :label="__('Publish at')" type="datetime-local" />
         </div>
 
-        @if ($scope === 'local')
-            <flux:select wire:model="church_id" :label="__('Church')">
+        @if ($form->scope === 'local')
+            <flux:select wire:model="form.church_id" :label="__('Church')">
                 <option value="">{{ __('— Select a church —') }}</option>
                 @foreach ($this->churches as $church)
                     <option value="{{ $church->id }}">

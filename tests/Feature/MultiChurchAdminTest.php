@@ -99,7 +99,7 @@ it('post editor list of available churches respects manager scope', function () 
     $this->actingAs($manager);
 
     Livewire::test('admin.posts.editor')
-        ->assertSet('scope', 'local')
+        ->assertSet('form.scope', 'local')
         ->assertDontSee('Foreign Church');
 });
 
