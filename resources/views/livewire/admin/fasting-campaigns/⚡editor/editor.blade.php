@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
-            {{ $campaign ? __('Edit campaign') : __('New campaign') }}
+            {{ $form->campaign ? __('Edit campaign') : __('New campaign') }}
         </flux:heading>
         <flux:button :href="route('admin.fasting-campaigns.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
     </div>
@@ -14,16 +14,16 @@
 
     <form wire:submit="save" class="space-y-5">
         <div class="grid gap-4 sm:grid-cols-2">
-            <flux:input wire:model="name" :label="__('Name')" required />
-            <flux:input wire:model="slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
+            <flux:input wire:model="form.name" :label="__('Name')" required />
+            <flux:input wire:model="form.slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
         </div>
 
-        <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
+        <flux:textarea wire:model="form.description" :label="__('Description')" rows="2" />
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:input wire:model="start_date" :label="__('Start date')" type="date" required />
-            <flux:input wire:model="end_date" :label="__('End date')" type="date" required />
-            <flux:checkbox wire:model="is_active" :label="__('Active')" />
+            <flux:input wire:model="form.start_date" :label="__('Start date')" type="date" required />
+            <flux:input wire:model="form.end_date" :label="__('End date')" type="date" required />
+            <flux:checkbox wire:model="form.is_active" :label="__('Active')" />
         </div>
 
         <section class="space-y-3">
@@ -31,12 +31,12 @@
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingType::cases() as $t)
                     <label wire:key="fasting-type-{{ $t->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $t->value }}" wire:model="types" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
+                        <input type="checkbox" value="{{ $t->value }}" wire:model="form.types" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
                         {{ $t->label() }}
                     </label>
                 @endforeach
             </div>
-            @error('types') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            @error('form.types') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </section>
 
         <section class="space-y-3">
@@ -44,7 +44,7 @@
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingRestriction::cases() as $r)
                     <label wire:key="fasting-restriction-{{ $r->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $r->value }}" wire:model="restrictions" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
+                        <input type="checkbox" value="{{ $r->value }}" wire:model="form.restrictions" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
                         {{ $r->label() }}
                     </label>
                 @endforeach
