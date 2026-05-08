@@ -16,7 +16,7 @@ new class extends Component
         session(['appearance' => $appearance]);
 
         if ($user = auth()->user()) {
-            $user->forceFill(['appearance' => $appearance])->save();
+            $user->update(['appearance' => $appearance]);
         }
 
         // Client already called Flux.applyAppearance() optimistically;
