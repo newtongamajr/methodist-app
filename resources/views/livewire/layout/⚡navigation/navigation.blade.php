@@ -258,8 +258,8 @@
             x-data
             x-on:keydown.window.k="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $dispatch('modal-show', { name: 'command-palette' }) }"
         >
-            <flux:modal name="command-palette" variant="bare" class="md:max-w-xl!">
-                <flux:command @command-select="$dispatch('modal-close', { name: 'command-palette' })">
+            <flux:modal name="command-palette" class="md:max-w-xl! p-0!">
+                <flux:command>
                     <flux:command.input wire:model.live.debounce.250ms="commandSearch" :placeholder="__('Search admin pages…')" closable />
                     <flux:command.items>
                         @php $results = $this->commandResults; @endphp
