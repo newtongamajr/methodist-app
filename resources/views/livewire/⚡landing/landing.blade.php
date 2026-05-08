@@ -29,7 +29,7 @@
         </div>
     </header>
 
-    <section class="relative isolate overflow-hidden bg-linear-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
+    <section class="relative isolate overflow-hidden bg-linear-to-br from-methodist-red-900 via-accent to-methodist-red-700 text-white">
         <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]"></div>
 
         <div class="relative mx-auto grid max-w-7xl items-center gap-10 px-6 pb-16 pt-32 lg:grid-cols-2 lg:gap-16 lg:px-10 lg:pb-24 lg:pt-40">
@@ -47,7 +47,7 @@
                 </p>
 
                 <div class="mt-10 flex flex-wrap items-center gap-3">
-                    <flux:button :href="route('register')" variant="primary" icon-trailing="arrow-right" class="bg-white! text-[#c8202f]! hover:bg-rose-50!">
+                    <flux:button :href="route('register')" variant="primary" icon-trailing="arrow-right" class="bg-white! text-accent! hover:bg-rose-50!">
                         {{ __('Join the campaign') }}
                     </flux:button>
                     <flux:button :href="route('posts.index')" variant="ghost" icon="newspaper" class="text-white hover:bg-white/10">
@@ -72,16 +72,16 @@
         </div>
     </section>
 
-    <section class="bg-[#f7f1e7] py-20 dark:bg-zinc-900">
+    <section class="bg-methodist-cream py-20 dark:bg-zinc-900">
         <div class="mx-auto max-w-7xl px-6 lg:px-10">
-            <flux:heading size="xl" class="text-center text-[#c8202f]! dark:text-rose-300!">
+            <flux:heading size="xl" class="text-center text-accent! dark:text-rose-300!">
                 {{ __('What you can do') }}
             </flux:heading>
 
             <div class="mt-12 grid gap-6 md:grid-cols-3">
                 <flux:card>
                     <div class="flex items-center gap-3">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-[#c8202f]/10 text-[#c8202f] dark:bg-rose-500/15 dark:text-rose-300">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300">
                             <flux:icon.clock class="size-5" />
                         </div>
                         <flux:heading>{{ __('Reserve a prayer slot') }}</flux:heading>
@@ -93,7 +93,7 @@
 
                 <flux:card>
                     <div class="flex items-center gap-3">
-                        <div class="flex size-10 items-center justify-center rounded-lg bg-[#00529b]/10 text-[#00529b] dark:bg-sky-500/15 dark:text-sky-300">
+                        <div class="flex size-10 items-center justify-center rounded-lg bg-methodist-blue/10 text-methodist-blue dark:bg-sky-500/15 dark:text-sky-300">
                             <flux:icon.calendar class="size-5" />
                         </div>
                         <flux:heading>{{ __('Log your fasting') }}</flux:heading>
@@ -125,8 +125,8 @@
             <ol class="mx-auto mt-12 grid max-w-5xl gap-8 md:grid-cols-3">
                 @php
                     $steps = [
-                        ['title' => __('Pick your church'), 'body' => __("Choose the local Methodist congregation you belong to or the one that's closest to you."), 'color' => '#c8202f'],
-                        ['title' => __('Choose your moment'), 'body' => __("Sign up for the prayer slots that fit your day. Each church has a coverage goal — your hour might be the one that's missing."), 'color' => '#00529b'],
+                        ['title' => __('Pick your church'), 'body' => __("Choose the local Methodist congregation you belong to or the one that's closest to you."), 'color' => 'var(--color-accent)'],
+                        ['title' => __('Choose your moment'), 'body' => __("Sign up for the prayer slots that fit your day. Each church has a coverage goal — your hour might be the one that's missing."), 'color' => 'var(--color-methodist-blue)'],
                         ['title' => __('Walk together'), 'body' => __('Add your fasting plan, share testimonies, and be edified by what others are sharing.'), 'color' => '#d97706'],
                     ];
                 @endphp
@@ -144,7 +144,7 @@
         </div>
     </section>
 
-    <section class="bg-[#00529b] py-14 text-white">
+    <section class="bg-methodist-blue py-14 text-white">
         <div class="mx-auto max-w-7xl px-6 text-center lg:px-10">
             <flux:heading size="lg" class="text-white!">
                 {{ __('All Brazilian Methodist regions are participating') }}
@@ -161,7 +161,7 @@
             </div>
 
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-                <flux:button :href="route('register')" variant="primary" class="bg-white! text-[#00529b]! hover:bg-sky-50!">
+                <flux:button :href="route('register')" variant="primary" class="bg-white! text-methodist-blue! hover:bg-sky-50!">
                     {{ __('Join the campaign') }}
                 </flux:button>
                 <flux:button :href="route('posts.index')" variant="ghost" icon="newspaper" class="text-white hover:bg-white/10">

@@ -26,7 +26,7 @@
     </script>
 </head>
 <body class="font-sans antialiased text-zinc-900 dark:text-zinc-100">
-    <div class="relative min-h-screen overflow-hidden bg-linear-to-br from-[#7a1620] via-[#c8202f] to-[#9c1825] text-white">
+    <div class="relative min-h-screen overflow-hidden bg-linear-to-br from-methodist-red-900 via-accent to-methodist-red-700 text-white">
         <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,255,255,0.18),transparent_60%)]"></div>
 
         <header class="relative z-20">

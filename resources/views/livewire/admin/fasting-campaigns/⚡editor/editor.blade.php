@@ -31,7 +31,7 @@
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingType::cases() as $t)
                     <label wire:key="fasting-type-{{ $t->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $t->value }}" wire:model="form.types" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
+                        <input type="checkbox" value="{{ $t->value }}" wire:model="form.types" class="rounded-sm text-accent focus:ring-accent">
                         {{ $t->label() }}
                     </label>
                 @endforeach
@@ -44,7 +44,7 @@
             <div class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingRestriction::cases() as $r)
                     <label wire:key="fasting-restriction-{{ $r->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $r->value }}" wire:model="form.restrictions" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
+                        <input type="checkbox" value="{{ $r->value }}" wire:model="form.restrictions" class="rounded-sm text-accent focus:ring-accent">
                         {{ $r->label() }}
                     </label>
                 @endforeach

@@ -14,7 +14,7 @@
         <flux:input wire:model="email" :label="__('Email')" type="email" required autofocus />
 
         <div class="flex items-center justify-between gap-4 pt-2">
-            <a href="{{ route('login') }}" class="text-sm font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>
+            <a href="{{ route('login') }}" class="text-sm font-medium text-accent hover:underline dark:text-rose-300" wire:navigate>
                 {{ __('Back to login') }}
             </a>
             <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="sendPasswordResetLink">

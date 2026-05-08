@@ -116,7 +116,7 @@
                                             type="checkbox"
                                             value="{{ $r->value }}"
                                             wire:model="restrictions"
-                                            class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
+                                            class="rounded-sm text-accent focus:ring-accent"
                                         >
                                         {{ $r->label() }}
                                     </label>

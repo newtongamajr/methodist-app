@@ -47,7 +47,7 @@
                             type="checkbox"
                             value="{{ $church['id'] }}"
                             wire:model.live="form.church_ids"
-                            class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
+                            class="rounded-sm text-accent focus:ring-accent"
                         >
                         <span class="flex-1">{{ $church['name'] }}</span>
                         <input
@@ -56,7 +56,7 @@
                             value="{{ $church['id'] }}"
                             wire:model="form.primary_church_id"
                             @disabled(! in_array($church['id'], $form->church_ids, true))
-                            class="text-[#c8202f]"
+                            class="text-accent"
                             title="{{ __('Mark as primary') }}"
                         >
                     </label>

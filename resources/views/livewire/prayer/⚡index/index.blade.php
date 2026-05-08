@@ -14,7 +14,7 @@
     @if (! $churchId)
         <flux:text class="text-zinc-500">
             {{ __('Pick a church in your profile to see prayer slots.') }}
-            <a href="{{ route('profile') }}" class="font-medium text-[#c8202f] hover:underline" wire:navigate>{{ __('Open profile') }}</a>
+            <a href="{{ route('profile') }}" class="font-medium text-accent hover:underline" wire:navigate>{{ __('Open profile') }}</a>
         </flux:text>
     @elseif (! $this->campaign)
         <flux:text class="text-zinc-500">
@@ -31,7 +31,7 @@
             @endif
             @if ($this->campaign->objectives)
                 <details class="mt-3 text-sm">
-                    <summary class="cursor-pointer font-medium text-[#c8202f] hover:underline dark:text-rose-300">
+                    <summary class="cursor-pointer font-medium text-accent hover:underline dark:text-rose-300">
                         {{ __('Objectives') }}
                     </summary>
                     <div class="mt-2 whitespace-pre-line text-zinc-700 dark:text-zinc-300">{{ $this->campaign->objectives }}</div>
@@ -158,7 +158,7 @@
                             <div class="w-28 shrink-0">
                                 <div @class([
                                     'rounded-md px-2 py-1 text-center text-sm font-semibold',
-                                    'bg-[#c8202f]/10 text-[#c8202f] dark:bg-rose-500/15 dark:text-rose-300' => $isMine,
+                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $isMine,
                                     'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => ! $isMine,
                                 ])>
                                     {{ $slot->starts_at->format('H:i') }} – {{ $slot->ends_at->format('H:i') }}
@@ -189,7 +189,7 @@
                                                 wire:key="signup-{{ $signup->id }}"
                                                 @class([
                                                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
-                                                    'bg-[#c8202f]/10 text-[#c8202f] dark:bg-rose-500/15 dark:text-rose-300' => $signup->user_id === $myId,
+                                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $signup->user_id === $myId,
                                                     'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200' => $coverageFilter === 'user' && $signup->user_id === (int) $userFilterId && $signup->user_id !== $myId,
                                                     'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => $signup->user_id !== $myId && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
                                                 ])

@@ -41,7 +41,7 @@
                             type="button"
                             wire:key="img-{{ $image->id }}"
                             @click.prevent="open = true; src = '{{ $image->getUrl() }}'"
-                            class="block overflow-hidden rounded-md focus:outline-hidden focus:ring-2 focus:ring-[#c8202f]"
+                            class="block overflow-hidden rounded-md focus:outline-hidden focus:ring-2 focus:ring-accent"
                         >
                             <img
                                 src="{{ $image->getUrl('card') ?: $image->getUrl() }}"
@@ -202,7 +202,7 @@
             </form>
         @else
             <flux:text>
-                <a href="{{ route('login') }}" class="font-medium text-[#c8202f] hover:underline" wire:navigate>{{ __('Sign in') }}</a>
+                <a href="{{ route('login') }}" class="font-medium text-accent hover:underline" wire:navigate>{{ __('Sign in') }}</a>
                 {{ __('to like and comment.') }}
             </flux:text>
         @endauth

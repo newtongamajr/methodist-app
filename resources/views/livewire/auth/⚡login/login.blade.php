@@ -17,7 +17,7 @@
 
         <div class="flex items-center justify-between gap-4 pt-2">
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="text-sm font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>
+                <a href="{{ route('password.request') }}" class="text-sm font-medium text-accent hover:underline dark:text-rose-300" wire:navigate>
                     {{ __('Forgot your password?') }}
                 </a>
             @endif
@@ -29,7 +29,7 @@
 
         <p class="pt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
             {{ __("Don't have an account?") }}
-            <a href="{{ route('register') }}" class="font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>{{ __('Sign up') }}</a>
+            <a href="{{ route('register') }}" class="font-medium text-accent hover:underline dark:text-rose-300" wire:navigate>{{ __('Sign up') }}</a>
         </p>
     </form>
 </div>
