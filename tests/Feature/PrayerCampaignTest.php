@@ -62,16 +62,16 @@ it('refuses a schedule whose date is outside the campaign window', function () {
     $campaign = PrayerCampaign::factory()->range('2026-05-04', '2026-05-24')->create();
 
     Livewire::test('admin.prayer-schedules.editor')
-        ->set('church_id', $church->id)
-        ->set('prayer_campaign_id', $campaign->id)
-        ->set('date', '2026-04-15') // outside window
-        ->set('start_time', '06:00')
-        ->set('end_time', '07:00')
-        ->set('slot_minutes', 60)
-        ->set('capacity_per_slot', 5)
-        ->set('mode', 'presential')
+        ->set('form.church_id', $church->id)
+        ->set('form.prayer_campaign_id', $campaign->id)
+        ->set('form.date', '2026-04-15') // outside window
+        ->set('form.start_time', '06:00')
+        ->set('form.end_time', '07:00')
+        ->set('form.slot_minutes', 60)
+        ->set('form.capacity_per_slot', 5)
+        ->set('form.mode', 'presential')
         ->call('save')
-        ->assertHasErrors('date');
+        ->assertHasErrors('form.date');
 
     expect(PrayerSchedule::query()->count())->toBe(0);
 });

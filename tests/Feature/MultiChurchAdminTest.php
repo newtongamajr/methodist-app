@@ -119,14 +119,14 @@ it('local schedule editor scopes the church dropdown to manageable churches', fu
     $this->actingAs($manager);
 
     Livewire::test('admin.prayer-schedules.editor')
-        ->set('church_id', $b->id)
-        ->set('prayer_campaign_id', $campaign->id)
-        ->set('date', now()->addDay()->toDateString())
-        ->set('start_time', '06:00')
-        ->set('end_time', '07:00')
-        ->set('slot_minutes', 60)
-        ->set('capacity_per_slot', 5)
-        ->set('mode', 'presential')
+        ->set('form.church_id', $b->id)
+        ->set('form.prayer_campaign_id', $campaign->id)
+        ->set('form.date', now()->addDay()->toDateString())
+        ->set('form.start_time', '06:00')
+        ->set('form.end_time', '07:00')
+        ->set('form.slot_minutes', 60)
+        ->set('form.capacity_per_slot', 5)
+        ->set('form.mode', 'presential')
         ->call('save')
         ->assertHasNoErrors();
 
