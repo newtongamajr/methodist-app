@@ -6,6 +6,7 @@ use App\Models\Post;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -15,8 +16,13 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'q')]
     public string $search = '';
+
+    #[Url(as: 'status')]
     public string $statusFilter = '';
+
+    #[Url(as: 'scope')]
     public string $scopeFilter = '';
 
     public function updatingSearch(): void

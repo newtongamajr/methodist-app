@@ -5,6 +5,7 @@ use App\Models\PrayerCampaign;
 use App\Models\PrayerSchedule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -14,7 +15,10 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'church')]
     public ?int $churchFilter = null;
+
+    #[Url(as: 'campaign')]
     public ?int $campaignFilter = null;
 
     public function mount(?int $church = null): void

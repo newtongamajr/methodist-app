@@ -3,6 +3,7 @@
 use App\Models\Church;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,6 +13,7 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'q')]
     public string $search = '';
 
     public function mount(): void

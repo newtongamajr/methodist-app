@@ -4,6 +4,7 @@ use App\Models\Church;
 use App\Models\User;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,8 +14,13 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'q')]
     public string $search = '';
+
+    #[Url(as: 'church')]
     public ?int $churchFilter = null;
+
+    #[Url(as: 'type')]
     public string $memberTypeFilter = '';
 
     public function mount(?int $church = null): void
