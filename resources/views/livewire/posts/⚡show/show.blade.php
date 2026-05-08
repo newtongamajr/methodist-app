@@ -165,8 +165,10 @@
             @endif
 
             <form wire:submit="submitComment" class="space-y-3">
-                <flux:textarea wire:model="newComment" rows="3" :placeholder="__('Share an encouraging word…')" />
-                @error('newComment') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+                <flux:field>
+                    <flux:textarea wire:model="newComment" rows="3" :placeholder="__('Share an encouraging word…')" />
+                    <flux:error name="newComment" />
+                </flux:field>
 
                 <div class="flex justify-end">
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="submitComment">{{ __('Send comment') }}</flux:button>

@@ -31,11 +31,11 @@
             />
         </div>
 
-        <section class="space-y-3">
+        <flux:field>
             <flux:label>{{ __('Churches this user can administer') }}</flux:label>
-            <flux:text class="text-sm text-zinc-500">
+            <flux:description>
                 {{ __('Tick every church the user should manage. The primary one becomes their default context after sign-in.') }}
-            </flux:text>
+            </flux:description>
             <div class="grid gap-2 sm:grid-cols-2">
                 @foreach ($this->selectableChurches as $church)
                     <label wire:key="user-edit-church-{{ $church['id'] }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
@@ -58,8 +58,8 @@
                     </label>
                 @endforeach
             </div>
-            @error('form.church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
-        </section>
+            <flux:error name="form.church_ids" />
+        </flux:field>
 
         @if ($this->isSuper)
             <flux:select wire:model="form.role" :label="__('Role')" required>

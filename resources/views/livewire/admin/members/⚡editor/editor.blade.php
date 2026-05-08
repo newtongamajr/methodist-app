@@ -38,11 +38,11 @@
             @endforeach
         </flux:select>
 
-        <section class="space-y-3">
+        <flux:field>
             <flux:label>{{ __('Churches this member belongs to') }}</flux:label>
-            <flux:text class="text-sm text-zinc-500">
+            <flux:description>
                 {{ __('Pick every church the member is associated with. The primary one is the default context after sign-in.') }}
-            </flux:text>
+            </flux:description>
             <div class="grid gap-2 sm:grid-cols-2">
                 @foreach ($this->selectableChurches as $church)
                     <label wire:key="member-edit-church-{{ $church['id'] }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
@@ -65,8 +65,8 @@
                     </label>
                 @endforeach
             </div>
-            @error('form.church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
-        </section>
+            <flux:error name="form.church_ids" />
+        </flux:field>
 
         <flux:select wire:model="form.locale" :label="__('Language')">
             @foreach (\App\Enums\AppLocale::cases() as $loc)

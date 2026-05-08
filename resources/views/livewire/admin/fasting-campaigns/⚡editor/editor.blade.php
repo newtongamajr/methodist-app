@@ -35,7 +35,7 @@
                     <flux:checkbox wire:key="fasting-type-{{ $t->value }}" value="{{ $t->value }}" :label="$t->label()" />
                 @endforeach
             </flux:checkbox.group>
-            @error('form.types') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="form.types" />
         </section>
 
         <section class="space-y-3">

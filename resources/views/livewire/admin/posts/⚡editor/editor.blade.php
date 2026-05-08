@@ -24,7 +24,7 @@
             <flux:error name="form.excerpt" />
         </flux:field>
 
-        <div>
+        <flux:field>
             <flux:label>{{ __('Body') }}</flux:label>
             <div wire:ignore>
                 <textarea
@@ -34,8 +34,8 @@
                     class="mt-2"
                 >{!! $form->body !!}</textarea>
             </div>
-            @error('form.body') <flux:text class="mt-1 text-rose-600">{{ $message }}</flux:text> @enderror
-        </div>
+            <flux:error name="form.body" />
+        </flux:field>
 
         <div class="grid gap-4 sm:grid-cols-3">
             <flux:select wire:model.live="form.scope" :label="__('Scope')">
@@ -85,7 +85,7 @@
                     :text="__('JPG, PNG or WebP up to 10 MB')"
                 />
             </flux:file-upload>
-            @error('newCover') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newCover" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -117,7 +117,7 @@
                     :text="__('Multiple JPG, PNG, WebP or GIF, up to 10 MB each')"
                 />
             </flux:file-upload>
-            @error('newImages.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newImages.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -146,7 +146,7 @@
                     :text="__('MP4, WebM, OGG or MOV, up to 100 MB each')"
                 />
             </flux:file-upload>
-            @error('newVideos.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newVideos.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -175,7 +175,7 @@
                     :text="__('MP3, M4A, OGG, WAV or WebM, up to 50 MB each')"
                 />
             </flux:file-upload>
-            @error('newAudios.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newAudios.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -204,7 +204,7 @@
                     :text="__('PDF only, up to 20 MB each')"
                 />
             </flux:file-upload>
-            @error('newDocuments.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newDocuments.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -250,7 +250,7 @@
                 </flux:button>
             </div>
             <div wire:loading wire:target="addEmbed" class="text-xs text-zinc-500">{{ __('Fetching link metadata…') }}</div>
-            @error('newEmbedUrl') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newEmbedUrl" />
         </div>
 
         <div class="flex justify-end gap-2">
