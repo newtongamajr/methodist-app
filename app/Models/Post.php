@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\CommentStatus;
 use App\Enums\PostScope;
 use App\Enums\PostStatus;
+use App\Support\GenerateUniqueSlug;
 use Database\Factories\PostFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -13,7 +14,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Str;
 use Mews\Purifier\Facades\Purifier;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
@@ -50,7 +50,10 @@ class Post extends Model implements HasMedia
     {
         static::saving(function (Post $post) {
             if (empty($post->slug)) {
-                $post->slug = static::generateUniqueSlug($post->title);
+                $post->slug = (new GenerateUniqueSlug)(
+                    $post->title,
+                    static::query()->whereKeyNot($post->getKey() ?? 0),
+                );
             }
         });
     }
@@ -67,19 +70,6 @@ class Post extends Model implements HasMedia
         return Attribute::make(
             set: fn (?string $value) => $value === null ? null : Purifier::clean($value, 'post.excerpt'),
         );
-    }
-
-    public static function generateUniqueSlug(string $title): string
-    {
-        $base = Str::slug($title) ?: Str::lower(Str::random(8));
-        $slug = $base;
-        $i = 1;
-        while (static::query()->where('slug', $slug)->exists()) {
-            $i++;
-            $slug = $base.'-'.$i;
-        }
-
-        return $slug;
     }
 
     public function author(): BelongsTo

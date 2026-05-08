@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Forms;
 
 use App\Models\PrayerCampaign;
-use Illuminate\Support\Str;
+use App\Support\GenerateUniqueSlug;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -57,13 +57,10 @@ class PrayerCampaignForm extends Form
         $data = $this->validate();
 
         if (empty($data['slug'])) {
-            $base = Str::slug($data['name']) ?: 'campaign-'.Str::lower(Str::random(6));
-            $slug = $base;
-            $i = 1;
-            while (PrayerCampaign::query()->where('slug', $slug)->where('id', '!=', $this->campaign?->id ?? 0)->exists()) {
-                $slug = $base.'-'.(++$i);
-            }
-            $data['slug'] = $slug;
+            $data['slug'] = (new GenerateUniqueSlug)(
+                $data['name'],
+                PrayerCampaign::query()->whereKeyNot($this->campaign?->id ?? 0),
+            );
         }
 
         if ($this->campaign) {
