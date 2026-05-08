@@ -3,7 +3,9 @@
 use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use App\Models\Post;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -25,6 +27,18 @@ class extends Component
     #[Url(as: 'scope')]
     public string $scopeFilter = '';
 
+    #[Url(as: 'church')]
+    public ?int $churchFilter = null;
+
+    #[Url(as: 'author')]
+    public ?int $authorFilter = null;
+
+    #[Url(as: 'sort')]
+    public string $sortBy = 'updated_at';
+
+    #[Url(as: 'dir')]
+    public string $sortDir = 'desc';
+
     public function updatingSearch(): void
     {
         $this->resetPage();
@@ -40,6 +54,51 @@ class extends Component
         $this->resetPage();
     }
 
+    public function updatingChurchFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingAuthorFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['title', 'author', 'published_at'], true)) {
+            return;
+        }
+
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            // Dates default desc (most recent first); text defaults asc.
+            $this->sortDir = $column === 'published_at' ? 'desc' : 'asc';
+        }
+
+        $this->resetPage();
+    }
+
+    #[Computed]
+    public function availableChurches(): Collection
+    {
+        return auth()->user()
+            ->manageableChurches()
+            ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])
+            ->values();
+    }
+
+    #[Computed]
+    public function availableAuthors(): Collection
+    {
+        return User::query()
+            ->whereIn('id', Post::query()->select('author_id')->distinct())
+            ->orderBy('name')
+            ->get(['id', 'name']);
+    }
+
     #[Computed]
     public function posts(): LengthAwarePaginator
     {
@@ -47,8 +106,7 @@ class extends Component
 
         $q = Post::query()
             ->select(['id', 'title', 'slug', 'scope', 'status', 'author_id', 'church_id', 'updated_at', 'published_at', 'created_at', 'deleted_at'])
-            ->with(['author:id,name', 'church:id,name'])
-            ->latest('updated_at');
+            ->with(['author:id,name', 'church:id,name']);
 
         if (! $user->can('posts.update.any')) {
             $manageable = $user->manageableChurchIds();
@@ -72,6 +130,20 @@ class extends Component
         if ($this->scopeFilter !== '') {
             $q->where('scope', $this->scopeFilter);
         }
+        if ($this->churchFilter) {
+            $q->where('church_id', $this->churchFilter);
+        }
+        if ($this->authorFilter) {
+            $q->where('author_id', $this->authorFilter);
+        }
+
+        $orderColumn = match ($this->sortBy) {
+            'title' => 'title',
+            'published_at' => 'published_at',
+            'author' => User::query()->select('name')->whereColumn('users.id', 'posts.author_id'),
+            default => 'updated_at',
+        };
+        $q->orderBy($orderColumn, $this->sortDir);
 
         return $q->paginate(15);
     }
