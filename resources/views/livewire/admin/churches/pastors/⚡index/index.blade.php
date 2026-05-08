@@ -21,53 +21,58 @@
         </flux:tabs>
     </flux:tab.group>
 
-    <div class="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700 text-sm">
-            <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                <tr>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Pastor') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Role') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Start') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('End') }}</th>
-                    <th class="px-4 py-2 text-end font-semibold">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                @forelse ($this->assignments as $a)
-                    <tr wire:key="assign-{{ $a->id }}">
-                        <td class="px-4 py-3">
-                            <div class="font-medium">{{ $a->pastor?->name }}</div>
+    @if ($this->assignments->isEmpty())
+        <div class="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
+            {{ __('No assignments in this view.') }}
+        </div>
+    @else
+        <flux:table>
+            <flux:table.columns>
+                <flux:table.column>{{ __('Pastor') }}</flux:table.column>
+                <flux:table.column>{{ __('Role') }}</flux:table.column>
+                <flux:table.column>{{ __('Start') }}</flux:table.column>
+                <flux:table.column>{{ __('End') }}</flux:table.column>
+                <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @foreach ($this->assignments as $a)
+                    <flux:table.row :key="'assign-'.$a->id">
+                        <flux:table.cell variant="strong">
+                            <div>{{ $a->pastor?->name }}</div>
                             <div class="text-xs text-zinc-500">{{ $a->pastor?->email }}</div>
-                        </td>
-                        <td class="px-4 py-3">
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge :color="match($a->role->value) { 'main' => 'rose', 'seminarist' => 'amber', default => 'zinc' }">
                                 {{ $a->role->label() }}
                             </flux:badge>
-                        </td>
-                        <td class="px-4 py-3">{{ $a->start_date?->isoFormat('LL') ?? '—' }}</td>
-                        <td class="px-4 py-3">
+                        </flux:table.cell>
+                        <flux:table.cell>{{ $a->start_date?->isoFormat('LL') ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>
                             @if ($a->end_date)
                                 {{ $a->end_date->isoFormat('LL') }}
                             @else
                                 <flux:badge color="emerald">{{ __('Active') }}</flux:badge>
                             @endif
-                        </td>
-                        <td class="px-4 py-3 text-end">
+                        </flux:table.cell>
+                        <flux:table.cell align="end">
                             <div class="inline-flex items-center gap-1">
-                                <flux:button :href="route('admin.churches.pastors.edit', [$church, $a])" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button :href="route('admin.churches.pastors.edit', [$church, $a])" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
                                 @if (! $a->end_date)
                                     <flux:tooltip :content="__('End assignment today')">
                                         <flux:button wire:click="endAssignment({{ $a->id }})" wire:confirm="{{ __('End this assignment today?') }}" size="sm" variant="ghost" icon="x-circle" />
                                     </flux:tooltip>
                                 @endif
-                                <flux:button wire:click="delete({{ $a->id }})" wire:confirm="{{ __('Delete this assignment?') }}" size="sm" variant="ghost" icon="trash" />
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:button wire:click="delete({{ $a->id }})" wire:confirm="{{ __('Delete this assignment?') }}" size="sm" variant="ghost" icon="trash" />
+                                </flux:tooltip>
                             </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="5" class="px-4 py-10 text-center text-zinc-500">{{ __('No assignments in this view.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforeach
+            </flux:table.rows>
+        </flux:table>
+    @endif
 </div>

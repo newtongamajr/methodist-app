@@ -8,41 +8,44 @@
 
     <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or city…')" icon="magnifying-glass" />
 
-    <div class="overflow-hidden rounded-lg border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
-        <table class="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700 text-sm">
-            <thead class="bg-zinc-50 dark:bg-zinc-800/50">
-                <tr>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Name') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Type') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Region') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('City') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Members') }}</th>
-                    <th class="px-4 py-2 text-start font-semibold">{{ __('Active') }}</th>
-                    <th class="px-4 py-2 text-end font-semibold">{{ __('Actions') }}</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-zinc-200 dark:divide-zinc-800">
-                @forelse ($this->churches as $church)
-                    <tr wire:key="church-{{ $church->id }}">
-                        <td class="px-4 py-3">
-                            <a href="{{ route('admin.churches.edit', $church) }}" class="font-medium text-[#c8202f] hover:underline dark:text-rose-300" wire:navigate>
+    @if ($this->churches->isEmpty())
+        <div class="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
+            {{ __('No churches yet.') }}
+        </div>
+    @else
+        <flux:table :paginate="$this->churches">
+            <flux:table.columns>
+                <flux:table.column>{{ __('Name') }}</flux:table.column>
+                <flux:table.column>{{ __('Type') }}</flux:table.column>
+                <flux:table.column>{{ __('Region') }}</flux:table.column>
+                <flux:table.column>{{ __('City') }}</flux:table.column>
+                <flux:table.column>{{ __('Members') }}</flux:table.column>
+                <flux:table.column>{{ __('Active') }}</flux:table.column>
+                <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
+            </flux:table.columns>
+
+            <flux:table.rows>
+                @foreach ($this->churches as $church)
+                    <flux:table.row :key="'church-'.$church->id">
+                        <flux:table.cell variant="strong">
+                            <a href="{{ route('admin.churches.edit', $church) }}" class="hover:underline" wire:navigate>
                                 {{ $church->name }}
                             </a>
-                        </td>
-                        <td class="px-4 py-3">
+                        </flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge :color="$church->type?->value === 'missionary_point' ? 'amber' : 'sky'">
                                 {{ $church->type?->label() }}
                             </flux:badge>
-                        </td>
-                        <td class="px-4 py-3"><flux:badge color="zinc">{{ $church->region?->code }}</flux:badge></td>
-                        <td class="px-4 py-3">{{ $church->city ? $church->city.'/'.$church->state : '—' }}</td>
-                        <td class="px-4 py-3">{{ $church->primary_users_count }}</td>
-                        <td class="px-4 py-3">
+                        </flux:table.cell>
+                        <flux:table.cell><flux:badge color="zinc">{{ $church->region?->code }}</flux:badge></flux:table.cell>
+                        <flux:table.cell>{{ $church->city ? $church->city.'/'.$church->state : '—' }}</flux:table.cell>
+                        <flux:table.cell>{{ $church->primary_users_count }}</flux:table.cell>
+                        <flux:table.cell>
                             <flux:badge :color="$church->is_active ? 'emerald' : 'zinc'">
                                 {{ $church->is_active ? __('Active') : __('Inactive') }}
                             </flux:badge>
-                        </td>
-                        <td class="px-4 py-3 text-end">
+                        </flux:table.cell>
+                        <flux:table.cell align="end">
                             <div class="inline-flex items-center gap-1">
                                 <flux:tooltip :content="__('Edit')">
                                     <flux:button :href="route('admin.churches.edit', $church)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
@@ -60,14 +63,10 @@
                                     <flux:button wire:click="delete({{ $church->id }})" wire:confirm="{{ __('Delete this church and all its data?') }}" size="sm" variant="ghost" icon="trash" />
                                 </flux:tooltip>
                             </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="px-4 py-10 text-center text-zinc-500">{{ __('No churches yet.') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div>{{ $this->churches->links() }}</div>
+                        </flux:table.cell>
+                    </flux:table.row>
+                @endforeach
+            </flux:table.rows>
+        </flux:table>
+    @endif
 </div>
