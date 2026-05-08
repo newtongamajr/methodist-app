@@ -12,9 +12,7 @@
     </div>
 
     @if (session('status'))
-        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline :heading="session('status')" />
     @endif
 
     <form wire:submit="save" class="space-y-5">

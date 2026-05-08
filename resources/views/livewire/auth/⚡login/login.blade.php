@@ -3,9 +3,7 @@
     <flux:text class="mt-2 text-center">{{ __('Sign in to keep praying with us.') }}</flux:text>
 
     @if (session('status'))
-        <div class="mt-6 rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline class="mt-6" :heading="session('status')" />
     @endif
 
     <form wire:submit="login" class="mt-8 space-y-5">

@@ -7,9 +7,7 @@
     </div>
 
     @if (session('status'))
-        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline :heading="session('status')" />
     @endif
 
     <form wire:submit="save" class="space-y-6">
@@ -201,9 +199,7 @@
             <flux:text class="text-sm text-zinc-500">{{ __('Paste a YouTube, Spotify or Vimeo link. Title and thumbnail are fetched automatically.') }}</flux:text>
 
             @if (session('embed-status'))
-                <div class="rounded-md bg-amber-50 p-2 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                    {{ session('embed-status') }}
-                </div>
+                <flux:callout variant="warning" icon="information-circle" inline :heading="session('embed-status')" />
             @endif
 
             @if ($embeds->isNotEmpty())
