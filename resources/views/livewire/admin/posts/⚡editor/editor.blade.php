@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.posts.index')" wire:navigate>{{ __('Posts') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->post ? __('Edit post') : __('New post') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->post ? __('Edit post') : __('New post') }}

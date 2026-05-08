@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.members.index')" wire:navigate>{{ __('Members') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->user ? __('Edit member') : __('New member') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->user ? __('Edit member') : __('New member') }}

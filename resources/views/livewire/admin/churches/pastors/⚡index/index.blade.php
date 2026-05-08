@@ -1,4 +1,10 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item :href="route('admin.churches.edit', $church)" wire:navigate>{{ $church->name }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ __('Pastors') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <flux:heading size="xl">{{ __('Pastors') }}</flux:heading>

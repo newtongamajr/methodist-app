@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.prayer-schedules.index')" wire:navigate>{{ __('Prayer schedules') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->schedule ? __('Edit prayer schedule') : __('New prayer schedule') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->schedule ? __('Edit prayer schedule') : __('New prayer schedule') }}

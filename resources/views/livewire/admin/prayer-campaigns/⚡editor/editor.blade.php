@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.prayer-campaigns.index')" wire:navigate>{{ __('Prayer campaigns') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->campaign ? __('Edit campaign') : __('New campaign') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->campaign ? __('Edit campaign') : __('New campaign') }}
