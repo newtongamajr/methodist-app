@@ -25,28 +25,20 @@
         </div>
 
         <section class="space-y-3">
-            <flux:label>{{ __('Allowed fasting types') }}</flux:label>
-            <div class="grid grid-cols-2 gap-2">
+            <flux:checkbox.group wire:model="form.types" :label="__('Allowed fasting types')" class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingType::cases() as $t)
-                    <label wire:key="fasting-type-{{ $t->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $t->value }}" wire:model="form.types" class="rounded-sm text-accent focus:ring-accent">
-                        {{ $t->label() }}
-                    </label>
+                    <flux:checkbox wire:key="fasting-type-{{ $t->value }}" value="{{ $t->value }}" :label="$t->label()" />
                 @endforeach
-            </div>
+            </flux:checkbox.group>
             @error('form.types') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
         </section>
 
         <section class="space-y-3">
-            <flux:label>{{ __('Allowed restrictions') }}</flux:label>
-            <div class="grid grid-cols-2 gap-2">
+            <flux:checkbox.group wire:model="form.restrictions" :label="__('Allowed restrictions')" class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingRestriction::cases() as $r)
-                    <label wire:key="fasting-restriction-{{ $r->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $r->value }}" wire:model="form.restrictions" class="rounded-sm text-accent focus:ring-accent">
-                        {{ $r->label() }}
-                    </label>
+                    <flux:checkbox wire:key="fasting-restriction-{{ $r->value }}" value="{{ $r->value }}" :label="$r->label()" />
                 @endforeach
-            </div>
+            </flux:checkbox.group>
         </section>
 
         <div class="flex justify-end gap-2">

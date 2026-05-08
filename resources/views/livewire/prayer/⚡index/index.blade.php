@@ -30,12 +30,11 @@
                 <flux:text class="mt-2 text-sm">{{ $this->campaign->description }}</flux:text>
             @endif
             @if ($this->campaign->objectives)
-                <details class="mt-3 text-sm">
-                    <summary class="cursor-pointer font-medium text-accent hover:underline dark:text-rose-300">
-                        {{ __('Objectives') }}
-                    </summary>
-                    <div class="mt-2 whitespace-pre-line text-zinc-700 dark:text-zinc-300">{{ $this->campaign->objectives }}</div>
-                </details>
+                <flux:accordion class="mt-3 text-sm">
+                    <flux:accordion.item :heading="__('Objectives')">
+                        <flux:accordion.content class="whitespace-pre-line text-zinc-700 dark:text-zinc-300">{{ $this->campaign->objectives }}</flux:accordion.content>
+                    </flux:accordion.item>
+                </flux:accordion>
             @endif
         </div>
 
