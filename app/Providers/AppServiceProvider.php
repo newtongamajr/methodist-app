@@ -6,8 +6,10 @@ use App\Models\Group;
 use App\Models\Person;
 use App\Models\PersonRelationship;
 use App\Models\PersonRoleAssignment;
+use App\Models\Pivots\ChurchUser;
 use App\Models\Post;
 use App\Models\PostComment;
+use App\Observers\ChurchUserObserver;
 use App\Observers\GroupObserver;
 use App\Observers\PersonObserver;
 use App\Observers\PersonRelationshipObserver;
@@ -34,6 +36,7 @@ class AppServiceProvider extends ServiceProvider
         PersonRelationship::observe(PersonRelationshipObserver::class);
         Group::observe(GroupObserver::class);
         PersonRoleAssignment::observe(PersonRoleAssignmentObserver::class);
+        ChurchUser::observe(ChurchUserObserver::class);
 
         Blaze::optimize()->in(resource_path('views/components'));
     }

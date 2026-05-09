@@ -63,29 +63,27 @@ it('creates a church and a master user in the same flow', function () {
     expect($master->churches->contains($church))->toBeTrue();
 });
 
-it('lets a master user create another admin only for their own church', function () {
+it('forces a master user creating an admin to local_admin (role escalation blocked downstream)', function () {
+    // Church associations live on the dedicated /admin/users/{id}/churches
+    // page now — the editor only handles identity + role + locale + appearance.
     $church = Church::factory()->create();
-    $otherChurch = Church::factory()->create();
     $master = makeMaster($church);
 
     $this->actingAs($master);
 
-    // Even if a master submits a foreign church id, the editor strips it back
-    // to the master's own church set (and forces local_manager role).
     Livewire::test('admin.users.editor')
         ->set('form.name', 'Helper')
         ->set('form.email', 'helper@demo.test')
         ->set('form.password', 'secret-password')
-        ->set('form.church_ids', [$otherChurch->id])
-        ->set('form.primary_church_id', $otherChurch->id)
+        ->set('form.password_confirmation', 'secret-password')
         ->set('form.role', 'local_admin')
         ->set('form.locale', 'pt_BR')
+        ->set('form.appearance', 'system')
         ->call('save')
         ->assertHasNoErrors();
 
     $helper = User::firstWhere('email', 'helper@demo.test');
     expect($helper)->not->toBeNull();
-    expect($helper->person->managing_church_id)->toBe($church->id);
     expect($helper->hasRole('local_admin'))->toBeTrue();
     expect($helper->hasRole('national_admin'))->toBeFalse();
 });
@@ -100,8 +98,10 @@ it('rejects a master user trying to assign national_admin role', function () {
         ->set('form.name', 'Escalator')
         ->set('form.email', 'escalator@demo.test')
         ->set('form.password', 'secret-password')
+        ->set('form.password_confirmation', 'secret-password')
         ->set('form.role', 'national_admin')
         ->set('form.locale', 'pt_BR')
+        ->set('form.appearance', 'system')
         ->call('save')
         ->assertHasErrors('form.role');
 

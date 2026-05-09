@@ -39,7 +39,11 @@
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($user->roles as $role)
-                                    <flux:badge wire:key="user-{{ $user->id }}-role-{{ $role->id }}" :color="$role->name === 'national_admin' ? 'rose' : 'sky'">{{ $role->name }}</flux:badge>
+                                    <flux:tooltip :content="$role->name">
+                                        <flux:badge wire:key="user-{{ $user->id }}-role-{{ $role->id }}" :color="$role->name === 'national_admin' ? 'rose' : 'sky'">
+                                            {{ $role->description ?: $role->name }}
+                                        </flux:badge>
+                                    </flux:tooltip>
                                 @endforeach
                             </div>
                         </flux:table.cell>
@@ -58,6 +62,9 @@
                             <div class="inline-flex items-center gap-1">
                                 <flux:tooltip :content="__('Edit')">
                                     <flux:button :href="route('admin.users.edit', $user)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Manage churches')">
+                                    <flux:button :href="route('admin.users.churches', $user)" wire:navigate size="sm" variant="ghost" icon="building-library" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
                                     <flux:button wire:click="delete({{ $user->id }})" wire:confirm="{{ __('Delete this user?') }}" size="sm" variant="ghost" icon="trash" />
