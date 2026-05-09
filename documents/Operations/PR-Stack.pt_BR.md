@@ -1,9 +1,10 @@
-# Stack de PRs — code review até a Phase 8 da Person Architecture
+# Stack de PRs — code review até o reorg do Admin
 
-Quatorze PRs empilhados entregam toda a trajetória entre `main` e a Phase 8
-da Person Architecture (a fase de cleanup). Eles estão **empilhados** (a
-base de cada PR é o head do PR de baixo), não são paralelos, porque cada um
-depende do anterior. Tentar mergear fora de ordem vai gerar conflitos.
+Quinze PRs empilhados entregam toda a trajetória entre `main` e a Phase 8
+da Person Architecture mais o reorg do menu Admin no topo. Eles estão
+**empilhados** (a base de cada PR é o head do PR de baixo), não são paralelos,
+porque cada um depende do anterior. Tentar mergear fora de ordem vai gerar
+conflitos.
 
 ## Ordem de merge (de baixo para cima)
 
@@ -23,8 +24,9 @@ depende do anterior. Tentar mergear fora de ordem vai gerar conflitos.
 | 12 | `persons-identity-polish` | `persons-phase-6` | Polish da Identity tab (nature Youth, enum MaritalStatus, datas com input typeable, label condicional Birthdate/Foundation date, filtro de natures por person_type) |
 | 13 | `persons-phase-7` | `persons-identity-polish` | Person Architecture Phase 7 (inferência de nature por idade, toggle de act-as parental + banner, tab Family no /profile, quick-add de visitor) |
 | 14 | `persons-phase-8` | `persons-phase-7` | Person Architecture Phase 8 (composição inline das tabs de Person nos editores de org, observer de sync Person→Org, command nightly de promoção por idade) |
+| 15 | `persons-admin-reorg` | `persons-phase-8` | Reorg do menu Admin (submenus Posts management / Structure / People / Miscellaneous); drop persons.photo_path → photo collection no MediaLibrary; tab User account no editor de Person; ação Schedules nas linhas de Prayer Campaign |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14.**
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15.**
 À medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base
 do próximo da fila para `main` (ou para a nova base, se aplicável). Não use
 squash-merge — preserve o histórico de commits para que a intenção em
@@ -46,6 +48,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/12
 - https://github.com/newtongamajr/methodist-app/pull/13
 - https://github.com/newtongamajr/methodist-app/pull/14
+- https://github.com/newtongamajr/methodist-app/pull/15
 
 ## Por que empilhado, e não um PR único
 
@@ -93,9 +96,9 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os quatorze PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os quinze PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#14) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #14 (260 tests / 604 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #14
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 573 keys no HEAD do #14
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#15) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #15 (266 tests / 621 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #15
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 595 keys no HEAD do #15

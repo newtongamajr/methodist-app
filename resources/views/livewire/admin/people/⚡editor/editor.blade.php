@@ -27,6 +27,9 @@
                 <flux:tab name="documents" icon="document-text">{{ __('Documents') }}</flux:tab>
                 <flux:tab name="family" icon="users">{{ __('Family') }}</flux:tab>
                 <flux:tab name="roles" icon="briefcase">{{ __('Roles') }}</flux:tab>
+                @if ($person->person_type?->value === 'individual')
+                    <flux:tab name="user-account" icon="key">{{ __('User account') }}</flux:tab>
+                @endif
             </flux:tabs>
 
             <flux:tab.panel name="identity">
@@ -64,6 +67,14 @@
                     <livewire:admin.people.roles :person-id="$person->id" :wire:key="'roles-'.$person->id" />
                 </div>
             </flux:tab.panel>
+
+            @if ($person->person_type?->value === 'individual')
+                <flux:tab.panel name="user-account">
+                    <div class="rounded-lg bg-white p-6 shadow-xs dark:bg-zinc-800 sm:p-8">
+                        <livewire:admin.people.user-account :person-id="$person->id" :wire:key="'user-account-'.$person->id" />
+                    </div>
+                </flux:tab.panel>
+            @endif
         </flux:tab.group>
     @endif
 </div>

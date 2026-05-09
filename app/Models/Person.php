@@ -14,11 +14,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
+use Spatie\Image\Enums\Fit;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-class Person extends Model
+class Person extends Model implements HasMedia
 {
     /** @use HasFactory<PersonFactory> */
-    use HasFactory, SoftDeletes;
+    use HasFactory, InteractsWithMedia, SoftDeletes;
 
     protected $table = 'persons';
 
@@ -31,7 +35,6 @@ class Person extends Model
         'birthdate',
         'gender',
         'marital_status',
-        'photo_path',
         'natures',
         'additional_data',
         'managing_church_id',
@@ -380,5 +383,42 @@ class Person extends Model
             'children' => $this->children()->map($build)->values()->all(),
             'spouse' => $this->spouse(),
         ];
+    }
+
+    // ─── Media: photo collection (replaces the old persons.photo_path) ──────
+
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('photo')
+            ->singleFile()
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('thumb')
+            ->performOnCollections('photo')
+            ->fit(Fit::Crop, 64, 64)
+            ->nonQueued();
+
+        $this->addMediaConversion('sm')
+            ->performOnCollections('photo')
+            ->fit(Fit::Crop, 128, 128)
+            ->nonQueued();
+
+        $this->addMediaConversion('md')
+            ->performOnCollections('photo')
+            ->fit(Fit::Crop, 256, 256);
+
+        $this->addMediaConversion('lg')
+            ->performOnCollections('photo')
+            ->fit(Fit::Crop, 512, 512);
+    }
+
+    public function photoUrl(string $conversion = 'md'): ?string
+    {
+        $url = $this->getFirstMediaUrl('photo', $conversion);
+
+        return $url !== '' ? $url : null;
     }
 }
