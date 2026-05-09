@@ -364,19 +364,65 @@ When a child crosses the age threshold (configurable), the system can optionally
 
 ## Authorization integration
 
-The current `spatie/laravel-permission` setup stays in place. Permissions are User-scoped and remain so. What changes:
+The current `spatie/laravel-permission` setup stays in place but the **role catalog expands to mirror the 4-level org hierarchy**.
 
-- Permission gates that today check `User->member_type` (none currently) or `User->isAdmin()` continue to work — those are User-level concepts.
-- Gates that need to know "is this a member of this church" now ask `Person->hasNature('member')` and `Person->isMemberOf($church)` instead of inferring from a membership pivot.
-- New gate examples: `view-children`, `act-as-child`, `manage-group-members`, `assign-function`. These compose User permission checks with Person nature/relationship checks.
+### Spatie roles (the WHAT)
 
-No need to migrate the existing `roles` table from spatie; the three roles (`global_manager`, `local_manager`, `user`) stay as User-level credential roles, NOT confused with Person natures or the new `roles` table for assignment qualifiers.
+The 3 existing spatie roles are replaced/expanded by 5:
 
-**Naming conflict heads-up:** spatie's table is `roles` (Laravel convention). The new schema also has a `roles` table for assignment qualifiers. Two options:
-- Rename ours → `assignment_roles` (avoids ambiguity).
-- Leave ours as `roles` and rely on namespace separation (`App\Models\Role` vs `Spatie\Permission\Models\Role`).
+| Role (spatie) | Scope-of-authority | Replaces |
+|---|---|---|
+| `national_admin` | every region / district / church | `global_manager` |
+| `regional_admin` | one region (and all its districts/churches) | (new) |
+| `district_admin` | one district (and all its churches) | (new) |
+| `local_admin` | one church | `local_manager` |
+| `user` | regular member (no admin powers) | `user` |
 
-**Decision:** rename ours to `assignment_roles` in v1 to keep tables clearly separated. The `roles` table column described in the schema section above should be read as `assignment_roles` in the actual migration.
+The role tells the system **what kind of admin** the user is. Permissions (the verbs they can call: edit posts, moderate comments, etc.) hang off these roles via spatie's permission catalog as today.
+
+### Admin scope (the WHERE)
+
+The role does NOT carry the scope; the scope lives in `person_role_assignments`. Each admin user has a PRA row with:
+
+- `function_id` = the matching admin function (`national_admin` / `regional_admin` / `district_admin` / `local_admin`) — these are seeded into `functions` alongside the pastoral / group functions.
+- `church_id` / `district_id` / `ecclesiastical_region_id` set to the appropriate scope (NULL for `national_admin`).
+- No `group_id` (admin scope is not a group).
+
+A `national_admin` row has all three scope FKs NULL — the same "all NULLs = national" pattern that groups use.
+
+### Permission gates compose role + scope
+
+- `Gate::define('manage-church', fn (User $u, Church $c) => $u->canManage($c))` — `User->canManage(Church)` checks the user has a role permitting church management AND a PRA row whose scope covers that church.
+- `User->scopedRegions()` / `scopedDistricts()` / `scopedChurches()` return the entities a user has authority over (recursive — a regional_admin's scopedChurches() returns every church in their region).
+- The existing `User->manageableChurches()` / `manageableChurchIds()` methods get rewritten to use this composition. Their public surface stays the same.
+
+### Functions catalog: full Phase 1 seed
+
+| function slug | applies_to | max_holders | notes |
+|---|---|---|---|
+| `national_admin` | `admin` | NULL | scope: national (all FKs NULL on the PRA row) |
+| `regional_admin` | `admin` | NULL | scope: one region |
+| `district_admin` | `admin` | NULL | scope: one district |
+| `local_admin` | `admin` | NULL | scope: one church |
+| `main_pastor` | `pastor` | 1 | one per church |
+| `auxiliary_pastor` | `pastor` | NULL | |
+| `seminarist` | `pastor` | NULL | |
+| `lead` | `council`, `ministry`, `commission` | 1 | one per group |
+| `co_lead` | `council`, `ministry`, `commission` | NULL | |
+| `secretary` | `council`, `ministry`, `commission` | 1 | |
+| `treasurer` | `council`, `ministry`, `commission` | 1 | |
+| `member` | `council`, `ministry`, `commission` | NULL | |
+| `adviser` | `council`, `ministry`, `commission` | NULL | |
+
+`FunctionAppliesTo` enum: `Admin`, `Pastor`, `Council`, `Ministry`, `Commission`.
+
+### Gates that need to know "is this a member of this church"
+
+These ask `Person->hasNature('member')` and `Person->isMemberOf($church)` (via the church_user pivot OR `managing_church_id`, decided per-gate). These are nature checks, not admin scope checks.
+
+### Naming heads-up: spatie `roles` vs our `assignment_roles`
+
+Spatie's table is `roles` (Laravel convention). Our `assignment_roles` is the qualifier-axis on assignments (currently empty in v1; reserved for cases where a single function needs a sub-role distinction). The two tables coexist with different namespaces (`Spatie\Permission\Models\Role` vs `App\Models\AssignmentRole`).
 
 ---
 
