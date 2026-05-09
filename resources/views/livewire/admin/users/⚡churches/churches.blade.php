@@ -23,7 +23,7 @@
         <div class="flex flex-wrap items-end gap-3">
             <div class="flex-1 min-w-64">
                 <flux:select
-                    wire:model="selectedChurchId"
+                    wire:model.live="selectedChurchId"
                     variant="listbox"
                     searchable
                     clearable
