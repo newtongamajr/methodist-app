@@ -3,7 +3,8 @@
 namespace Database\Factories;
 
 use App\Enums\AppLocale;
-use App\Enums\MemberType;
+use App\Enums\PersonNature;
+use App\Models\Person;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
@@ -18,17 +19,18 @@ class UserFactory extends Factory
 
     public function definition(): array
     {
+        $name = fake()->name();
+
         return [
-            'name' => fake()->name(),
+            'name' => $name,
             'email' => fake()->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
-            'member_type' => fake()->randomElement(MemberType::cases())->value,
-            'church_id' => null,
             'locale' => fake()->randomElement(AppLocale::values()),
-            'phone' => fake()->numerify('(##) #####-####'),
-            'birthdate' => fake()->dateTimeBetween('-70 years', '-12 years')->format('Y-m-d'),
+            'person_id' => fn (array $attrs) => Person::factory()->create([
+                'name' => $attrs['name'] ?? $name,
+            ])->id,
         ];
     }
 
@@ -39,8 +41,21 @@ class UserFactory extends Factory
         ]);
     }
 
-    public function memberType(MemberType $type): static
+    public function withPerson(Person $person): static
     {
-        return $this->state(fn () => ['member_type' => $type->value]);
+        return $this->state(fn () => [
+            'person_id' => $person->id,
+            'name' => $person->name,
+        ]);
+    }
+
+    public function nature(PersonNature $nature): static
+    {
+        return $this->state(fn (array $attrs) => [
+            'person_id' => Person::factory()->create([
+                'name' => $attrs['name'] ?? fake()->name(),
+                'natures' => [$nature->value],
+            ])->id,
+        ]);
     }
 }

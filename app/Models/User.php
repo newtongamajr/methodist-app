@@ -2,12 +2,10 @@
 
 namespace App\Models;
 
-use App\Enums\MemberType;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
@@ -23,15 +21,12 @@ class User extends Authenticatable implements HasMedia
     use HasFactory, HasRoles, InteractsWithMedia, Notifiable;
 
     protected $fillable = [
+        'person_id',
         'name',
         'email',
         'password',
-        'member_type',
-        'church_id',
         'locale',
         'appearance',
-        'phone',
-        'birthdate',
     ];
 
     protected $hidden = [
@@ -44,14 +39,12 @@ class User extends Authenticatable implements HasMedia
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'member_type' => MemberType::class,
-            'birthdate' => 'date',
         ];
     }
 
-    public function primaryChurch(): BelongsTo
+    public function person(): BelongsTo
     {
-        return $this->belongsTo(Church::class, 'church_id');
+        return $this->belongsTo(Person::class);
     }
 
     public function churches(): BelongsToMany
@@ -61,29 +54,56 @@ class User extends Authenticatable implements HasMedia
             ->withTimestamps();
     }
 
-    public function pastorProfiles(): HasMany
-    {
-        return $this->hasMany(Pastor::class);
-    }
-
     /**
      * Churches this user is allowed to administer.
-     * - global_manager → every church.
-     * - local_manager → all churches attached via the church_user pivot.
+     * - national_admin → every church.
+     * - regional_admin → every church inside the user's scoped region(s).
+     * - district_admin → every church inside the user's scoped district(s).
+     * - local_admin → only the church(es) explicitly assigned.
      * - everyone else → empty.
      */
     public function manageableChurches(): Collection
     {
         return once(function () {
-            if ($this->hasRole('global_manager')) {
+            if ($this->hasRole('national_admin')) {
                 return Church::query()->orderBy('name')->get();
             }
 
-            if ($this->hasRole('local_manager')) {
-                return $this->churches()->orderBy('churches.name')->get();
+            $assignments = $this->person?->roleAssignments()
+                ->whereNull('ended_at')
+                ->get() ?? collect();
+
+            $churchIds = collect();
+
+            if ($this->hasRole('regional_admin')) {
+                $regionIds = $assignments->pluck('ecclesiastical_region_id')->filter()->unique();
+                $churchIds = $churchIds->merge(
+                    Church::query()
+                        ->whereIn('ecclesiastical_region_id', $regionIds)
+                        ->pluck('id'),
+                );
             }
 
-            return collect();
+            if ($this->hasRole('district_admin')) {
+                $districtIds = $assignments->pluck('district_id')->filter()->unique();
+                $churchIds = $churchIds->merge(
+                    Church::query()
+                        ->whereIn('district_id', $districtIds)
+                        ->pluck('id'),
+                );
+            }
+
+            if ($this->hasRole('local_admin')) {
+                $churchIds = $churchIds->merge($this->churches()->pluck('churches.id'));
+            }
+
+            $ids = $churchIds->unique()->values();
+
+            if ($ids->isEmpty()) {
+                return collect();
+            }
+
+            return Church::query()->whereIn('id', $ids)->orderBy('name')->get();
         });
     }
 
@@ -95,7 +115,7 @@ class User extends Authenticatable implements HasMedia
 
     public function canManageChurch(int $churchId): bool
     {
-        if ($this->hasRole('global_manager')) {
+        if ($this->hasRole('national_admin')) {
             return true;
         }
 
@@ -113,12 +133,12 @@ class User extends Authenticatable implements HasMedia
 
     /**
      * The set of churches the user can pick from in the church context
-     * switcher. Globals see every church; everyone else sees the churches
-     * they're attached to via the pivot.
+     * switcher. National admins see every church; everyone else sees the
+     * churches they're attached to via the pivot.
      */
     public function contextChurches(): Collection
     {
-        if ($this->hasRole('global_manager')) {
+        if ($this->hasRole('national_admin')) {
             return Church::query()->orderBy('name')->get();
         }
 
@@ -127,7 +147,7 @@ class User extends Authenticatable implements HasMedia
 
     public function isAdminUser(): bool
     {
-        return $this->hasRole('global_manager') || $this->hasRole('local_manager');
+        return $this->hasAnyRole(['national_admin', 'regional_admin', 'district_admin', 'local_admin']);
     }
 
     public function registerMediaCollections(): void
@@ -167,21 +187,22 @@ class User extends Authenticatable implements HasMedia
 
     /**
      * Active admin context (which church the user is currently acting on).
-     * Falls back to primary church_id, then to the first manageable.
+     * Falls back to the Person's managing_church_id, then to the first manageable.
      */
     public function currentChurchId(): ?int
     {
         $sessionId = session('admin_church_id');
         $allowed = $this->manageableChurchIds();
 
-        if ($sessionId && (in_array($sessionId, $allowed, true) || $this->hasRole('global_manager'))) {
+        if ($sessionId && (in_array($sessionId, $allowed, true) || $this->hasRole('national_admin'))) {
             return (int) $sessionId;
         }
 
-        if ($this->church_id && in_array($this->church_id, $allowed, true)) {
-            return $this->church_id;
+        $managingId = $this->person?->managing_church_id;
+        if ($managingId && in_array($managingId, $allowed, true)) {
+            return $managingId;
         }
 
-        return $allowed[0] ?? $this->church_id;
+        return $allowed[0] ?? $managingId;
     }
 }

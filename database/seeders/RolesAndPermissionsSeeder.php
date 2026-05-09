@@ -30,11 +30,26 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::findOrCreate($name, 'web');
         }
 
-        $globalManager = Role::findOrCreate('global_manager', 'web');
-        $globalManager->syncPermissions($permissions);
+        $national = Role::findOrCreate('national_admin', 'web');
+        $national->syncPermissions($permissions);
 
-        $localManager = Role::findOrCreate('local_manager', 'web');
-        $localManager->syncPermissions([
+        $regional = Role::findOrCreate('regional_admin', 'web');
+        $regional->syncPermissions($permissions);
+
+        $district = Role::findOrCreate('district_admin', 'web');
+        $district->syncPermissions([
+            'posts.create.shared',
+            'posts.create.local',
+            'posts.update.any',
+            'posts.delete.any',
+            'comments.moderate',
+            'prayer.schedule.manage',
+            'fasting.calendar.manage',
+            'users.manage.local',
+        ]);
+
+        $local = Role::findOrCreate('local_admin', 'web');
+        $local->syncPermissions([
             'posts.create.local',
             'comments.moderate',
             'prayer.schedule.manage',
