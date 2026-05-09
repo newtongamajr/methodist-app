@@ -12,7 +12,7 @@
         <flux:table>
             <flux:table.columns>
                 <flux:table.column>{{ __('Label') }}</flux:table.column>
-                <flux:table.column>{{ __('Street') }}</flux:table.column>
+                <flux:table.column>{{ __('Address') }}</flux:table.column>
                 <flux:table.column>{{ __('City') }}</flux:table.column>
                 <flux:table.column>{{ __('Primary') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
@@ -23,7 +23,7 @@
                     <flux:table.row :key="'address-'.$address->id">
                         <flux:table.cell variant="strong">{{ $address->label ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
-                            {{ $address->street }}@if ($address->number), {{ $address->number }}@endif
+                            {{ $address->street }}@if ($address->number), {{ $address->number }}@endif@if ($address->complement), {{ $address->complement }}@endif
                             @if ($address->neighborhood)
                                 <span class="text-xs text-zinc-500"> · {{ $address->neighborhood }}</span>
                             @endif
