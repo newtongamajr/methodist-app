@@ -60,23 +60,25 @@
 
             <flux:input wire:model="form.label" :label="__('Label')" :placeholder="__('e.g. Home, Work')" />
 
-            <div class="grid gap-4 sm:grid-cols-3">
-                <flux:input wire:model="form.street" :label="__('Street')" class="sm:col-span-2" />
+            <div class="grid gap-4 sm:grid-cols-5">
+                <flux:input wire:model="form.street" :label="__('Street')" class="sm:col-span-4" />
                 <flux:input wire:model="form.number" :label="__('Number')" />
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
+            <div class="grid gap-4 sm:grid-cols-3">
                 <flux:input wire:model="form.complement" :label="__('Complement')" />
-                <flux:input wire:model="form.neighborhood" :label="__('Neighborhood')" />
+                <flux:input wire:model="form.neighborhood" :label="__('Neighborhood')" class="sm:col-span-2" />
             </div>
 
             <div class="grid gap-4 sm:grid-cols-4">
-                <flux:input wire:model="form.city" :label="__('City')" class="sm:col-span-2" />
+                <flux:input wire:model="form.city" :label="__('City')" class="sm:col-span-3" />
                 <flux:input wire:model="form.state" :label="__('State (UF)')" maxlength="2" />
-                <flux:input wire:model="form.zip" :label="__('ZIP')" />
             </div>
 
-            <flux:input wire:model="form.country" :label="__('Country')" maxlength="2" required />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <flux:input wire:model="form.zip" :label="__('ZIP')" />
+                <flux:input wire:model="form.country" :label="__('Country')" maxlength="2" required />
+            </div>
             <flux:checkbox wire:model="form.is_primary" :label="__('Primary address')" />
 
             <div class="flex justify-end gap-2 pt-2">
