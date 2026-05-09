@@ -34,10 +34,10 @@
     @else
         <flux:table>
             <flux:table.columns>
-                <flux:table.column>{{ __('Pastor') }}</flux:table.column>
-                <flux:table.column>{{ __('Role') }}</flux:table.column>
-                <flux:table.column>{{ __('Start') }}</flux:table.column>
-                <flux:table.column>{{ __('End') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'pastor'" :direction="$sortDir" wire:click="sort('pastor')">{{ __('Pastor') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'role'" :direction="$sortDir" wire:click="sort('role')">{{ __('Role') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'start_date'" :direction="$sortDir" wire:click="sort('start_date')">{{ __('Start') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'end_date'" :direction="$sortDir" wire:click="sort('end_date')">{{ __('End') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
 

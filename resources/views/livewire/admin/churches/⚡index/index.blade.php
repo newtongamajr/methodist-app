@@ -15,23 +15,19 @@
     @else
         <flux:table :paginate="$this->churches">
             <flux:table.columns>
-                <flux:table.column>{{ __('Name') }}</flux:table.column>
-                <flux:table.column>{{ __('Type') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDir" wire:click="sort('type')">{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Region') }}</flux:table.column>
-                <flux:table.column>{{ __('City') }}</flux:table.column>
-                <flux:table.column>{{ __('Members') }}</flux:table.column>
-                <flux:table.column>{{ __('Active') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'city'" :direction="$sortDir" wire:click="sort('city')">{{ __('City') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'primary_users_count'" :direction="$sortDir" wire:click="sort('primary_users_count')">{{ __('Members') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'is_active'" :direction="$sortDir" wire:click="sort('is_active')">{{ __('Active') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
 
             <flux:table.rows>
                 @foreach ($this->churches as $church)
                     <flux:table.row :key="'church-'.$church->id">
-                        <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.churches.edit', $church) }}" class="hover:underline" wire:navigate>
-                                {{ $church->name }}
-                            </a>
-                        </flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $church->name }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge :color="$church->type?->value === 'missionary_point' ? 'amber' : 'sky'">
                                 {{ $church->type?->label() }}

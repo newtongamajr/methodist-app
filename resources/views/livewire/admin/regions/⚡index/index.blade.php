@@ -17,11 +17,11 @@
     @else
         <flux:table>
             <flux:table.columns>
-                <flux:table.column>{{ __('Order') }}</flux:table.column>
-                <flux:table.column>{{ __('Code') }}</flux:table.column>
-                <flux:table.column>{{ __('Name') }}</flux:table.column>
-                <flux:table.column>{{ __('Kind') }}</flux:table.column>
-                <flux:table.column>{{ __('Churches') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'display_order'" :direction="$sortDir" wire:click="sort('display_order')">{{ __('Order') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'code'" :direction="$sortDir" wire:click="sort('code')">{{ __('Code') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'kind'" :direction="$sortDir" wire:click="sort('kind')">{{ __('Kind') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'churches_count'" :direction="$sortDir" wire:click="sort('churches_count')">{{ __('Churches') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
             </flux:table.columns>
 
@@ -30,17 +30,18 @@
                     <flux:table.row :key="'region-'.$region->id">
                         <flux:table.cell>{{ $region->display_order }}</flux:table.cell>
                         <flux:table.cell><flux:badge color="zinc">{{ $region->code }}</flux:badge></flux:table.cell>
-                        <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.regions.edit', $region) }}" class="hover:underline" wire:navigate>
-                                {{ $region->name }}
-                            </a>
-                        </flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $region->name }}</flux:table.cell>
                         <flux:table.cell>{{ $region->kind?->label() }}</flux:table.cell>
                         <flux:table.cell>{{ $region->churches_count }}</flux:table.cell>
                         <flux:table.cell align="end">
-                            <flux:tooltip :content="__('Delete')">
-                                <flux:button wire:click="delete({{ $region->id }})" wire:confirm="{{ __('Delete this region?') }}" size="sm" variant="ghost" icon="trash" />
-                            </flux:tooltip>
+                            <div class="inline-flex items-center gap-1">
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button :href="route('admin.regions.edit', $region)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:button wire:click="delete({{ $region->id }})" wire:confirm="{{ __('Delete this region?') }}" size="sm" variant="ghost" icon="trash" />
+                                </flux:tooltip>
+                            </div>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach

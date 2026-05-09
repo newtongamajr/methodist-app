@@ -31,9 +31,9 @@
     @else
         <flux:table :paginate="$this->members">
             <flux:table.columns>
-                <flux:table.column>{{ __('Name') }}</flux:table.column>
-                <flux:table.column>{{ __('Email') }}</flux:table.column>
-                <flux:table.column>{{ __('I am a') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'email'" :direction="$sortDir" wire:click="sort('email')">{{ __('Email') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'member_type'" :direction="$sortDir" wire:click="sort('member_type')">{{ __('I am a') }}</flux:table.column>
                 <flux:table.column>{{ __('Churches') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
             </flux:table.columns>
@@ -41,11 +41,7 @@
             <flux:table.rows>
                 @foreach ($this->members as $user)
                     <flux:table.row :key="'member-'.$user->id">
-                        <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.members.edit', $user) }}" class="hover:underline" wire:navigate>
-                                {{ $user->name }}
-                            </a>
-                        </flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $user->name }}</flux:table.cell>
                         <flux:table.cell>{{ $user->email }}</flux:table.cell>
                         <flux:table.cell>
                             @if ($user->member_type)
@@ -66,9 +62,14 @@
                             </div>
                         </flux:table.cell>
                         <flux:table.cell align="end">
-                            <flux:tooltip :content="__('Delete')">
-                                <flux:button wire:click="delete({{ $user->id }})" wire:confirm="{{ __('Delete this member?') }}" size="sm" variant="ghost" icon="trash" />
-                            </flux:tooltip>
+                            <div class="inline-flex items-center gap-1">
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button :href="route('admin.members.edit', $user)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:button wire:click="delete({{ $user->id }})" wire:confirm="{{ __('Delete this member?') }}" size="sm" variant="ghost" icon="trash" />
+                                </flux:tooltip>
+                            </div>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach

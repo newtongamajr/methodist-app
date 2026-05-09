@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Church;
+use App\Models\Pastor;
 use App\Models\PastorAssignment;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -16,10 +17,29 @@ class extends Component
     #[Url(as: 'f')]
     public string $filter = 'current';
 
+    #[Url(as: 'sort')]
+    public string $sortBy = 'start_date';
+
+    #[Url(as: 'dir')]
+    public string $sortDir = 'desc';
+
     public function mount(int $churchId): void
     {
         abort_unless(auth()->user()?->can('church.manage'), 403);
         $this->church = Church::findOrFail($churchId);
+    }
+
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['pastor', 'role', 'start_date', 'end_date'], true)) {
+            return;
+        }
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = in_array($column, ['start_date', 'end_date'], true) ? 'desc' : 'asc';
+        }
     }
 
     #[Computed]
@@ -39,10 +59,13 @@ class extends Component
             $q->whereNotNull('start_date')->where('start_date', '>', $today);
         }
 
-        return $q
-            ->orderByDesc('start_date')
-            ->orderBy('display_order')
-            ->get();
+        $orderColumn = match ($this->sortBy) {
+            'pastor' => Pastor::query()->select('name')->whereColumn('pastors.id', 'pastor_assignments.pastor_id'),
+            default => $this->sortBy,
+        };
+        $q->orderBy($orderColumn, $this->sortDir)->orderBy('display_order');
+
+        return $q->get();
     }
 
     public function endAssignment(int $id): void

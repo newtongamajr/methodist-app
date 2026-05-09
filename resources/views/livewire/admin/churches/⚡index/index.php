@@ -16,6 +16,12 @@ class extends Component
     #[Url(as: 'q')]
     public string $search = '';
 
+    #[Url(as: 'sort')]
+    public string $sortBy = 'name';
+
+    #[Url(as: 'dir')]
+    public string $sortDir = 'asc';
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('church.manage'), 403);
@@ -23,6 +29,20 @@ class extends Component
 
     public function updatingSearch(): void
     {
+        $this->resetPage();
+    }
+
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['name', 'type', 'city', 'is_active', 'primary_users_count'], true)) {
+            return;
+        }
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = $column === 'primary_users_count' ? 'desc' : 'asc';
+        }
         $this->resetPage();
     }
 
@@ -37,7 +57,7 @@ class extends Component
                 $q->where(fn ($qq) => $qq->where('name', 'like', $term)
                     ->orWhere('city', 'like', $term));
             })
-            ->orderBy('name')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);
     }
 

@@ -21,6 +21,12 @@ class extends Component
     #[Url(as: 'campaign')]
     public ?int $campaignFilter = null;
 
+    #[Url(as: 'sort')]
+    public string $sortBy = 'date';
+
+    #[Url(as: 'dir')]
+    public string $sortDir = 'desc';
+
     public function mount(?int $church = null): void
     {
         $user = auth()->user();
@@ -36,6 +42,20 @@ class extends Component
 
     public function updatingCampaignFilter(): void
     {
+        $this->resetPage();
+    }
+
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['date', 'mode', 'slots_count'], true)) {
+            return;
+        }
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = $column === 'date' ? 'desc' : 'asc';
+        }
         $this->resetPage();
     }
 
@@ -66,7 +86,7 @@ class extends Component
         $q = PrayerSchedule::query()
             ->with(['church', 'campaign'])
             ->withCount('slots')
-            ->orderByDesc('date')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->orderBy('start_time');
 
         if (! $user->hasRole('global_manager')) {

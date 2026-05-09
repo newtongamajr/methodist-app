@@ -13,10 +13,10 @@
     @else
         <flux:table>
             <flux:table.columns>
-                <flux:table.column>{{ __('Name') }}</flux:table.column>
-                <flux:table.column>{{ __('Window') }}</flux:table.column>
-                <flux:table.column>{{ __('Entries') }}</flux:table.column>
-                <flux:table.column>{{ __('Active') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'start_date'" :direction="$sortDir" wire:click="sort('start_date')">{{ __('Window') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'entries_count'" :direction="$sortDir" wire:click="sort('entries_count')">{{ __('Entries') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'is_active'" :direction="$sortDir" wire:click="sort('is_active')">{{ __('Active') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
             </flux:table.columns>
 
@@ -24,9 +24,7 @@
                 @foreach ($this->campaigns as $campaign)
                     <flux:table.row :key="'campaign-'.$campaign->id">
                         <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.fasting-campaigns.edit', $campaign) }}" class="hover:underline" wire:navigate>
-                                {{ $campaign->name }}
-                            </a>
+                            {{ $campaign->name }}
                             <div class="text-xs text-zinc-500">{{ $campaign->slug }}</div>
                         </flux:table.cell>
                         <flux:table.cell>
@@ -39,9 +37,14 @@
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell align="end">
-                            <flux:tooltip :content="__('Delete')">
-                                <flux:button wire:click="delete({{ $campaign->id }})" wire:confirm="{{ __('Delete this campaign?') }}" size="sm" variant="ghost" icon="trash" />
-                            </flux:tooltip>
+                            <div class="inline-flex items-center gap-1">
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button :href="route('admin.fasting-campaigns.edit', $campaign)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:button wire:click="delete({{ $campaign->id }})" wire:confirm="{{ __('Delete this campaign?') }}" size="sm" variant="ghost" icon="trash" />
+                                </flux:tooltip>
+                            </div>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach

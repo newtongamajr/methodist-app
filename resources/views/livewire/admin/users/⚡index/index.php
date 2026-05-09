@@ -20,6 +20,12 @@ class extends Component
     #[Url(as: 'church')]
     public ?int $churchFilter = null;
 
+    #[Url(as: 'sort')]
+    public string $sortBy = 'name';
+
+    #[Url(as: 'dir')]
+    public string $sortDir = 'asc';
+
     public function mount(?int $church = null): void
     {
         $user = auth()->user();
@@ -30,6 +36,20 @@ class extends Component
 
     public function updatingSearch(): void { $this->resetPage(); }
     public function updatingChurchFilter(): void { $this->resetPage(); }
+
+    public function sort(string $column): void
+    {
+        if (! in_array($column, ['name', 'email'], true)) {
+            return;
+        }
+        if ($this->sortBy === $column) {
+            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDir = 'asc';
+        }
+        $this->resetPage();
+    }
 
     #[Computed]
     public function isSuper(): bool
@@ -51,7 +71,7 @@ class extends Component
         $q = User::query()
             ->with(['primaryChurch', 'churches', 'roles'])
             ->whereHas('roles', fn ($qq) => $qq->whereIn('name', ['global_manager', 'local_manager']))
-            ->orderBy('name');
+            ->orderBy($this->sortBy, $this->sortDir);
 
         if (! $this->isSuper) {
             $allowedIds = auth()->user()->manageableChurchIds();
