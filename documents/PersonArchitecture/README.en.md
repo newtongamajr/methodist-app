@@ -518,6 +518,17 @@ The natures already exist from Phase 1; this phase activates them in the UI and 
 5. Visitor flow: admin "Add visitor" creates a Person with `nature=visitor`, no User. Optional later registration claims the Person.
 6. Tests: act-as authorization, visitor creation without User, child age threshold.
 
+### Phase 8 — Orgs-as-Persons follow-ups
+
+The Orgs-as-Persons unification (PR #10) shipped between Phase 5 and Phase 6 and linked every Region / District / Church to an Organization-type Person. Two cleanups were deferred from that PR to keep the diff focused:
+
+1. **Drop the duplicated cached columns** on org tables. Currently `ecclesiastical_regions.name`, `districts.name`, `churches.name` / `email` / `phone` / `address` / `city` / `state` / `zip` are mirrored from the linked Person and kept in sync by editor `save()` paths. The "drop" iteration:
+   - Sweep every read site (`$church->name`, `$region->name`, etc.) and either route through `$church->person->name` or add an Eloquent accessor on Church that delegates to the linked Person
+   - Migration: drop the columns from the org tables once every read site is converted
+   - Tests: every place that asserted on `$church->name` continues to work (because the accessor masks the column removal)
+   - Risk: high blast radius — these columns are read in dozens of places across views, factories, tests, seeders. Should ship as its own PR with thorough test coverage.
+2. **Inline composition of Person tabs into org editors.** Currently the Region / District / Church editors expose an "Open as Person" button that navigates to `/admin/people/{personId}/edit`. The next iteration could embed Contacts / Addresses / Documents / Roles tabs directly inside the Church editor (likewise for Region and District), so an admin never leaves the church-edit context. Implementation: add a `flux:tab.group` to the Church editor with the existing `livewire:admin.people.{contacts,addresses,documents,roles}` components passed `:person-id` from `$church->person_id`. Same for Region and District. Lower risk than the cached-columns drop; ships independently.
+
 ---
 
 ## Migration strategy
