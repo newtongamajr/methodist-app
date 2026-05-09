@@ -3,6 +3,7 @@
 use App\Livewire\Forms\RegionForm;
 use App\Models\EcclesiasticalRegion;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new
@@ -10,6 +11,10 @@ new
 class extends Component
 {
     public RegionForm $form;
+
+    /** Active tab when editing — bookmarkable via ?tab=. */
+    #[Url(as: 'tab')]
+    public string $tab = 'details';
 
     public function mount(?int $regionId = null): void
     {
@@ -24,10 +29,14 @@ class extends Component
 
     public function save(): void
     {
-        $this->form->save();
+        $isCreating = $this->form->region === null;
+        $region = $this->form->save();
 
         session()->flash('status', __('Region saved.'));
 
-        $this->redirect(route('admin.regions.index'), navigate: true);
+        if ($isCreating) {
+            // First save: land on the edit page so the Person tabs become available.
+            $this->redirect(route('admin.regions.edit', $region), navigate: true);
+        }
     }
 };

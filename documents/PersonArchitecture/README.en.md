@@ -518,16 +518,27 @@ The natures already exist from Phase 1; this phase activates them in the UI and 
 5. Visitor flow: admin "Add visitor" creates a Person with `nature=visitor`, no User. Optional later registration claims the Person.
 6. Tests: act-as authorization, visitor creation without User, child age threshold.
 
-### Phase 8 — Orgs-as-Persons follow-ups
+### Phase 8 — Cleanup follow-ups
 
-The Orgs-as-Persons unification (PR #10) shipped between Phase 5 and Phase 6 and linked every Region / District / Church to an Organization-type Person. Two cleanups were deferred from that PR to keep the diff focused:
+A grab-bag of deferred items from earlier phases. Phase 8 ships the
+high-value, low-risk subset; the high-risk drop-cached-columns piece
+stays open as a future cleanup PR.
 
-1. **Drop the duplicated cached columns** on org tables. Currently `ecclesiastical_regions.name`, `districts.name`, `churches.name` / `email` / `phone` / `address` / `city` / `state` / `zip` are mirrored from the linked Person and kept in sync by editor `save()` paths. The "drop" iteration:
+**Shipped in Phase 8:**
+
+- **Inline composition of Person tabs into org editors.** Region / District / Church editors gain a `flux:tab.group` (Details / Contacts / Addresses / Documents [+ Administrators on Church]) when editing an existing record. The Person tabs reuse the existing `livewire:admin.people.{contacts,addresses,documents}` MFCs passed `:person-id="$row->person_id"`. Admins no longer round-trip through "Open as Person" for routine satellite edits; that button stays as a lower-priority shortcut for Family/Roles tabs.
+- **Person → Org name sync observer.** `PersonObserver::updated()` mirrors `Person.name` back to the linked org row when the Person carries an org nature, closing the drift gap from the other direction (org-side editors already sync forward; this catches the case where an admin edits the name on `/admin/people` directly).
+- **Cron auto-promote.** `php artisan person:promote-minors` (scheduled nightly at 02:15) walks the people table and: child → teenager when birthdate puts the person past 12; teenager → adult (drops the Teenager nature; doesn't auto-add Member, since adulthood doesn't imply church membership) past 18. `--dry-run` reports counts without writing.
+
+**Still deferred (future cleanup PRs):**
+
+- **Drop the duplicated cached columns** on org tables. Currently `ecclesiastical_regions.name`, `districts.name`, `churches.name` / `email` / `phone` / `address` / `city` / `state` / `zip` are mirrored from the linked Person and kept in sync by both editor `save()` paths and `PersonObserver::updated()` (Phase 8). The "drop" iteration:
    - Sweep every read site (`$church->name`, `$region->name`, etc.) and either route through `$church->person->name` or add an Eloquent accessor on Church that delegates to the linked Person
    - Migration: drop the columns from the org tables once every read site is converted
    - Tests: every place that asserted on `$church->name` continues to work (because the accessor masks the column removal)
    - Risk: high blast radius — these columns are read in dozens of places across views, factories, tests, seeders. Should ship as its own PR with thorough test coverage.
-2. **Inline composition of Person tabs into org editors.** Currently the Region / District / Church editors expose an "Open as Person" button that navigates to `/admin/people/{personId}/edit`. The next iteration could embed Contacts / Addresses / Documents / Roles tabs directly inside the Church editor (likewise for Region and District), so an admin never leaves the church-edit context. Implementation: add a `flux:tab.group` to the Church editor with the existing `livewire:admin.people.{contacts,addresses,documents,roles}` components passed `:person-id` from `$church->person_id`. Same for Region and District. Lower risk than the cached-columns drop; ships independently.
+- **Effective-Person scoping for prayer signups + fasting entries.** Phase 7 ships the act-as session toggle + Family UI + `User::effectivePerson()`; the controllers that consume it (writing rows scoped to the acted-as Person via a new `for_person_id` column) need schema + controller changes and ship as a separate PR.
+- **Functions CRUD** — only if real demand surfaces (Phase 6 §6 decision).
 
 ---
 

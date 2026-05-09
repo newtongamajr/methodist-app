@@ -2,6 +2,10 @@
 
 namespace App\Observers;
 
+use App\Enums\PersonNature;
+use App\Models\Church;
+use App\Models\District;
+use App\Models\EcclesiasticalRegion;
 use App\Models\Person;
 use App\Support\TaxIdValidator;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +31,38 @@ class PersonObserver
             throw ValidationException::withMessages([
                 'tax_id' => __('The :type number is invalid.', ['type' => strtoupper($type)]),
             ]);
+        }
+    }
+
+    /**
+     * When an org-Person's name changes, mirror it back to the linked org
+     * row. The reverse direction (org → person) is already handled by the
+     * org editors. This closes the drift gap when admins edit the Person
+     * directly via /admin/people.
+     */
+    public function updated(Person $person): void
+    {
+        if (! $person->wasChanged('name')) {
+            return;
+        }
+
+        if ($person->hasNature(PersonNature::EcclesiasticalRegion)
+            || $person->hasNature(PersonNature::NationalHeadquarters)) {
+            EcclesiasticalRegion::query()
+                ->where('person_id', $person->id)
+                ->update(['name' => $person->name]);
+        }
+
+        if ($person->hasNature(PersonNature::District)) {
+            District::query()
+                ->where('person_id', $person->id)
+                ->update(['name' => $person->name]);
+        }
+
+        if ($person->hasNature(PersonNature::Church)) {
+            Church::query()
+                ->where('person_id', $person->id)
+                ->update(['name' => $person->name]);
         }
     }
 }
