@@ -61,17 +61,23 @@
             <flux:input wire:model="form.label" :label="__('Label')" :placeholder="__('e.g. Home, Work')" />
 
             <div class="grid gap-4 sm:grid-cols-5">
-                <flux:input wire:model="form.street" :label="__('Street')" class="sm:col-span-4" />
+                <div class="sm:col-span-4">
+                    <flux:input wire:model="form.street" :label="__('Street')" />
+                </div>
                 <flux:input wire:model="form.number" :label="__('Number')" />
             </div>
 
             <div class="grid gap-4 sm:grid-cols-3">
                 <flux:input wire:model="form.complement" :label="__('Complement')" />
-                <flux:input wire:model="form.neighborhood" :label="__('Neighborhood')" class="sm:col-span-2" />
+                <div class="sm:col-span-2">
+                    <flux:input wire:model="form.neighborhood" :label="__('Neighborhood')" />
+                </div>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-4">
-                <flux:input wire:model="form.city" :label="__('City')" class="sm:col-span-3" />
+                <div class="sm:col-span-3">
+                    <flux:input wire:model="form.city" :label="__('City')" />
+                </div>
                 <flux:input wire:model="form.state" :label="__('State (UF)')" maxlength="2" />
             </div>
 
