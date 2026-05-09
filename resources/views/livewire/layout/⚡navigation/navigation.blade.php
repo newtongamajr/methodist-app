@@ -62,6 +62,9 @@
                                     @endcan
 
                                     @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                                        <flux:menu.item :href="route('admin.people.index')" wire:navigate icon="identification">
+                                            {{ __('People') }}
+                                        </flux:menu.item>
                                         <flux:menu.item :href="route('admin.users.index')" wire:navigate icon="user-group">
                                             {{ __('Administrators') }}
                                         </flux:menu.item>
@@ -227,6 +230,7 @@
                             <flux:sidebar.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:sidebar.item>
                         @endcan
                         @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                            <flux:sidebar.item :href="route('admin.people.index')" wire:navigate>{{ __('People') }}</flux:sidebar.item>
                             <flux:sidebar.item :href="route('admin.users.index')" wire:navigate>{{ __('Administrators') }}</flux:sidebar.item>
                             <flux:sidebar.item :href="route('admin.members.index')" wire:navigate>{{ __('Members') }}</flux:sidebar.item>
                         @endif
@@ -315,6 +319,7 @@
                                 <flux:command.item icon="building-library" x-on:click="Livewire.navigate('{{ route('admin.churches.index') }}')">{{ __('Churches') }}</flux:command.item>
                             @endcan
                             @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                                <flux:command.item icon="identification" x-on:click="Livewire.navigate('{{ route('admin.people.index') }}')">{{ __('People') }}</flux:command.item>
                                 <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.users.index') }}')">{{ __('Administrators') }}</flux:command.item>
                                 <flux:command.item icon="users" x-on:click="Livewire.navigate('{{ route('admin.members.index') }}')">{{ __('Members') }}</flux:command.item>
                             @endif

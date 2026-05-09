@@ -68,6 +68,10 @@ Route::middleware(['auth', EnsureCanManageUsers::class])->prefix('admin')->name(
     Route::livewire('members', 'admin.members.index')->name('members.index');
     Route::livewire('members/create', 'admin.members.editor')->name('members.create');
     Route::livewire('members/{userId}/edit', 'admin.members.editor')->name('members.edit');
+
+    Route::livewire('people', 'admin.people.index')->name('people.index');
+    Route::livewire('people/create', 'admin.people.editor')->name('people.create');
+    Route::livewire('people/{personId}/edit', 'admin.people.editor')->name('people.edit');
 });
 
 Route::middleware(['auth', EnsureCanManageFasting::class])->prefix('admin')->name('admin.')->group(function () {
