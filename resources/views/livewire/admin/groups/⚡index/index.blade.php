@@ -84,8 +84,15 @@
                                     <flux:button :href="route('admin.groups.edit', $group)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $group->id }})" wire:confirm="{{ __('Delete this group and end every member assignment?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-group-'.$group->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-group-'.$group->id"
+                                    :heading="__('Delete this group and end every member assignment?')"
+                                    action="delete({{ $group->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

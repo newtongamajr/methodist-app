@@ -63,8 +63,15 @@
                                     <flux:button :href="route('admin.prayer-schedules.edit', $schedule)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $schedule->id }})" wire:confirm="{{ __('Delete this schedule?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-prayer-schedule-'.$schedule->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-prayer-schedule-'.$schedule->id"
+                                    :heading="__('Delete this schedule?')"
+                                    action="delete({{ $schedule->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

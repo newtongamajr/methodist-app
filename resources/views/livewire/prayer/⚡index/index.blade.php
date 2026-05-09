@@ -199,15 +199,21 @@
                                             >
                                                 {{ $signup->user?->name ?? '—' }}
                                                 @if ($this->isAdminHere && $signup->user_id !== $myId && ! $isPast)
-                                                    <button
-                                                        type="button"
-                                                        wire:click="removeSignup({{ $signup->id }})"
-                                                        wire:confirm="{{ __('Remove :name from this slot?', ['name' => $signup->user?->name ?? '—']) }}"
-                                                        class="ml-0.5 -mr-1 size-4 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
-                                                        title="{{ __('Remove from slot') }}"
-                                                    >
-                                                        ×
-                                                    </button>
+                                                    <flux:modal.trigger :name="'remove-signup-'.$signup->id">
+                                                        <button
+                                                            type="button"
+                                                            class="ml-0.5 -mr-1 size-4 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
+                                                            title="{{ __('Remove from slot') }}"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </flux:modal.trigger>
+                                                    <x-confirm-delete
+                                                        :name="'remove-signup-'.$signup->id"
+                                                        :heading="__('Remove :name from this slot?', ['name' => $signup->user?->name ?? '—'])"
+                                                        :confirmLabel="__('Remove')"
+                                                        action="removeSignup({{ $signup->id }})"
+                                                    />
                                                 @endif
                                             </span>
                                         @endforeach

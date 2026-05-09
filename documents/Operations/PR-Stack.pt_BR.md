@@ -103,4 +103,4 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 - [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#16) — prova que a stack inteira compõe
 - [ ] `php artisan test --compact` verde no HEAD do #16 (272 tests / 635 assertions na última execução)
 - [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #16
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 612 keys no HEAD do #16
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 617 keys no HEAD do #16

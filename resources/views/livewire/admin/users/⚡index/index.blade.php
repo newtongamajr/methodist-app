@@ -67,8 +67,15 @@
                                     <flux:button :href="route('admin.users.churches', $user)" wire:navigate size="sm" variant="ghost" icon="building-library" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $user->id }})" wire:confirm="{{ __('Delete this user?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-user-'.$user->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-user-'.$user->id"
+                                    :heading="__('Delete this user?')"
+                                    action="delete({{ $user->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

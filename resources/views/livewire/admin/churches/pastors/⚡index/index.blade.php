@@ -67,12 +67,27 @@
                                 </flux:tooltip>
                                 @if (! $a->ended_at)
                                     <flux:tooltip :content="__('End assignment today')">
-                                        <flux:button wire:click="endAssignment({{ $a->id }})" wire:confirm="{{ __('End this assignment today?') }}" size="sm" variant="ghost" icon="x-circle" />
+                                        <flux:modal.trigger :name="'end-pastor-assignment-'.$a->id">
+                                            <flux:button size="sm" variant="ghost" icon="x-circle" />
+                                        </flux:modal.trigger>
                                     </flux:tooltip>
+                                    <x-confirm-delete
+                                        :name="'end-pastor-assignment-'.$a->id"
+                                        :heading="__('End this assignment today?')"
+                                        :confirmLabel="__('End')"
+                                        action="endAssignment({{ $a->id }})"
+                                    />
                                 @endif
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $a->id }})" wire:confirm="{{ __('Delete this assignment?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-pastor-assignment-'.$a->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-pastor-assignment-'.$a->id"
+                                    :heading="__('Delete this assignment?')"
+                                    action="delete({{ $a->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

@@ -38,15 +38,15 @@
             </flux:button>
 
             @if ($avatarUrl)
-                <flux:button
-                    type="button"
-                    variant="danger"
-                    icon="trash"
-                    wire:click="removeAvatar"
-                    wire:confirm="{{ __('Remove your profile picture?') }}"
-                >
-                    {{ __('Remove') }}
-                </flux:button>
+                <flux:modal.trigger name="remove-avatar">
+                    <flux:button type="button" variant="danger" icon="trash">{{ __('Remove') }}</flux:button>
+                </flux:modal.trigger>
+                <x-confirm-delete
+                    name="remove-avatar"
+                    :heading="__('Remove your profile picture?')"
+                    :confirmLabel="__('Remove')"
+                    action="removeAvatar"
+                />
             @endif
 
             <x-action-message class="text-sm text-emerald-600 dark:text-emerald-400" on="avatar-updated">

@@ -89,6 +89,7 @@ class extends Component
         }
 
         $this->selectedChurchId = null;
+        $this->user->load(['churches', 'person']);
         unset($this->attachments, $this->selectableChurches);
     }
 
@@ -117,6 +118,7 @@ class extends Component
             }
         }
 
+        $this->user->load(['churches', 'person']);
         unset($this->attachments, $this->selectableChurches);
     }
 
@@ -131,6 +133,10 @@ class extends Component
         $this->user->churches()->updateExistingPivot($churchId, ['is_primary' => true]);
         $this->user->person?->update(['managing_church_id' => $churchId]);
 
-        unset($this->attachments);
+        // Reload the user so the eager-loaded `churches` collection picks up
+        // the new pivot state — the next render needs fresh `pivot.is_primary`
+        // values for the @if check that swaps badge ↔ "Set as primary" button.
+        $this->user->load(['churches', 'person']);
+        unset($this->attachments, $this->selectableChurches);
     }
 };

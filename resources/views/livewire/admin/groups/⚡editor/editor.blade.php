@@ -145,12 +145,27 @@
                                         </flux:tooltip>
                                         @if (! $m->ended_at)
                                             <flux:tooltip :content="__('End today')">
-                                                <flux:button wire:click="endMember({{ $m->id }})" wire:confirm="{{ __('End this membership today?') }}" size="sm" variant="ghost" icon="x-circle" />
+                                                <flux:modal.trigger :name="'end-member-'.$m->id">
+                                                    <flux:button size="sm" variant="ghost" icon="x-circle" />
+                                                </flux:modal.trigger>
                                             </flux:tooltip>
+                                            <x-confirm-delete
+                                                :name="'end-member-'.$m->id"
+                                                :heading="__('End this membership today?')"
+                                                :confirmLabel="__('End')"
+                                                action="endMember({{ $m->id }})"
+                                            />
                                         @endif
                                         <flux:tooltip :content="__('Delete')">
-                                            <flux:button wire:click="deleteMember({{ $m->id }})" wire:confirm="{{ __('Delete this membership?') }}" size="sm" variant="ghost" icon="trash" />
+                                            <flux:modal.trigger :name="'delete-member-'.$m->id">
+                                                <flux:button size="sm" variant="ghost" icon="trash" />
+                                            </flux:modal.trigger>
                                         </flux:tooltip>
+                                        <x-confirm-delete
+                                            :name="'delete-member-'.$m->id"
+                                            :heading="__('Delete this membership?')"
+                                            action="deleteMember({{ $m->id }})"
+                                        />
                                     </div>
                                 </flux:table.cell>
                             </flux:table.row>

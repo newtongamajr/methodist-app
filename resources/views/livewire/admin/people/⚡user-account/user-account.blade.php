@@ -43,14 +43,16 @@
                 {{ __('Edit user') }}
             </flux:button>
             @can('users.manage')
-                <flux:button
-                    wire:click="disconnect"
-                    wire:confirm="{{ __('Disconnect this user account? The Person record will stay; the User row (login + roles) will be deleted.') }}"
-                    variant="ghost"
-                    icon="x-mark"
-                >
-                    {{ __('Disconnect user') }}
-                </flux:button>
+                <flux:modal.trigger name="disconnect-user-account">
+                    <flux:button variant="ghost" icon="x-mark">{{ __('Disconnect user') }}</flux:button>
+                </flux:modal.trigger>
+                <x-confirm-delete
+                    name="disconnect-user-account"
+                    :heading="__('Disconnect this user account?')"
+                    :message="__('The Person record will stay; the User row (login + roles) will be deleted.')"
+                    :confirmLabel="__('Disconnect')"
+                    action="disconnect"
+                />
             @endcan
         </div>
     @else

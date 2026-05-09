@@ -42,8 +42,15 @@
                                     <flux:button :href="route('admin.fasting-campaigns.edit', $campaign)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $campaign->id }})" wire:confirm="{{ __('Delete this campaign?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-fasting-campaign-'.$campaign->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-fasting-campaign-'.$campaign->id"
+                                    :heading="__('Delete this campaign?')"
+                                    action="delete({{ $campaign->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

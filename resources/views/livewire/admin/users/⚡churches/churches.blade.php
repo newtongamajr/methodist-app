@@ -60,7 +60,7 @@
             <ul class="space-y-2">
                 @foreach ($this->attachments as $church)
                     <li
-                        wire:key="attached-{{ $church->id }}"
+                        wire:key="attached-{{ $church->id }}-{{ $church->pivot->is_primary ? 'p' : 'np' }}"
                         class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900"
                     >
                         <div class="flex-1 min-w-48">
@@ -85,14 +85,18 @@
                             @endif
 
                             <flux:tooltip :content="__('Remove this church from the user')">
-                                <flux:button
-                                    wire:click="detach({{ $church->id }})"
-                                    wire:confirm="{{ __('Remove this church from the user?') }}"
-                                    size="sm"
-                                    variant="ghost"
-                                    icon="x-mark"
-                                />
+                                <flux:modal.trigger :name="'detach-church-'.$church->id">
+                                    <flux:button size="sm" variant="ghost" icon="x-mark" />
+                                </flux:modal.trigger>
                             </flux:tooltip>
+
+                            <x-confirm-delete
+                                :name="'detach-church-'.$church->id"
+                                :heading="__('Remove this church from the user?')"
+                                :message="__('The user will no longer be able to administer :name.', ['name' => $church->name])"
+                                :confirmLabel="__('Remove')"
+                                action="detach({{ $church->id }})"
+                            />
                         </div>
                     </li>
                 @endforeach
