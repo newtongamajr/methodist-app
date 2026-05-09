@@ -1,9 +1,10 @@
-# PR stack — code review through Person Architecture Phase 6
+# PR stack — code review through Person Architecture Phase 6 + Identity tab polish
 
-Eleven stacked PRs ship the entire trajectory from `main` up through Phase 6
-of the Person Architecture. They are stacked (each PR's base is the head of
-the next one down), not parallel, because each builds on its predecessor.
-Trying to merge them out of order will produce conflicts.
+Twelve stacked PRs ship the entire trajectory from `main` up through Phase 6
+of the Person Architecture plus the Identity-tab polish layered on top. They
+are stacked (each PR's base is the head of the next one down), not parallel,
+because each builds on its predecessor. Trying to merge them out of order
+will produce conflicts.
 
 ## Merge order (bottom up)
 
@@ -20,9 +21,10 @@ Trying to merge them out of order will produce conflicts.
 | 9 | `persons-phase-5` | `persons-phase-4` | Person Architecture Phase 5 (conditional `district_id` required on church forms + dedicated CRUD tests) |
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Orgs-as-Persons unification (Region / District / Church each backed by an Org-Person; National HQ as a special ER row) |
 | 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (Groups admin — councils / ministries / commissions at 4 levels with member assignments + helper queries) |
+| 12 | `persons-identity-polish` | `persons-phase-6` | Identity tab polish (Youth nature, MaritalStatus enum, type-able dates, conditional Birthdate/Foundation date label, nature filter by person_type) |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11.** As
-each PR merges, GitHub will auto-retarget the next one in the chain to
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12.**
+As each PR merges, GitHub will auto-retarget the next one in the chain to
 `main` (or to whatever the new base is). Do not squash-merge — preserve the
 commit history so the layered intent stays legible in `git log`.
 
@@ -39,6 +41,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/9
 - https://github.com/newtongamajr/methodist-app/pull/10
 - https://github.com/newtongamajr/methodist-app/pull/11
+- https://github.com/newtongamajr/methodist-app/pull/12
 
 ## Why stacked, not one big PR
 
@@ -73,9 +76,9 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 
 ## Verification before merging the chain
 
-- [ ] All eleven PRs are open, in the right order, against the right base
+- [ ] All twelve PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#11) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #11 (225 tests / 543 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #11
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 547 keys at HEAD of #11
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#12) — proves the whole chain composes
+- [ ] `php artisan test --compact` is green at HEAD of #12 (235 tests / 567 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #12
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 556 keys at HEAD of #12

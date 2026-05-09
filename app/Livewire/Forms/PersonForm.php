@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Forms;
 
+use App\Enums\MaritalStatus;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
 use App\Models\Person;
@@ -41,6 +42,10 @@ class PersonForm extends Form
     {
         $isIndividual = $this->person_type === PersonType::Individual->value;
 
+        // Nature whitelist depends on person_type — individuals can't carry an
+        // org nature and vice-versa.
+        $allowedNatures = array_keys(PersonNature::optionsForPersonType($this->person_type));
+
         return [
             'person_type' => ['required', 'in:'.implode(',', array_map(fn ($c) => $c->value, PersonType::cases()))],
             'name' => ['required', 'string', 'max:255'],
@@ -50,11 +55,17 @@ class PersonForm extends Form
                 Rule::unique('persons', 'tax_id')->ignore($this->person?->id)->whereNotNull('tax_id'),
             ],
             'tax_id_type' => ['nullable', 'string', 'in:cpf,cnpj,passport,other'],
-            'birthdate' => [$isIndividual ? 'nullable' : 'prohibited', 'date', 'before:today'],
+            // birthdate column doubles as the foundation_date for organizations
+            // — a single column, the UI label flips per type.
+            'birthdate' => ['nullable', 'date', 'before:today'],
             'gender' => [$isIndividual ? 'nullable' : 'prohibited', 'string', 'in:female,male,other'],
-            'marital_status' => [$isIndividual ? 'nullable' : 'prohibited', 'string', 'max:32'],
+            'marital_status' => [
+                $isIndividual ? 'nullable' : 'prohibited',
+                'string',
+                'in:'.implode(',', array_map(fn ($c) => $c->value, MaritalStatus::cases())),
+            ],
             'natures' => ['array'],
-            'natures.*' => ['string', 'in:'.implode(',', array_map(fn ($c) => $c->value, PersonNature::cases()))],
+            'natures.*' => ['string', 'in:'.implode(',', $allowedNatures)],
             'managing_church_id' => ['nullable', 'integer', 'exists:churches,id'],
             'notes' => ['nullable', 'string', 'max:5000'],
         ];
@@ -70,7 +81,7 @@ class PersonForm extends Form
         $this->tax_id_type = $person->tax_id_type ?? '';
         $this->birthdate = $person->birthdate?->format('Y-m-d') ?? '';
         $this->gender = $person->gender ?? '';
-        $this->marital_status = $person->marital_status ?? '';
+        $this->marital_status = $person->marital_status?->value ?? '';
         $this->natures = $person->natures ?? [];
         $this->managing_church_id = $person->managing_church_id;
         $this->notes = $person->notes ?? '';

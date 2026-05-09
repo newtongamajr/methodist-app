@@ -32,6 +32,21 @@ new class extends Component
         }
     }
 
+    public function updatedFormPersonType(): void
+    {
+        // Drop natures that don't apply to the new person_type so the
+        // checkbox state matches the rendered list.
+        $allowed = array_keys(\App\Enums\PersonNature::optionsForPersonType($this->form->person_type));
+        $this->form->natures = array_values(array_intersect($this->form->natures, $allowed));
+
+        // Org rows can't carry gender / marital_status — clear stale values
+        // so the form rules don't reject the save with `prohibited`.
+        if ($this->form->person_type === \App\Enums\PersonType::Organization->value) {
+            $this->form->gender = '';
+            $this->form->marital_status = '';
+        }
+    }
+
     public function updatedRegionId(): void
     {
         if ($this->district_id) {

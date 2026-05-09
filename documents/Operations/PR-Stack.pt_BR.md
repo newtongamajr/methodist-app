@@ -1,9 +1,10 @@
-# Stack de PRs — code review até a Phase 6 da Person Architecture
+# Stack de PRs — code review até a Phase 6 + polish da Identity tab
 
-Onze PRs empilhados entregam toda a trajetória entre `main` e a Phase 6 da
-Person Architecture. Eles estão **empilhados** (a base de cada PR é o head do
-PR de baixo), não são paralelos, porque cada um depende do anterior. Tentar
-mergear fora de ordem vai gerar conflitos.
+Doze PRs empilhados entregam toda a trajetória entre `main` e a Phase 6 da
+Person Architecture mais o polish da Identity tab no topo. Eles estão
+**empilhados** (a base de cada PR é o head do PR de baixo), não são paralelos,
+porque cada um depende do anterior. Tentar mergear fora de ordem vai gerar
+conflitos.
 
 ## Ordem de merge (de baixo para cima)
 
@@ -20,8 +21,9 @@ mergear fora de ordem vai gerar conflitos.
 | 9 | `persons-phase-5` | `persons-phase-4` | Person Architecture Phase 5 (regra condicional de `district_id` required no editor de church + testes dedicados de CRUD) |
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Unificação Orgs-as-Persons (Region / District / Church cada um respaldado por um Org-Person; Sede Nacional como uma ER especial) |
 | 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (admin de Groups — councils / ministries / commissions em 4 níveis com assignments de membros + helpers) |
+| 12 | `persons-identity-polish` | `persons-phase-6` | Polish da Identity tab (nature Youth, enum MaritalStatus, datas com input typeable, label condicional Birthdate/Foundation date, filtro de natures por person_type) |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11.**
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12.**
 À medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base
 do próximo da fila para `main` (ou para a nova base, se aplicável). Não use
 squash-merge — preserve o histórico de commits para que a intenção em
@@ -40,6 +42,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/9
 - https://github.com/newtongamajr/methodist-app/pull/10
 - https://github.com/newtongamajr/methodist-app/pull/11
+- https://github.com/newtongamajr/methodist-app/pull/12
 
 ## Por que empilhado, e não um PR único
 
@@ -75,9 +78,9 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os onze PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os doze PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#11) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #11 (225 tests / 543 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #11
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 547 keys no HEAD do #11
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#12) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #12 (235 tests / 567 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #12
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 556 keys no HEAD do #12

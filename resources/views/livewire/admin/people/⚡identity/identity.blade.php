@@ -24,25 +24,49 @@
 
         @if ($form->person_type === 'individual')
             <div class="grid gap-4 sm:grid-cols-3">
-                <flux:date-picker wire:model="form.birthdate" :label="__('Birthdate')" />
+                <flux:date-picker
+                    wire:model="form.birthdate"
+                    :label="__('Birthdate')"
+                    with-inputs
+                    selectable-header
+                    :min="now()->subYears(120)->toDateString()"
+                    :max="now()->toDateString()"
+                />
                 <flux:select wire:model="form.gender" :label="__('Gender')">
                     <option value="">{{ __('— None —') }}</option>
                     <option value="female">{{ __('Female') }}</option>
                     <option value="male">{{ __('Male') }}</option>
                     <option value="other">{{ __('Other') }}</option>
                 </flux:select>
-                <flux:input wire:model="form.marital_status" :label="__('Marital status')" />
+                <flux:select wire:model="form.marital_status" :label="__('Marital status')">
+                    <option value="">{{ __('— None —') }}</option>
+                    @foreach (\App\Enums\MaritalStatus::cases() as $ms)
+                        <option value="{{ $ms->value }}">{{ $ms->label() }}</option>
+                    @endforeach
+                </flux:select>
             </div>
+        @else
+            <flux:date-picker
+                wire:model="form.birthdate"
+                :label="__('Foundation date')"
+                with-inputs
+                selectable-header
+                :max="now()->toDateString()"
+            />
         @endif
 
         <flux:field>
             <flux:label>{{ __('Natures') }}</flux:label>
-            <flux:description>{{ __('Pick every role this person plays — you can pick more than one (e.g. a member who is also a pastor).') }}</flux:description>
+            <flux:description>
+                {{ $form->person_type === 'organization'
+                    ? __('Pick the organizational role this record represents.')
+                    : __('Pick every role this person plays — you can pick more than one (e.g. a member who is also a pastor).') }}
+            </flux:description>
             <div class="grid gap-2 sm:grid-cols-3">
-                @foreach (\App\Enums\PersonNature::cases() as $n)
-                    <label wire:key="person-nat-{{ $n->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $n->value }}" wire:model="form.natures" class="rounded-sm text-accent focus:ring-accent">
-                        <span>{{ $n->label() }}</span>
+                @foreach (\App\Enums\PersonNature::optionsForPersonType($form->person_type) as $value => $label)
+                    <label wire:key="person-nat-{{ $value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                        <input type="checkbox" value="{{ $value }}" wire:model="form.natures" class="rounded-sm text-accent focus:ring-accent">
+                        <span>{{ $label }}</span>
                     </label>
                 @endforeach
             </div>
