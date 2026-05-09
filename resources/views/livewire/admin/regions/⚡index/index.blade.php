@@ -38,6 +38,12 @@
                                 <flux:tooltip :content="__('Edit')">
                                     <flux:button :href="route('admin.regions.edit', $region)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
+                                <flux:tooltip :content="__('Districts in this region')">
+                                    <flux:button :href="route('admin.districts.index', ['region' => $region->id])" wire:navigate size="sm" variant="ghost" icon="map" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Churches in this region')">
+                                    <flux:button :href="route('admin.churches.index', ['region' => $region->id])" wire:navigate size="sm" variant="ghost" icon="building-library" />
+                                </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
                                     <flux:button wire:click="delete({{ $region->id }})" wire:confirm="{{ __('Delete this region?') }}" size="sm" variant="ghost" icon="trash" />
                                 </flux:tooltip>

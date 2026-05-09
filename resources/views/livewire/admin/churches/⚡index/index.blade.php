@@ -6,7 +6,36 @@
         </flux:button>
     </div>
 
-    <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or city…')" icon="magnifying-glass" />
+    <div class="grid gap-3 sm:grid-cols-3">
+        <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or city…')" icon="magnifying-glass" />
+
+        <flux:select
+            wire:model.live="regionFilter"
+            variant="listbox"
+            searchable
+            clearable
+            :placeholder="__('All regions')"
+        >
+            @foreach ($this->regions as $region)
+                <flux:select.option :value="$region->id">{{ $region->code }} — {{ $region->name }}</flux:select.option>
+            @endforeach
+        </flux:select>
+
+        @if ($regionFilter)
+            <flux:select
+                wire:model.live="districtFilter"
+                variant="listbox"
+                searchable
+                clearable
+                :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('All districts')"
+                :disabled="$this->districts->isEmpty()"
+            >
+                @foreach ($this->districts as $district)
+                    <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+    </div>
 
     @if ($this->churches->isEmpty())
         <div class="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
