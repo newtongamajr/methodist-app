@@ -6,6 +6,7 @@ use App\Enums\PersonNature;
 use App\Enums\PersonType;
 use App\Livewire\Forms\ChurchForm;
 use App\Models\Church;
+use App\Models\District;
 use App\Models\EcclesiasticalRegion;
 use App\Models\Person;
 use App\Models\User;
@@ -32,10 +33,38 @@ class extends Component
         }
     }
 
+    public function updatedFormEcclesiasticalRegionId(): void
+    {
+        // Cascade: clear the chosen district when it no longer belongs to the
+        // selected region.
+        if (! $this->form->district_id) {
+            return;
+        }
+        $district = District::find($this->form->district_id);
+        if (! $district || $district->ecclesiastical_region_id !== $this->form->ecclesiastical_region_id) {
+            $this->form->district_id = null;
+        }
+    }
+
     #[Computed]
     public function regions(): Collection
     {
         return EcclesiasticalRegion::orderBy('display_order')->get(['id', 'code', 'name']);
+    }
+
+    #[Computed]
+    public function districts(): Collection
+    {
+        if (! $this->form->ecclesiastical_region_id) {
+            return collect();
+        }
+
+        return District::query()
+            ->where('ecclesiastical_region_id', $this->form->ecclesiastical_region_id)
+            ->where('is_active', true)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
     public function save(): void
@@ -45,9 +74,13 @@ class extends Component
         $data = $this->form->validate();
 
         $churchData = collect($data)->only([
-            'ecclesiastical_region_id', 'type', 'name', 'slug', 'address', 'city', 'state', 'zip',
+            'ecclesiastical_region_id', 'district_id', 'type', 'name', 'slug', 'address', 'city', 'state', 'zip',
             'timezone', 'max_prayers_per_slot', 'default_mode', 'phone', 'email', 'is_active',
         ])->all();
+
+        if (($churchData['district_id'] ?? null) === '') {
+            $churchData['district_id'] = null;
+        }
 
         if (empty($churchData['slug'])) {
             $churchData['slug'] = (new GenerateUniqueSlug)(

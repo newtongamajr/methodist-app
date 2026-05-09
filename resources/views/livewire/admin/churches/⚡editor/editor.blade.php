@@ -20,10 +20,17 @@
             <flux:heading size="lg">{{ __('Church') }}</flux:heading>
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <flux:select wire:model="form.ecclesiastical_region_id" :label="__('Ecclesiastical region')" required>
-                    <option value="">{{ __('— Select a region —') }}</option>
+                <flux:select
+                    wire:model.live="form.ecclesiastical_region_id"
+                    variant="listbox"
+                    searchable
+                    clearable
+                    :label="__('Ecclesiastical region')"
+                    :placeholder="__('Pick a region…')"
+                    required
+                >
                     @foreach ($this->regions as $region)
-                        <option value="{{ $region->id }}">{{ $region->code }} — {{ $region->name }}</option>
+                        <flux:select.option :value="$region->id">{{ $region->code }} — {{ $region->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
 
@@ -33,6 +40,22 @@
                     @endforeach
                 </flux:select>
             </div>
+
+            @if ($form->ecclesiastical_region_id)
+                <flux:select
+                    wire:model="form.district_id"
+                    variant="listbox"
+                    searchable
+                    clearable
+                    :label="__('District')"
+                    :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('Pick a district…')"
+                    :disabled="$this->districts->isEmpty()"
+                >
+                    @foreach ($this->districts as $district)
+                        <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            @endif
 
             <flux:input wire:model="form.name" :label="__('Name')" required />
 

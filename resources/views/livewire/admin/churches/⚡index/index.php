@@ -42,7 +42,7 @@ class extends Component
     public function churches()
     {
         return Church::query()
-            ->with(['region'])
+            ->with(['region', 'district'])
             ->withCount('members')
             ->when($this->search, function ($q) {
                 $term = '%'.addcslashes($this->search, '%_\\').'%';

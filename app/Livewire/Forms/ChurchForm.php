@@ -16,6 +16,8 @@ class ChurchForm extends Form
 
     public ?int $ecclesiastical_region_id = null;
 
+    public ?int $district_id = null;
+
     public string $type = 'church';
 
     public string $name = '';
@@ -54,6 +56,7 @@ class ChurchForm extends Form
     {
         $rules = [
             'ecclesiastical_region_id' => ['required', 'integer', 'exists:ecclesiastical_regions,id'],
+            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
             'type' => ['required', 'in:'.implode(',', ChurchType::values())],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('churches', 'slug')->ignore($this->church?->id)],
@@ -85,6 +88,7 @@ class ChurchForm extends Form
     {
         $this->church = $church;
         $this->ecclesiastical_region_id = $church->ecclesiastical_region_id;
+        $this->district_id = $church->district_id;
         $this->type = $church->type?->value ?? ChurchType::Church->value;
         $this->name = $church->name;
         $this->slug = $church->slug;
