@@ -20,9 +20,11 @@ This document is the architectural plan; it does not implement anything. Phases 
 
 ## Decisions already aligned
 
-These are the seven big calls — locked in across two rounds of conversation before this plan rewrite:
+These are the eight big calls — locked in across three rounds of conversation before this plan rewrite:
 
-1. **`users.person_id` is the canonical link.** A `User` row points at a `Person` row. People can exist without users (visitors, family members who'll only ever appear in someone else's family tree). One `Person` is linked from at most one `User`. Permissions stay on User; identity context comes from `User->person`.
+0. **No data to migrate; one migration file per table (standard Laravel pattern).** The project is at the very beginning; the only row that needs to survive across schema changes is a single global-admin user. Every other table can be dropped, recreated, or have columns removed outright. There are no backfill commands, no "keep the old column for transition" choreography, no rollback paths. Each table gets its own create migration; deprecated tables (`pastors`, `pastor_assignments`) get a drop migration; deprecated user columns (`users.member_type`, `users.phone`, `users.birthdate`, `users.church_id`) are removed via a single modify migration that also adds `users.person_id`. The whole batch ships in Phase 1 so the schema is correct end-state from day one even though most tables won't have UI until later phases. Run `php artisan migrate:fresh --seed` after applying.
+
+1. **`users.person_id` is the canonical link** and **NOT NULL** in v1. Every authenticated User has exactly one Person; the `User` row carries the FK. People can still exist without a User (visitors, family members who only appear in someone else's tree) — the Person row is the source of truth, the User row is the optional credential layer. Permissions stay on User; identity context comes from `User->person`.
 
 2. **Per-role data is JSON on the `Person` row** — same as the template. `persons.natures` is a JSON array (`["member", "pastor"]`); `persons.additional_data` is a JSON object keyed by nature (`{ "member": {...}, "pastor": {...} }`). No separate table per role.
 
@@ -123,9 +125,13 @@ Indexes: `(name)` for search, `(tax_id)` unique-where-not-null, `(birthdate)` fo
 
 ### `users` (modify in Phase 1)
 
-Add: `person_id bigint nullable` FK to `persons.id` `ON DELETE SET NULL`. Index on `(person_id)`.
+- Add: `person_id bigint NOT NULL` FK to `persons.id` `ON DELETE CASCADE`. Index on `(person_id)`. Unique to enforce 1:1.
+- Drop: `member_type` (now lives in `persons.natures`).
+- Drop: `phone` (now in `person_contacts` with `type=phone`, `is_primary=true`).
+- Drop: `birthdate` (moved to `persons.birthdate`).
+- Drop: `church_id` (membership now expressed via `persons.managing_church_id` for ownership and `person_role_assignments` for affiliations).
 
-The existing `member_type` column on users gets backfilled into `persons.natures` and is dropped in Phase 1's cleanup commit.
+The `MakeSuperUser` console command (and the `RolesAndPermissionsSeeder`) updates to create both the Person and the User in one shot.
 
 ### `person_contacts` (Phase 2)
 
@@ -378,93 +384,105 @@ No need to migrate the existing `roles` table from spatie; the three roles (`glo
 
 Each phase is a standalone PR. Each phase can be merged independently. Tests and translation audit gate every commit (per the existing project rules).
 
-### Phase 1 — Person foundation + User link + Member migration
+### Phase 1 — All schema + Person foundation + User link
 
-1. Migrations: `persons` table, `users.person_id` column.
-2. Models: `Person`, plus `App\Enums\PersonType` and `App\Enums\PersonNature` enum (initial cases: `Member`, `Pastor`, `Child`, `Teenager`, `Visitor`).
-3. `PersonObserver` for tax_id format validation (Brazilian CPF/CNPJ checksum).
-4. Hook `Person` from `User` via `User::person(): BelongsTo`.
-5. Backfill command: `php artisan persons:backfill-from-users` — for every existing User, create a matching Person, copy `name`/`birthdate`, set `nature=member` (or `nature=pastor` if a Pastor row exists for that User), set `users.person_id`, set `persons.managing_church_id` from the user's primary church.
-6. Update admin/members editor + profile pages to read/write through `User->person` for shared fields (name, birthdate). The `users.member_type` column stays in place this phase but reads default to Person-side values where present.
-7. Tests: factory for Person, MemberForm test updates.
+This phase ships the entire end-state schema (all tables for all later phases) plus the Person model, User link, and seeder updates. Later phases are code-and-UI only.
 
-**Verification:** all 171 existing tests stay green; new tests prove Person creation, User-Person linking, backfill command idempotency.
+1. **Migrations (one file per table, standard Laravel):**
+   - `create_persons_table.php`
+   - `create_person_contacts_table.php`
+   - `create_person_addresses_table.php`
+   - `create_person_documents_table.php`
+   - `create_person_relationships_table.php`
+   - `create_districts_table.php`
+   - `create_functions_table.php`
+   - `create_assignment_roles_table.php`
+   - `create_groups_table.php`
+   - `create_person_role_assignments_table.php`
+   - `modify_users_table_for_persons.php` — drop `member_type`, `phone`, `birthdate`, `church_id`; add `person_id` (NOT NULL) FK to persons.
+   - `modify_churches_table_for_districts.php` — add `district_id` (nullable in v1, but settable from day one).
+   - `drop_pastors_and_pastor_assignments_tables.php` — those die in favor of `person_role_assignments`.
+2. **Models for everything created** (Person, PersonContact, PersonAddress, PersonDocument, PersonRelationship, District, FunctionRole [class name avoiding the PHP `function` keyword], AssignmentRole, Group, PersonRoleAssignment).
+3. **Enums:** `PersonType`, `PersonNature` (Member/Pastor/Child/Teenager/Visitor), `PersonContactType`, `PersonRelationshipType` (with `inverse()` method), `GroupKind` (council/ministry/commission), `FunctionAppliesTo` (pastor/council/ministry/commission).
+4. **Observers:** `PersonObserver` (tax_id checksum), `PersonRelationshipObserver` (inverse derivation, no self/dupes), `GroupObserver` (level-rule validation), `PersonRoleAssignmentObserver` (denormalize region/district from group/church, validate function.applies_to vs context).
+5. **Seeders:**
+   - `FunctionsSeeder` — seeds the standard set (Main Pastor / Auxiliary Pastor / Seminarist / Lead / Co-Lead / Secretary / Treasurer / Member / Adviser).
+   - Update `RolesAndPermissionsSeeder` and the `MakeSuperUser` console command to create the global-admin's Person row alongside the User row.
+6. **`User::person(): BelongsTo`** + `Person::user(): HasOne` relationships.
+7. **Update admin/members editor + profile pages** to read/write Person fields through `User->person`. The Member nature is automatically present on every backfilled / newly-created member Person.
+8. **Tests:** Person factory, User factory updated (creates a Person), MemberForm tests updated, observer tests for inverse derivation + level rules.
 
-### Phase 2 — Person satellites (contacts, addresses, documents)
+**Verification:** `migrate:fresh --seed` produces a clean schema with one global-admin user (and matching Person). All 171 existing tests adapted to the new schema and stay green; new tests prove the Person/User invariants and observer behaviors.
 
-1. Migrations for `person_contacts`, `person_addresses`, `person_documents`.
-2. Models with `BelongsTo Person` + `is_primary` enforcement (only one primary per type via observer).
-3. Add `Person implements HasMedia` for `person_documents` scanned-image attachments via Spatie MediaLibrary.
-4. Profile UI: new tab `Contacts` and `Addresses` (or fold into existing tabs). Admin/members editor: same.
-5. Migrate the existing `users.phone` column data into a `person_contacts` row with `type=phone` `is_primary=true`. Drop `users.phone` column at end of phase.
-6. Tests for satellite CRUD + uniqueness rules.
+### Phase 2 — Person satellites UI
 
-### Phase 3 — Family tree (PersonRelationship)
+Schema is already in place from Phase 1. This phase wires the UI for contacts, addresses, documents.
 
-1. Migration for `person_relationships`.
-2. `PersonRelationshipType` enum with the explicit primitives (`parent_of`/`child_of`, `spouse`, `godparent_of`/`godchild_of`, `guardian_of`/`ward_of`); `inverse()` method on the enum.
-3. `PersonRelationshipObserver` derives `inverse_type` and prevents self-rels + duplicates.
-4. UI: a "Family" tab on profile.show + admin/members editor. List of related Persons with their relationship type + start/end. Add/remove relationships via inline form.
-5. Query helpers on Person (computed via graph traversal): `parents()`, `children()`, `spouse()`, `siblings()`, `grandparents()`, `grandchildren()`, `aunts()`, `uncles()`, `nieces()`, `nephews()`, `cousins()`, `descendants()`, `ancestors()`.
-6. A "Family tree" computed property on Person returns a structured tree (depth-bounded) for the UI — uses the same query helpers but composed.
-7. Tests: relationship insertion derives inverse correctly; duplicates blocked; self-rels blocked; family-tree query helpers return the right people for known fixtures.
+1. Forms: `PersonContactForm`, `PersonAddressForm`, `PersonDocumentForm` under `app/Livewire/Forms/`.
+2. `Person implements HasMedia` for `person_documents` scanned-image attachments via Spatie MediaLibrary.
+3. Profile UI: new tabs `Contacts`, `Addresses`, `Documents` (or fold into existing tabs).
+4. Admin/members editor: same — let admins manage satellite data on member records.
+5. Tests: satellite CRUD + uniqueness rules (one primary per type).
 
-### Phase 4 — Functions / assignment_roles tables + Pastor migration
+### Phase 3 — Family tree UI
 
-1. Migrations for `functions` and `assignment_roles` tables, plus `person_role_assignments`.
-2. Seeders for the initial function set: Main Pastor, Auxiliary Pastor, Seminarist, Lead, Co-Lead, Secretary, Treasurer, Member, Adviser. (The pastor functions ship in this phase even though groups don't exist yet — they're needed for the pastor migration.)
-3. Backfill command: each existing `Pastor` → Person with `nature=pastor`. Each `PastorAssignment` → `PersonRoleAssignment` with `function_id` = matching pastor function (Main/Auxiliary/Seminarist), `church_id` from legacy column, `region_id` denormalized from the church, `started_at`/`ended_at` copied.
-4. Update admin/churches/pastors UI to operate on `PersonRoleAssignment` rows (filtered by `function.applies_to` includes `pastor` + `church_id IS NOT NULL` + `group_id IS NULL`).
-5. Keep `pastors` and `pastor_assignments` tables in place for the duration of the phase as a fallback. Drop them after one stable release with the new schema running.
-6. Tests: pastor backfill + new assignment flow.
+Schema in place. This phase wires the family-tree experience.
 
-### Phase 5 — Districts schema
+1. UI: a "Family" tab on profile.show + admin/members editor. List of related Persons with their relationship type + start/end. Add/remove relationships via inline form (using `PersonRelationshipForm`).
+2. Query helpers on Person (computed via graph traversal): `parents()`, `children()`, `spouse()`, `siblings()`, `grandparents()`, `grandchildren()`, `aunts()`, `uncles()`, `nieces()`, `nephews()`, `cousins()`, `descendants()`, `ancestors()`.
+3. A "Family tree" computed property on Person returns a structured depth-bounded tree for the UI — uses the same query helpers, composed.
+4. Tests: relationship insertion derives inverse correctly; duplicates blocked; self-rels blocked; family-tree query helpers return the right people for known fixtures.
 
-1. Migration for `districts` table.
-2. Migration adding `churches.district_id` (nullable).
-3. Admin UI for district CRUD (under the existing Settings menu) + district selector on the church editor.
-4. Backfill: optionally seed one "default district" per region so existing churches can be assigned. Alternative: leave `district_id` NULL until a church admin claims one.
-5. Tests for district CRUD.
+### Phase 4 — Pastor as PersonRoleAssignment
 
-This phase is small but foundational for Phase 6 — groups need districts to anchor district-level scope.
+Schema is in place; the existing `pastors` / `pastor_assignments` tables were dropped in Phase 1. This phase rewires the admin/churches/pastors UI to use the new generic assignment table.
+
+1. `PastorAssignmentForm` (already extracted in Stage 3) → updated/replaced by `PersonRoleAssignmentForm` filtered to pastor functions.
+2. admin/churches/pastors UI reads from `person_role_assignments` where `function.applies_to ∋ pastor` AND `church_id IS NOT NULL` AND `group_id IS NULL`.
+3. The `Pastor` model and its factory go away (or repurposed as a thin Person-based proxy if it simplifies callers).
+4. Tests: new assignment flow, function-uniqueness for "Main Pastor" within a church (via `functions.max_holders=1`).
+
+### Phase 5 — Districts UI
+
+Schema in place. Just wire CRUD and the church editor selector.
+
+1. Admin UI for district CRUD (under the existing Settings/Churches area) + district selector on the church editor.
+2. Update church-related forms to require `district_id` once the user has at least one district seeded (configurable; v1 keeps it nullable so existing single-church setups don't get blocked).
+3. Tests for district CRUD + district→church FK.
 
 ### Phase 6 — Groups (Councils, Ministries, Commissions) at 4 levels
 
-1. Migration for `groups` table with the 4-level scope FKs.
-2. `GroupObserver` validates the level rules (no district without region; no church without district; etc.) and computes the `level()` accessor.
-3. Admin section: "Groups" with sub-pages per kind (Councils, Ministries, Commissions). Reuses the table + sort + edit-icon convention from Stage 4-6. Filter dropdowns for Region / District / Church scope.
-4. Group-member UI: assign Person to Group with a function via a new `PersonRoleAssignment` row (`group_id` = group, `function_id` = function from the seeded list, region/district/church denormalized from group's scope).
-5. Function holder queries: `$group->functionHolder('treasurer')`, `$group->members()`, `$person->groupsAsLeader()`, `$church->groupsByKind('ministry')`, `$region->nationalGroups()`, etc.
-6. Tests: group CRUD per level, level-rule enforcement, assignment lifecycle, function-uniqueness when `max_holders=1`.
+Schema in place. This phase wires the group management UI.
+
+1. Admin section: "Groups" with sub-pages per kind (Councils, Ministries, Commissions). Reuses the table + sort + edit-icon convention from Stages 4-6 (and the `HasSortableColumns` trait). Filter dropdowns for Region / District / Church scope.
+2. Group editor (`GroupForm`) with a level selector (national/region/district/church) that conditionally requires the appropriate FK.
+3. Group-member UI: assign Person to Group with a function via `PersonRoleAssignmentForm` (`group_id` = group, `function_id` = function from seeded list, region/district/church denormalized from group's scope by the observer).
+4. Function holder queries: `$group->functionHolder('treasurer')`, `$group->members()`, `$person->groupsAsLeader()`, `$church->groupsByKind('ministry')`, `$region->nationalGroups()`, etc.
+5. Tests: group CRUD per level, level-rule enforcement, assignment lifecycle, function-uniqueness when `max_holders=1`.
 
 ### Phase 7 — Children/Teenagers/Visitors + parental supervision
 
-1. Add `Child`, `Teenager`, `Visitor` cases to `PersonNature` (already declared in Phase 1; activate UI here).
-2. Birth-date-driven nature inference: helper `Person->inferAgeBasedNatures()` returns `child`/`teenager`/`adult` based on `birthdate`. Optional auto-promote on cron when a child crosses the threshold.
-3. Profile: new "My family" section showing related Persons (from Phase 3) with an "Act as" button next to each Person who has a `child_of` relation to the current user.
-4. `User->canActAs(Person)`: verifies the parent_of relationship.
-5. Session middleware: when `acting_as_person_id` is set, certain controllers (prayer signup, fasting entries) write rows scoped to the acted-as Person instead of the parent.
-6. Visitor flow: admin "Add visitor" creates a Person with `nature=visitor`, no User. Optional later registration claims the Person.
-7. Tests: act-as authorization, visitor creation without User, child age threshold.
+The natures already exist from Phase 1; this phase activates them in the UI and adds the act-as supervision mechanic.
+
+1. Birth-date-driven nature inference: helper `Person->inferAgeBasedNatures()` returns `child`/`teenager`/`adult` based on `birthdate`. Optional cron auto-promote when a child crosses the threshold.
+2. Profile: new "My family" section showing related Persons (from Phase 3) with an "Act as" button next to each Person who has a `child_of` relation to the current user.
+3. `User->canActAs(Person)`: verifies the `parent_of` relationship and that the target Person has `nature=child` or `nature=teenager`.
+4. Session middleware: when `acting_as_person_id` is set, certain controllers (prayer signup, fasting entries) write rows scoped to the acted-as Person instead of the parent.
+5. Visitor flow: admin "Add visitor" creates a Person with `nature=visitor`, no User. Optional later registration claims the Person.
+6. Tests: act-as authorization, visitor creation without User, child age threshold.
 
 ---
 
 ## Migration strategy
 
-Two principles for moving from current schema:
+The project is pre-launch with a single global-admin user as the only row that matters. The migration story is therefore minimal:
 
-1. **No big-bang migrations.** Each phase migration adds new tables/columns, optional backfill commands, and only DROPS legacy columns (like `users.member_type` or `users.phone`) at the END of the phase after the new code has been deployed and verified.
+- **All schema lands in Phase 1.** One migration file per table (standard Laravel pattern). Deprecated columns and tables are dropped in their own modify/drop migration files within the same batch.
+- **No backfill commands.** Code paths read/write the new schema from day one; the old shape is gone.
+- **No rollback path.** If something goes wrong, fix forward with another migration. The DB is recreatable via `php artisan migrate:fresh --seed`.
+- **Seeders rebuild the global admin** (`MakeSuperUser` + `RolesAndPermissionsSeeder`) to create both Person and User in one shot.
 
-2. **Backfill commands are idempotent.** `php artisan persons:backfill-from-users` can be re-run safely after rollbacks; it skips users that already have `person_id`.
-
-Rollback path per phase:
-- Phase 1: drop `persons`, `users.person_id`. No data loss (member_type still on users).
-- Phase 2: drop satellite tables, restore `users.phone` from a backup of person_contacts before drop.
-- Phase 3: drop `person_relationships`. No source-of-truth loss (relationships are new data).
-- Phase 4: keep `pastors`/`pastor_assignments` until stable; rollback by re-pointing UI at legacy tables.
-- Phase 5: drop `districts`, `churches.district_id`. No source-of-truth loss.
-- Phase 6: drop `groups`. Loses any group data created post-deploy.
-- Phase 7: drop new natures, drop session helper. No structural rollback needed.
+Each subsequent phase (2–7) is **code-and-UI only**, with no further schema work needed (the schema is already in place from Phase 1).
 
 ---
 
@@ -504,10 +522,7 @@ Rollback path per phase:
 
 1. **Tax ID validation:** do we validate Brazilian CPF/CNPJ checksums on save (reject invalid), or just store whatever the user types? Default: validate on save.
 2. **`person_type` for organizations:** do we need the `Organization` enum case at all in v1, or can it be deferred? Default: include it (cheap, future-proof).
-3. **Member nature defaults:** when migrating existing `users.member_type='member'` to `persons.natures=['member']`, do we also seed the per-member fields (`joined_at`, etc.)? Default: no — leave Person.additional_data['member'] as `{}`.
-4. **Drop deprecated columns immediately or wait?** Dropping `users.member_type` in Phase 1 is decisive but irreversible; keeping it for a release as a no-op safety net is more conservative. Default: keep through Phase 1, drop in Phase 2 cleanup.
-5. **`PersonFieldDefinition`:** ship in v1 (more flexibility but more code), defer (hardcode fields per nature, cleaner v1)? Default: defer.
-6. **Pastor Function vs Role split:** model "Main Pastor" / "Auxiliary Pastor" / "Seminarist" as three rows in `functions`, OR as one `function=Pastor` + a `role` qualifier? Default: three separate functions; defer the `assignment_roles` table until a real two-axis case appears.
-7. **Default district for backfill:** when adding `churches.district_id`, do we seed a "default district" per region so existing churches auto-fill, or leave NULL and require admin action? Default: leave NULL; admin assigns explicitly.
-8. **Spouse one-or-many:** current schema allows multiple spouse rows over time (started/ended). Should we enforce at most one *active* spouse via observer? Default: yes — observer rejects a new active spouse if one already exists.
-9. **Parental act-as for adults:** does an adult-child Person (over 18) still allow a parent to "act as" them? Default: no — the act-as mechanism only applies when the child Person has nature=child OR nature=teenager.
+3. **`PersonFieldDefinition`:** ship in v1 (more flexibility but more code), defer (hardcode fields per nature, cleaner v1)? Default: defer.
+4. **Pastor Function vs Role split:** model "Main Pastor" / "Auxiliary Pastor" / "Seminarist" as three rows in `functions`, OR as one `function=Pastor` + an `assignment_role` qualifier? Default: three separate functions; ship `assignment_roles` table empty / unused in v1 and revisit later if a real two-axis case appears.
+5. **Spouse one-or-many:** allow multiple spouse rows over time (started/ended). Should we enforce at most one *active* spouse via observer? Default: yes — observer rejects a new active spouse if one already exists.
+6. **Parental act-as for adults:** does an adult-child Person (over 18) still allow a parent to "act as" them? Default: no — the act-as mechanism only applies when the target Person has `nature=child` or `nature=teenager`.
