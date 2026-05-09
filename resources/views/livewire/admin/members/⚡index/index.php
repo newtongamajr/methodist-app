@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use App\Models\User;
 use Livewire\Attributes\Computed;
@@ -12,6 +13,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'q')]
@@ -22,12 +24,6 @@ class extends Component
 
     #[Url(as: 'type')]
     public string $memberTypeFilter = '';
-
-    #[Url(as: 'sort')]
-    public string $sortBy = 'name';
-
-    #[Url(as: 'dir')]
-    public string $sortDir = 'asc';
 
     public function mount(?int $church = null): void
     {
@@ -41,18 +37,14 @@ class extends Component
     public function updatingChurchFilter(): void { $this->resetPage(); }
     public function updatingMemberTypeFilter(): void { $this->resetPage(); }
 
-    public function sort(string $column): void
+    protected function sortableColumns(): array
     {
-        if (! in_array($column, ['name', 'email', 'member_type'], true)) {
-            return;
-        }
-        if ($this->sortBy === $column) {
-            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            $this->sortDir = 'asc';
-        }
-        $this->resetPage();
+        return ['name', 'email', 'member_type'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'name';
     }
 
     #[Computed]

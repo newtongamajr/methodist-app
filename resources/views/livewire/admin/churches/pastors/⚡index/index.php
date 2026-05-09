@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use App\Models\Pastor;
 use App\Models\PastorAssignment;
@@ -12,16 +13,12 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
+
     public Church $church;
 
     #[Url(as: 'f')]
     public string $filter = 'current';
-
-    #[Url(as: 'sort')]
-    public string $sortBy = 'start_date';
-
-    #[Url(as: 'dir')]
-    public string $sortDir = 'desc';
 
     public function mount(int $churchId): void
     {
@@ -29,17 +26,14 @@ class extends Component
         $this->church = Church::findOrFail($churchId);
     }
 
-    public function sort(string $column): void
+    protected function sortableColumns(): array
     {
-        if (! in_array($column, ['pastor', 'role', 'start_date', 'end_date'], true)) {
-            return;
-        }
-        if ($this->sortBy === $column) {
-            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            $this->sortDir = in_array($column, ['start_date', 'end_date'], true) ? 'desc' : 'asc';
-        }
+        return ['pastor', 'role', 'start_date', 'end_date'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'start_date';
     }
 
     #[Computed]

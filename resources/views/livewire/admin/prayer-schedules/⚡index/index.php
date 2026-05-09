@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use App\Models\PrayerCampaign;
 use App\Models\PrayerSchedule;
@@ -13,6 +14,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'church')]
@@ -20,12 +22,6 @@ class extends Component
 
     #[Url(as: 'campaign')]
     public ?int $campaignFilter = null;
-
-    #[Url(as: 'sort')]
-    public string $sortBy = 'date';
-
-    #[Url(as: 'dir')]
-    public string $sortDir = 'desc';
 
     public function mount(?int $church = null): void
     {
@@ -45,18 +41,14 @@ class extends Component
         $this->resetPage();
     }
 
-    public function sort(string $column): void
+    protected function sortableColumns(): array
     {
-        if (! in_array($column, ['date', 'mode', 'slots_count'], true)) {
-            return;
-        }
-        if ($this->sortBy === $column) {
-            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            $this->sortDir = $column === 'date' ? 'desc' : 'asc';
-        }
-        $this->resetPage();
+        return ['date', 'mode', 'slots_count'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'date';
     }
 
     #[Computed]

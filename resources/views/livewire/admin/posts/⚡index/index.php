@@ -2,6 +2,7 @@
 
 use App\Enums\PostScope;
 use App\Enums\PostStatus;
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -16,6 +17,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'q')]
@@ -32,12 +34,6 @@ class extends Component
 
     #[Url(as: 'author')]
     public ?int $authorFilter = null;
-
-    #[Url(as: 'sort')]
-    public string $sortBy = 'updated_at';
-
-    #[Url(as: 'dir')]
-    public string $sortDir = 'desc';
 
     public function updatingSearch(): void
     {
@@ -64,21 +60,14 @@ class extends Component
         $this->resetPage();
     }
 
-    public function sort(string $column): void
+    protected function sortableColumns(): array
     {
-        if (! in_array($column, ['title', 'author', 'published_at'], true)) {
-            return;
-        }
+        return ['title', 'author', 'published_at', 'updated_at'];
+    }
 
-        if ($this->sortBy === $column) {
-            $this->sortDir = $this->sortDir === 'asc' ? 'desc' : 'asc';
-        } else {
-            $this->sortBy = $column;
-            // Dates default desc (most recent first); text defaults asc.
-            $this->sortDir = $column === 'published_at' ? 'desc' : 'asc';
-        }
-
-        $this->resetPage();
+    protected function defaultSortBy(): string
+    {
+        return 'updated_at';
     }
 
     #[Computed]
