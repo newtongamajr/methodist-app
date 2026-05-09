@@ -49,4 +49,9 @@ class EcclesiasticalRegion extends Model
     {
         return $this->kind === RegionKind::NationalHeadquarters;
     }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class);
+    }
 }

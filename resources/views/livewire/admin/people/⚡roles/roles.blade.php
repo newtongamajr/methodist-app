@@ -145,7 +145,20 @@
                     @endforeach
                 </flux:select>
             @elseif ($kind === 'group')
-                <flux:callout variant="warning" icon="information-circle" inline :heading="__('Group assignments are coming in Phase 6.')" />
+                <flux:select
+                    wire:model="form.group_id"
+                    variant="listbox"
+                    searchable
+                    clearable
+                    :label="__('Group')"
+                    :placeholder="$this->groupsForFunction->isEmpty() ? __('No matching groups for this function.') : __('Pick a group…')"
+                    :disabled="$this->groupsForFunction->isEmpty()"
+                    required
+                >
+                    @foreach ($this->groupsForFunction as $g)
+                        <flux:select.option :value="$g->id">[{{ $g->kind?->label() }}] {{ $g->name }}</flux:select.option>
+                    @endforeach
+                </flux:select>
             @elseif ($this->selectedFunction)
                 <flux:callout variant="success" icon="check-circle" inline :heading="__('National scope — no further pick required.')" />
             @endif

@@ -1,10 +1,9 @@
-# PR stack — code review through Orgs-as-Persons unification
+# PR stack — code review through Person Architecture Phase 6
 
-Ten stacked PRs ship the entire trajectory from `main` up through the
-Orgs-as-Persons unification (the architectural extension that landed between
-Phase 5 and Phase 6 of the Person Architecture). They are stacked (each PR's
-base is the head of the next one down), not parallel, because each builds on
-its predecessor. Trying to merge them out of order will produce conflicts.
+Eleven stacked PRs ship the entire trajectory from `main` up through Phase 6
+of the Person Architecture. They are stacked (each PR's base is the head of
+the next one down), not parallel, because each builds on its predecessor.
+Trying to merge them out of order will produce conflicts.
 
 ## Merge order (bottom up)
 
@@ -20,11 +19,12 @@ its predecessor. Trying to merge them out of order will produce conflicts.
 | 8 | `persons-phase-4` | `persons-phase-3` | Person Architecture Phase 4 (generic `PersonRoleAssignmentForm` + `max_holders` enforcement + Roles tab) |
 | 9 | `persons-phase-5` | `persons-phase-4` | Person Architecture Phase 5 (conditional `district_id` required on church forms + dedicated CRUD tests) |
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Orgs-as-Persons unification (Region / District / Church each backed by an Org-Person; National HQ as a special ER row) |
+| 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (Groups admin — councils / ministries / commissions at 4 levels with member assignments + helper queries) |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10.** As each PR
-merges, GitHub will auto-retarget the next one in the chain to `main` (or to
-whatever the new base is). Do not squash-merge — preserve the commit history
-so the layered intent stays legible in `git log`.
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11.** As
+each PR merges, GitHub will auto-retarget the next one in the chain to
+`main` (or to whatever the new base is). Do not squash-merge — preserve the
+commit history so the layered intent stays legible in `git log`.
 
 PR URLs:
 
@@ -38,6 +38,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/8
 - https://github.com/newtongamajr/methodist-app/pull/9
 - https://github.com/newtongamajr/methodist-app/pull/10
+- https://github.com/newtongamajr/methodist-app/pull/11
 
 ## Why stacked, not one big PR
 
@@ -49,33 +50,32 @@ chunks the work was actually executed in.
 
 ## What's *not* in this stack
 
-The Orgs-as-Persons PR adds 4 new natures (`national_headquarters`,
-`ecclesiastical_region`, `district`, `church`), adds a `person_id` FK
-(NOT NULL + unique) on each org table backfilled with one Org-Person per
-existing row, adds `code` to `churches`, and seeds the National HQ as a
-special ER row using a new `RegionKind::NationalHeadquarters`. The People
-index hides org-Persons by default; an "Include organizations" toggle
-opts them in. Region/District/Church editors gain an "Open as Person"
-button that links to `/admin/people/{personId}/edit` so admins can manage
-the Org Person's contacts / addresses / documents through the existing
-tabs without inline composition.
+Phase 6 ships the full Groups admin: `/admin/groups` CRUD with kind /
+level / scope filters, an editor with conditional level-driven scope
+pickers, an embedded Members section with modal add/edit, helper queries
+on Group / Person / Church / EcclesiasticalRegion / District (`members`,
+`functionHolder`, `groupsAsLeader`, `groupsByKind`, `national` scope), and
+the People → Roles tab now picks a real group for council/ministry/commission
+functions instead of the Phase 6 placeholder callout. The Functions CRUD
+decision (Phase 6 plan §6) lands on **option 2**: the seeded function list
+covers every real case so far, no `/admin/functions` UI in this PR; it can
+grow later if a real demand surfaces.
 
-Still deferred to Phase 6 onwards:
+Still deferred to Phase 7 + Phase 8:
 
-- **Drop the duplicated `name` / `email` / `phone` / `address` columns on org tables** — currently they're a denormalized cache kept in sync by the editor `save()` paths; full migration to "Person is the only source" can ship later
-- **Inline composition of Person tabs into org editors** — currently you click "Open as Person" to switch context; future iteration could embed Contacts / Addresses / Documents inside the church editor itself
-- **Group (Council / Ministry / Commission) admin UI** + group-scoped assignments (Phase 6 — the Roles modal currently shows a "coming in Phase 6" callout when a group function is selected)
-- **Functions CRUD** — decision deferred to Phase 6 per the plan doc note
-- **Children / Teenagers / Visitors UI + parental act-as flow** (Phase 7)
+- **Children / Teenagers / Visitors** activated UI + parental act-as flow (Phase 7)
 - **Family tab on `/profile`** (Phase 7, alongside act-as)
+- **Drop the duplicated cached columns** on org tables (Phase 8 — see plan doc)
+- **Inline composition of Person tabs** into Region / District / Church editors (Phase 8 — currently the "Open as Person" button is the bridge)
+- **Functions CRUD** — leave seeded-only unless a real demand surfaces; revisit if needed
 
 See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full breakdown.
 
 ## Verification before merging the chain
 
-- [ ] All ten PRs are open, in the right order, against the right base
+- [ ] All eleven PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#10) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #10 (215 tests / 515 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #10
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 525 keys at HEAD of #10
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#11) — proves the whole chain composes
+- [ ] `php artisan test --compact` is green at HEAD of #11 (225 tests / 543 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #11
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 547 keys at HEAD of #11
