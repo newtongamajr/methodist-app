@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Livewire\Forms;
 
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Enums\RegionKind;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -46,9 +50,24 @@ class RegionForm extends Form
 
         if ($this->region) {
             $this->region->update($data);
-        } else {
-            $this->region = EcclesiasticalRegion::create($data);
+            $this->region->person?->update(['name' => $data['name']]);
+
+            return $this->region;
         }
+
+        $this->region = DB::transaction(function () use ($data) {
+            $nature = $data['kind'] === RegionKind::NationalHeadquarters->value
+                ? PersonNature::NationalHeadquarters->value
+                : PersonNature::EcclesiasticalRegion->value;
+
+            $orgPerson = Person::create([
+                'person_type' => PersonType::Organization->value,
+                'name' => $data['name'],
+                'natures' => [$nature],
+            ]);
+
+            return EcclesiasticalRegion::create($data + ['person_id' => $orgPerson->id]);
+        });
 
         return $this->region;
     }

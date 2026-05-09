@@ -1,9 +1,13 @@
 <?php
 
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Livewire\Forms\DistrictForm;
 use App\Models\District;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
 use App\Support\GenerateUniqueSlug;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -55,8 +59,20 @@ class extends Component
 
         if ($this->form->district) {
             $this->form->district->update($data);
+            // Keep the linked Org Person's name in sync with the cached
+            // District.name (Person is the source of truth, but the cache
+            // exists so a District never drifts from its Person).
+            $this->form->district->person?->update(['name' => $data['name']]);
         } else {
-            $this->form->district = District::create($data);
+            $this->form->district = DB::transaction(function () use ($data) {
+                $orgPerson = Person::create([
+                    'person_type' => PersonType::Organization->value,
+                    'name' => $data['name'],
+                    'natures' => [PersonNature::District->value],
+                ]);
+
+                return District::create($data + ['person_id' => $orgPerson->id]);
+            });
         }
 
         session()->flash('status', __('District saved.'));

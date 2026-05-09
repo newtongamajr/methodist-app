@@ -17,11 +17,13 @@ class Church extends Model
     use HasFactory;
 
     protected $fillable = [
+        'person_id',
         'ecclesiastical_region_id',
         'district_id',
         'type',
         'name',
         'slug',
+        'code',
         'address',
         'city',
         'state',
@@ -46,6 +48,18 @@ class Church extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
         ];
+    }
+
+    /**
+     * Each Church row is backed by an Organization-type Person carrying the
+     * authoritative name / CNPJ / contacts / addresses / documents. The
+     * cached `name` / `email` / `phone` / `address` columns on this table
+     * mirror Person values for query convenience but Person is the source
+     * of truth.
+     */
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
     }
 
     public function region(): BelongsTo

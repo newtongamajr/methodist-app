@@ -10,7 +10,7 @@
         <div class="rounded-md bg-rose-50 p-3 text-sm font-medium text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">{{ $message }}</div>
     @enderror
 
-    <div class="grid gap-3 sm:grid-cols-2">
+    <div class="grid gap-3 sm:grid-cols-3">
         <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or tax ID…')" icon="magnifying-glass" />
 
         @if (! empty($this->availableNatures))
@@ -26,6 +26,10 @@
                 @endforeach
             </flux:select>
         @endif
+
+        <div class="flex items-center">
+            <flux:checkbox wire:model.live="includeOrganizations" :label="__('Include organizations (regions, districts, churches)')" />
+        </div>
     </div>
 
     @if ($this->persons->isEmpty())
