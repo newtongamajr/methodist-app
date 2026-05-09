@@ -1,0 +1,54 @@
+# Stack de PRs — code review até a Phase 1 da Person Architecture
+
+Cinco PRs empilhados entregam toda a trajetória entre `main` e a Phase 1 da
+Person Architecture. Eles estão **empilhados** (a base de cada PR é o head do
+PR de baixo), não são paralelos, porque cada um depende do anterior. Tentar
+mergear fora de ordem vai gerar conflitos.
+
+## Ordem de merge (de baixo para cima)
+
+| # | Branch | Base | Escopo |
+|---|---|---|---|
+| 2 | `code-review-stages-1-3` | `main` | Security + correctness + Livewire idiom + 9 Form Objects |
+| 3 | `stage-4-flux-tables` | `code-review-stages-1-3` | 8 tabelas admin → `flux:table` |
+| 4 | `stage-5-flux-pickers` | `stage-4-flux-tables` | Flux pickers, file-upload, modal, kanban dos comentários |
+| 5 | `stage-6-cleanup` | `stage-5-flux-pickers` | Sweep de cleanup + ⌘K command palette + plano da Person Architecture |
+| 1 | `persons-phase-1` | `stage-6-cleanup` | Person Architecture Phase 1 (schema + foundation + admin scopes + districts) |
+
+**Ordem de merge: #2 → #3 → #4 → #5 → #1.** À medida que cada PR é mergeado,
+o GitHub re-aponta automaticamente a base do próximo da fila para `main` (ou
+para a nova base, se aplicável). Não use squash-merge — preserve o histórico
+de commits para que a intenção em camadas continue legível no `git log`.
+
+URLs dos PRs:
+
+- https://github.com/newtongamajr/methodist-app/pull/2
+- https://github.com/newtongamajr/methodist-app/pull/3
+- https://github.com/newtongamajr/methodist-app/pull/4
+- https://github.com/newtongamajr/methodist-app/pull/5
+- https://github.com/newtongamajr/methodist-app/pull/1
+
+## Por que empilhado, e não um PR único
+
+A `main` ficou ~48 commits atrás dos branches de trabalho quando a Phase 1
+foi concluída, porque os stages 4 / 5 / 6 foram pushados mas nunca abertos
+como PR na época. Juntar tudo num PR só ficaria ilegível. Dividir nos limites
+dos branches que já existiam dá ao revisor exatamente as mesmas fatias em
+que o trabalho foi executado.
+
+## O que *não* está nesta stack
+
+A Phase 1 da Person Architecture entrega apenas **schema + foundation +
+wiring de admin scope + Districts CRUD**. As telas do Person editor, os
+helpers de family tree, o admin de groups e o fluxo de act-as ficam para as
+Phases 2–7 (ver `documents/PersonArchitecture/README.en.md` § "Phased
+rollout").
+
+## Verificação antes de mergear a stack
+
+- [ ] Os cinco PRs estão abertos, na ordem certa, contra a base certa
+- [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#1) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #1 (171 tests / 406 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #1
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 427 keys no HEAD do #1
