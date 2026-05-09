@@ -1,6 +1,6 @@
-# Stack de PRs — code review até a Phase 4 da Person Architecture
+# Stack de PRs — code review até a Phase 5 da Person Architecture
 
-Oito PRs empilhados entregam toda a trajetória entre `main` e a Phase 4 da
+Nove PRs empilhados entregam toda a trajetória entre `main` e a Phase 5 da
 Person Architecture. Eles estão **empilhados** (a base de cada PR é o head do
 PR de baixo), não são paralelos, porque cada um depende do anterior. Tentar
 mergear fora de ordem vai gerar conflitos.
@@ -17,10 +17,11 @@ mergear fora de ordem vai gerar conflitos.
 | 6 | `persons-phase-2` | `persons-phase-1` | Person Architecture Phase 2 (editor `/admin/people` com tabs + trait `ManagesPersons` + UI dos satellites) |
 | 7 | `persons-phase-3` | `persons-phase-2` | Person Architecture Phase 3 (tab Family + helpers de family-tree no Person) |
 | 8 | `persons-phase-4` | `persons-phase-3` | Person Architecture Phase 4 (`PersonRoleAssignmentForm` genérico + enforcement de `max_holders` + tab Roles) |
+| 9 | `persons-phase-5` | `persons-phase-4` | Person Architecture Phase 5 (regra condicional de `district_id` required no editor de church + testes dedicados de CRUD) |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8.** À medida que cada
-PR é mergeado, o GitHub re-aponta automaticamente a base do próximo da fila
-para `main` (ou para a nova base, se aplicável). Não use squash-merge —
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9.** À medida que
+cada PR é mergeado, o GitHub re-aponta automaticamente a base do próximo da
+fila para `main` (ou para a nova base, se aplicável). Não use squash-merge —
 preserve o histórico de commits para que a intenção em camadas continue
 legível no `git log`.
 
@@ -34,6 +35,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/6
 - https://github.com/newtongamajr/methodist-app/pull/7
 - https://github.com/newtongamajr/methodist-app/pull/8
+- https://github.com/newtongamajr/methodist-app/pull/9
 
 ## Por que empilhado, e não um PR único
 
@@ -45,26 +47,27 @@ que o trabalho foi executado.
 
 ## O que *não* está nesta stack
 
-A Phase 4 aposenta o `PastorAssignmentForm` em favor de um
-`PersonRoleAssignmentForm` genérico, faz enforcement do `functions.max_holders`
-no observer de PersonRoleAssignment (ex.: só um Main Pastor ativo por igreja)
-e adiciona a tab Roles no editor `/admin/people` que permite ao admin
-gerenciar **todas** as assignments de uma Person — pastor numa igreja, admin
-numa region / district / church / national. Continuam adiados para as
-Phases 5–7:
+A Phase 5 fecha o ciclo de Districts: o CRUD e o selector no editor de
+church já entraram na Phase 1, e a Phase 5 adiciona a regra condicional de
+required (uma vez que a região tem pelo menos um distrito ativo, toda
+church daquela região precisa escolher um) mais testes dedicados do
+lifecycle de District (create / edit / delete / fail-delete-com-churches /
+filtro por region / unicidade de slug por region) e do gate de required no
+editor de church. Continuam adiados para as Phases 6–7:
 
 - **Admin de Groups** (Council / Ministry / Commission) + assignments com escopo de group (Phase 6 — o modal de Roles mostra um callout "chega na Phase 6" quando uma function de group é escolhida)
+- **CRUD de Functions** — decisão adiada para a Phase 6: deixar como seeded-only ou criar `/admin/functions` lá, dependendo se demanda real do staff aparecer
 - **Children / Teenagers / Visitors** com UI ativa + fluxo de act-as parental (Phase 7)
-- **Tab Family no `/profile`** — entry point admin-only entrou na Phase 3; a versão para o usuário final vem junto com o act-as parental da Phase 7
+- **Tab Family no `/profile`** (Phase 7, junto com act-as)
 - **Campos additional per-nature** (`PersonFieldDefinition`) — adiado por padrão da Q3; a v1 mantém a tab Identity genérica
 
 Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os oito PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os nove PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#8) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #8 (200 tests / 474 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #8
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 521 keys no HEAD do #8
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#9) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #9 (214 tests / 508 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #9
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 521 keys no HEAD do #9

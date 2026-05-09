@@ -50,6 +50,7 @@
                     :label="__('District')"
                     :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('Pick a district…')"
                     :disabled="$this->districts->isEmpty()"
+                    :required="$form->districtIsRequired()"
                 >
                     @foreach ($this->districts as $district)
                         <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>
