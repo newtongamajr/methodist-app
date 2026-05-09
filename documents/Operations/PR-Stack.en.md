@@ -59,4 +59,4 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 - [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#6) — proves the whole chain composes
 - [ ] `php artisan test --compact` is green at HEAD of #6 (181 tests / 437 assertions at last run)
 - [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #6
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 488 keys at HEAD of #6
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 490 keys at HEAD of #6
