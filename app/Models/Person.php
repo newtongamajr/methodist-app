@@ -283,6 +283,51 @@ class Person extends Model
             ->values();
     }
 
+    // ─── Age-based nature helpers (Phase 7) ─────────────────────────────────
+    //
+    // Thresholds (Brazilian Methodist convention):
+    //   Child:    0–11
+    //   Teenager: 12–17
+    //   Adult:    18+   (Youth is opt-in, not derived from age)
+    //
+    // The inference is advisory — admins can still pick natures explicitly.
+    // It powers (a) auto-suggest in the People editor, and (b) the act-as
+    // gate (only minors can be acted-as).
+
+    public const CHILD_MAX_AGE = 11;
+
+    public const TEENAGER_MAX_AGE = 17;
+
+    /**
+     * Suggested nature based on birthdate. Returns null if birthdate is
+     * absent or person_type is not individual.
+     */
+    public function inferAgeBasedNature(): ?PersonNature
+    {
+        if (! $this->birthdate || $this->person_type?->value !== PersonType::Individual->value) {
+            return null;
+        }
+
+        $age = $this->birthdate->age;
+
+        return match (true) {
+            $age <= self::CHILD_MAX_AGE => PersonNature::Child,
+            $age <= self::TEENAGER_MAX_AGE => PersonNature::Teenager,
+            default => null, // adult — no auto-suggest, admin picks Member/Youth/etc.
+        };
+    }
+
+    /** Whether the person is a minor (child or teenager) by birthdate. */
+    public function isMinor(): bool
+    {
+        if (! $this->birthdate) {
+            // Without a birthdate we trust the natures the admin picked.
+            return $this->hasNature(PersonNature::Child) || $this->hasNature(PersonNature::Teenager);
+        }
+
+        return $this->birthdate->age <= self::TEENAGER_MAX_AGE;
+    }
+
     /** Groups where this person currently holds a "lead" or "co_lead" function. */
     public function groupsAsLeader(): Collection
     {

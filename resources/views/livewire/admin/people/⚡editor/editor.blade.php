@@ -17,7 +17,7 @@
 
     @if (! $person)
         {{-- New person: only the Identity tab is meaningful until the row exists. --}}
-        <livewire:admin.people.identity :person-id="null" />
+        <livewire:admin.people.identity :person-id="null" :nature-seed="$natureSeed" />
     @else
         <flux:tab.group>
             <flux:tabs wire:model.live="tab">

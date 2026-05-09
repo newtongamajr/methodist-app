@@ -7,6 +7,7 @@
             <flux:tab name="avatar">{{ __('Avatar') }}</flux:tab>
             <flux:tab name="membership">{{ __('Membership') }}</flux:tab>
             <flux:tab name="contact">{{ __('Contact') }}</flux:tab>
+            <flux:tab name="family">{{ __('Family') }}</flux:tab>
             <flux:tab name="preferences">{{ __('Preferences') }}</flux:tab>
             <flux:tab name="password">{{ __('Password') }}</flux:tab>
             <flux:tab name="danger">{{ __('Danger zone') }}</flux:tab>
@@ -33,6 +34,12 @@
         <flux:tab.panel name="contact">
             <div class="rounded-lg bg-white p-6 shadow-xs dark:bg-zinc-800 sm:p-8">
                 <livewire:profile.update-contact />
+            </div>
+        </flux:tab.panel>
+
+        <flux:tab.panel name="family">
+            <div class="rounded-lg bg-white p-6 shadow-xs dark:bg-zinc-800 sm:p-8">
+                <livewire:profile.family />
             </div>
         </flux:tab.panel>
 

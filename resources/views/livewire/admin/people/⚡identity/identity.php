@@ -18,7 +18,7 @@ new class extends Component
 
     public ?int $district_id = null;
 
-    public function mount(?int $personId = null): void
+    public function mount(?int $personId = null, ?string $natureSeed = null): void
     {
         abort_unless(auth()->user()?->can('users.manage') || auth()->user()?->can('users.manage.local'), 403);
 
@@ -29,6 +29,18 @@ new class extends Component
             $this->form->setPerson($person);
             $this->district_id = $person->managingChurch?->district_id;
             $this->region_id = $person->managingChurch?->ecclesiastical_region_id;
+
+            return;
+        }
+
+        // New-person flow: pre-seed nature when called via the visitor (or
+        // any nature) quick-add link. Validates the value is a real nature
+        // and matches the default person_type=individual.
+        if ($natureSeed && \App\Enums\PersonNature::tryFrom($natureSeed) instanceof \App\Enums\PersonNature) {
+            $nature = \App\Enums\PersonNature::from($natureSeed);
+            if (! $nature->isOrganizational()) {
+                $this->form->natures = [$nature->value];
+            }
         }
     }
 
