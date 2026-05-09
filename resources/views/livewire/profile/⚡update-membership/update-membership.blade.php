@@ -24,14 +24,15 @@
             @endforeach
         </flux:select>
 
-        @if ($region_id && $this->districts->isNotEmpty())
+        @if ($region_id)
             <flux:select
                 wire:model.live="district_id"
                 variant="listbox"
                 searchable
                 clearable
                 :label="__('District')"
-                :placeholder="__('Pick a district…')"
+                :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('Pick a district…')"
+                :disabled="$this->districts->isEmpty()"
             >
                 @foreach ($this->districts as $district)
                     <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>

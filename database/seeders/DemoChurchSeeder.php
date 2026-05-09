@@ -6,6 +6,7 @@ use App\Enums\ChurchType;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
 use App\Models\Church;
+use App\Models\District;
 use App\Models\EcclesiasticalRegion;
 use App\Models\FunctionRole;
 use App\Models\Person;
@@ -25,8 +26,14 @@ class DemoChurchSeeder extends Seeder
                 ? ChurchType::MissionaryPoint->value
                 : ChurchType::Church->value;
 
+            $district = District::query()
+                ->where('ecclesiastical_region_id', $region->id)
+                ->orderBy('display_order')
+                ->first();
+
             $church = Church::factory()->create([
                 'ecclesiastical_region_id' => $region->id,
+                'district_id' => $district?->id,
                 'type' => $type,
                 'name' => ($type === 'missionary_point' ? 'Ponto Missionário Demo ' : 'Igreja Metodista Demo ').$region->code,
                 'slug' => Str::slug('demo-'.$region->code),
