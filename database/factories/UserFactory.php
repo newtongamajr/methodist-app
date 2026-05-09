@@ -4,6 +4,7 @@ namespace Database\Factories;
 
 use App\Enums\AppLocale;
 use App\Enums\PersonNature;
+use App\Models\Church;
 use App\Models\Person;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -57,5 +58,13 @@ class UserFactory extends Factory
                 'natures' => [$nature->value],
             ])->id,
         ]);
+    }
+
+    public function forChurch(Church $church): static
+    {
+        return $this->afterCreating(function (User $user) use ($church) {
+            $user->person->update(['managing_church_id' => $church->id]);
+            $user->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
+        });
     }
 }

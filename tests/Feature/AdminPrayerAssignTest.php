@@ -30,11 +30,11 @@ function makeChurchWithSlot(): array
 it('lets a local manager add another church member to a slot', function () {
     [$church, $slot] = makeChurchWithSlot();
 
-    $manager = User::factory()->create(['church_id' => $church->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->forChurch($church)->create();
+    $manager->assignRole('local_admin');
     $manager->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
-    $member = User::factory()->create(['church_id' => $church->id]);
+    $member = User::factory()->forChurch($church)->create();
     $member->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
     $this->actingAs($manager);
@@ -51,8 +51,8 @@ it('lets a local manager add another church member to a slot', function () {
 it('refuses to assign a non-member to a slot', function () {
     [$church, $slot] = makeChurchWithSlot();
 
-    $manager = User::factory()->create(['church_id' => $church->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->forChurch($church)->create();
+    $manager->assignRole('local_admin');
     $manager->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
     $stranger = User::factory()->create(); // not attached to church
@@ -71,11 +71,11 @@ it('refuses to assign a non-member to a slot', function () {
 it('lets an admin remove someone else\'s signup', function () {
     [$church, $slot] = makeChurchWithSlot();
 
-    $manager = User::factory()->create(['church_id' => $church->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->forChurch($church)->create();
+    $manager->assignRole('local_admin');
     $manager->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
-    $member = User::factory()->create(['church_id' => $church->id]);
+    $member = User::factory()->forChurch($church)->create();
     $member->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
     $signup = PrayerSignup::create([
@@ -96,11 +96,11 @@ it('lets an admin remove someone else\'s signup', function () {
 it('blocks a regular user from assigning others', function () {
     [$church, $slot] = makeChurchWithSlot();
 
-    $regular = User::factory()->create(['church_id' => $church->id]);
+    $regular = User::factory()->forChurch($church)->create();
     $regular->assignRole('user');
     $regular->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
-    $other = User::factory()->create(['church_id' => $church->id]);
+    $other = User::factory()->forChurch($church)->create();
     $other->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
 
     $this->actingAs($regular);

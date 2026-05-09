@@ -5,8 +5,8 @@
     </header>
 
     <form wire:submit="updateMembership" class="mt-6 space-y-5">
-        <flux:select wire:model="member_type" :label="__('I am a')">
-            @foreach (\App\Enums\MemberType::cases() as $type)
+        <flux:select wire:model="nature" :label="__('I am a')">
+            @foreach (\App\Enums\PersonNature::cases() as $type)
                 <option value="{{ $type->value }}">{{ $type->label() }}</option>
             @endforeach
         </flux:select>

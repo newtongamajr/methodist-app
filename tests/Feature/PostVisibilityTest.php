@@ -20,7 +20,7 @@ it('hides local posts from users in other churches', function () {
 
     $localA = Post::factory()->published()->local($churchA)->create(['title' => 'Only for A']);
 
-    $userB = User::factory()->create(['church_id' => $churchB->id]);
+    $userB = User::factory()->forChurch($churchB)->create();
 
     $this->actingAs($userB)
         ->get(route('posts.index'))
@@ -32,7 +32,7 @@ it('shows local posts to members of the same church', function () {
     $church = Church::factory()->create();
     $local = Post::factory()->published()->local($church)->create(['title' => 'Local note']);
 
-    $user = User::factory()->create(['church_id' => $church->id]);
+    $user = User::factory()->forChurch($church)->create();
 
     $this->actingAs($user)
         ->get(route('posts.index'))
@@ -44,7 +44,7 @@ it('rejects access to a local post detail for a non-member', function () {
     $church = Church::factory()->create();
     $localPost = Post::factory()->published()->local($church)->create();
 
-    $other = User::factory()->create(['church_id' => null]);
+    $other = User::factory()->create();
 
     $this->actingAs($other)
         ->get(route('posts.show', $localPost->slug))

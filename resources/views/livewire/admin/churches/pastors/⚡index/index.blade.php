@@ -34,10 +34,10 @@
     @else
         <flux:table>
             <flux:table.columns>
-                <flux:table.column sortable :sorted="$sortBy === 'pastor'" :direction="$sortDir" wire:click="sort('pastor')">{{ __('Pastor') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'role'" :direction="$sortDir" wire:click="sort('role')">{{ __('Role') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'start_date'" :direction="$sortDir" wire:click="sort('start_date')">{{ __('Start') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'end_date'" :direction="$sortDir" wire:click="sort('end_date')">{{ __('End') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'person'" :direction="$sortDir" wire:click="sort('person')">{{ __('Pastor') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'function'" :direction="$sortDir" wire:click="sort('function')">{{ __('Function') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'started_at'" :direction="$sortDir" wire:click="sort('started_at')">{{ __('Start') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'ended_at'" :direction="$sortDir" wire:click="sort('ended_at')">{{ __('End') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
 
@@ -45,18 +45,17 @@
                 @foreach ($this->assignments as $a)
                     <flux:table.row :key="'assign-'.$a->id">
                         <flux:table.cell variant="strong">
-                            <div>{{ $a->pastor?->name }}</div>
-                            <div class="text-xs text-zinc-500">{{ $a->pastor?->email }}</div>
+                            <div>{{ $a->person?->name }}</div>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge :color="match($a->role->value) { 'main' => 'rose', 'seminarist' => 'amber', default => 'zinc' }">
-                                {{ $a->role->label() }}
+                            <flux:badge :color="match($a->function?->slug) { 'main_pastor' => 'rose', 'seminarist' => 'amber', default => 'zinc' }">
+                                {{ $a->function?->name }}
                             </flux:badge>
                         </flux:table.cell>
-                        <flux:table.cell>{{ $a->start_date?->isoFormat('LL') ?? '—' }}</flux:table.cell>
+                        <flux:table.cell>{{ $a->started_at?->isoFormat('LL') ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
-                            @if ($a->end_date)
-                                {{ $a->end_date->isoFormat('LL') }}
+                            @if ($a->ended_at)
+                                {{ $a->ended_at->isoFormat('LL') }}
                             @else
                                 <flux:badge color="emerald">{{ __('Active') }}</flux:badge>
                             @endif
@@ -66,7 +65,7 @@
                                 <flux:tooltip :content="__('Edit')">
                                     <flux:button :href="route('admin.churches.pastors.edit', [$church, $a])" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
-                                @if (! $a->end_date)
+                                @if (! $a->ended_at)
                                     <flux:tooltip :content="__('End assignment today')">
                                         <flux:button wire:click="endAssignment({{ $a->id }})" wire:confirm="{{ __('End this assignment today?') }}" size="sm" variant="ghost" icon="x-circle" />
                                     </flux:tooltip>

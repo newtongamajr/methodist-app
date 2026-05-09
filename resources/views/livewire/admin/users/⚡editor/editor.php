@@ -1,8 +1,12 @@
 <?php
 
-use App\Enums\MemberType;
+use App\Enums\PersonContactType;
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Livewire\Forms\UserForm;
+use App\Models\Person;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
@@ -21,7 +25,7 @@ class extends Component
         abort_unless($actor && ($actor->can('users.manage') || $actor->can('users.manage.local')), 403);
 
         if ($userId) {
-            $user = User::with(['roles', 'churches'])->findOrFail($userId);
+            $user = User::with(['roles', 'churches', 'person'])->findOrFail($userId);
 
             if (! $this->isSuper) {
                 $allowed = $actor->manageableChurchIds();
@@ -35,8 +39,8 @@ class extends Component
             if (! $this->isSuper && $defaults) {
                 $this->form->church_ids = $defaults;
                 $this->form->primary_church_id = $actor->currentChurchId();
-            } elseif ($actor->church_id) {
-                $this->form->primary_church_id = $actor->church_id;
+            } elseif ($current = $actor->currentChurchId()) {
+                $this->form->primary_church_id = $current;
             }
         }
     }
@@ -57,8 +61,8 @@ class extends Component
     public function availableRoles(): array
     {
         return $this->isSuper
-            ? ['global_manager', 'local_manager']
-            : ['local_manager'];
+            ? ['national_admin', 'regional_admin', 'district_admin', 'local_admin']
+            : ['local_admin'];
     }
 
     public function save(): void
@@ -69,8 +73,6 @@ class extends Component
 
         $data = $this->form->validate();
 
-        // Role is constrained by who's editing — validate it on the component
-        // so the Form class doesn't need to reach back into the actor's perms.
         $this->validate(['form.role' => ['required', Rule::in($this->availableRoles)]]);
 
         $churchIds = collect($data['church_ids'] ?? [])
@@ -78,15 +80,13 @@ class extends Component
             ->unique()
             ->all();
 
-        // Masters can only attach churches from their own pool, and the role
-        // is forced to local_manager regardless of what they posted.
         $role = $this->form->role;
         if (! $this->isSuper) {
             $churchIds = array_values(array_intersect($churchIds, $allowedIds));
             if (empty($churchIds)) {
-                $churchIds = $allowedIds; // pin to whatever they manage
+                $churchIds = $allowedIds;
             }
-            $role = 'local_manager';
+            $role = 'local_admin';
         }
 
         $primaryId = $data['primary_church_id'] ?? null;
@@ -97,33 +97,63 @@ class extends Component
             $primaryId = $churchIds[0];
         }
 
-        $payload = [
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?: null,
-            'church_id' => $primaryId,
-            'locale' => $data['locale'],
-        ];
+        $user = DB::transaction(function () use ($isCreating, $data, $primaryId) {
+            $personPayload = [
+                'name' => $data['name'],
+                'natures' => [PersonNature::Member->value],
+                'managing_church_id' => $primaryId,
+            ];
 
-        if (! empty($data['password'])) {
-            $payload['password'] = Hash::make($data['password']);
-        }
+            if ($isCreating) {
+                $person = Person::create($personPayload + ['person_type' => PersonType::Individual->value]);
+            } else {
+                $person = $this->form->user->person ?? Person::create($personPayload + ['person_type' => PersonType::Individual->value]);
+                $person->fill($personPayload)->save();
+            }
 
-        if ($isCreating) {
-            $payload['member_type'] = MemberType::Member->value;
-            $payload['appearance'] = 'system';
-            $payload['email_verified_at'] = now();
-            $user = User::create($payload);
-            $this->form->user = $user;
-        } else {
-            $this->form->user->update($payload);
-            $user = $this->form->user;
-        }
+            $userPayload = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'locale' => $data['locale'],
+            ];
 
+            if (! empty($data['password'])) {
+                $userPayload['password'] = Hash::make($data['password']);
+            }
+
+            if ($isCreating) {
+                $user = User::create($userPayload + [
+                    'person_id' => $person->id,
+                    'appearance' => 'system',
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                $this->form->user->update($userPayload + ['person_id' => $person->id]);
+                $user = $this->form->user;
+            }
+
+            $phone = $data['phone'] ?: null;
+            $existing = $person->contacts()->where('type', PersonContactType::Phone->value)->first();
+            if ($phone) {
+                if ($existing) {
+                    $existing->update(['value' => $phone, 'is_primary' => true]);
+                } else {
+                    $person->contacts()->create([
+                        'type' => PersonContactType::Phone->value,
+                        'value' => $phone,
+                        'is_primary' => true,
+                    ]);
+                }
+            } elseif ($existing) {
+                $existing->delete();
+            }
+
+            return $user;
+        });
+
+        $this->form->user = $user;
         $user->syncRoles([$role]);
 
-        // Build the new pivot state. Master users only manipulate the slice
-        // they're allowed to touch — other church attachments stay intact.
         $existing = $user->churches()->pluck('churches.id')->all();
         if ($this->isSuper) {
             $finalIds = $churchIds;

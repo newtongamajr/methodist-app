@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Forms;
 
 use App\Enums\AppLocale;
+use App\Enums\PersonContactType;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
@@ -23,7 +24,7 @@ class UserForm extends Form
 
     public ?int $primary_church_id = null;
 
-    public string $role = 'local_manager';
+    public string $role = 'local_admin';
 
     public string $password = '';
 
@@ -45,13 +46,15 @@ class UserForm extends Form
 
     public function setUser(User $user): void
     {
+        $person = $user->person;
+
         $this->user = $user;
-        $this->name = $user->name;
+        $this->name = $person?->name ?? $user->name;
         $this->email = $user->email;
-        $this->phone = $user->phone ?? '';
+        $this->phone = $person?->contacts()->where('type', PersonContactType::Phone->value)->orderByDesc('is_primary')->value('value') ?? '';
         $this->church_ids = $user->churches->pluck('id')->map(fn ($v) => (int) $v)->all();
-        $this->primary_church_id = $user->church_id;
-        $this->role = $user->roles->pluck('name')->first() ?? 'local_manager';
+        $this->primary_church_id = $person?->managing_church_id;
+        $this->role = $user->roles->pluck('name')->first() ?? 'local_admin';
         $this->locale = $user->locale ?? 'pt_BR';
     }
 }

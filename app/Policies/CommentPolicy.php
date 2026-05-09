@@ -27,7 +27,8 @@ class CommentPolicy
         $post = $comment->post;
 
         if ($post->church_id) {
-            return $user->church_id === $post->church_id;
+            return $user->person?->managing_church_id === $post->church_id
+                || $user->canManageChurch($post->church_id);
         }
 
         return true;

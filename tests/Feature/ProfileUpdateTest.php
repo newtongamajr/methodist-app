@@ -35,16 +35,16 @@ it('persists membership fields and syncs the church pivot', function () {
     $this->actingAs($user);
 
     Livewire::test('profile.update-membership')
-        ->set('member_type', 'teenager')
+        ->set('nature', 'teenager')
         ->set('region_id', $region->id)
         ->set('church_id', $church->id)
         ->call('updateMembership')
         ->assertHasNoErrors();
 
-    $user->refresh();
+    $user->refresh()->load('person');
 
-    expect($user->member_type->value)->toBe('teenager');
-    expect($user->church_id)->toBe($church->id);
+    expect($user->person->natures)->toBe(['teenager']);
+    expect($user->person->managing_church_id)->toBe($church->id);
     expect($user->churches->contains($church))->toBeTrue();
 });
 
@@ -52,7 +52,8 @@ it('clears the church when the region changes to one that does not contain it', 
     $regionA = EcclesiasticalRegion::factory()->create();
     $regionB = EcclesiasticalRegion::factory()->create();
     $church = Church::factory()->create(['ecclesiastical_region_id' => $regionA->id]);
-    $user = User::factory()->create(['church_id' => $church->id]);
+    $user = User::factory()->create();
+    $user->person->update(['managing_church_id' => $church->id]);
 
     $this->actingAs($user);
 
@@ -73,10 +74,10 @@ it('persists contact fields', function () {
         ->call('updateContact')
         ->assertHasNoErrors();
 
-    $user->refresh();
+    $user->refresh()->load('person.contacts');
 
-    expect($user->phone)->toBe('(21) 88888-0000');
-    expect($user->birthdate->format('Y-m-d'))->toBe('2010-05-01');
+    expect($user->person->contacts()->where('type', 'phone')->value('value'))->toBe('(21) 88888-0000');
+    expect($user->person->birthdate->format('Y-m-d'))->toBe('2010-05-01');
 });
 
 it('persists preferences and reflects them in the session', function () {

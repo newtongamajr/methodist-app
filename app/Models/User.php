@@ -187,7 +187,8 @@ class User extends Authenticatable implements HasMedia
 
     /**
      * Active admin context (which church the user is currently acting on).
-     * Falls back to the Person's managing_church_id, then to the first manageable.
+     * Falls back to the Person's managing_church_id, then to the first
+     * manageable, then to the user's primary attached church.
      */
     public function currentChurchId(): ?int
     {
@@ -203,6 +204,16 @@ class User extends Authenticatable implements HasMedia
             return $managingId;
         }
 
-        return $allowed[0] ?? $managingId;
+        if ($allowed) {
+            return $allowed[0];
+        }
+
+        if ($managingId) {
+            return $managingId;
+        }
+
+        $primaryAttached = $this->churches()->wherePivot('is_primary', true)->value('churches.id');
+
+        return $primaryAttached ? (int) $primaryAttached : null;
     }
 }

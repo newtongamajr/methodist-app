@@ -19,7 +19,7 @@ it('does not report authorization exceptions', function () {
 it('does not report Spatie permission UnauthorizedException', function () {
     Exceptions::fake();
 
-    report(UnauthorizedException::forRoles(['global_manager']));
+    report(UnauthorizedException::forRoles(['national_admin']));
 
     Exceptions::assertNotReported(UnauthorizedException::class);
 });

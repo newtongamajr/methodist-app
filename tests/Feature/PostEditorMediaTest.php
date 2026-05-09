@@ -17,7 +17,7 @@ beforeEach(function () {
 function actAsGlobalManager(): User
 {
     $user = User::factory()->create();
-    $user->assignRole('global_manager');
+    $user->assignRole('national_admin');
     test()->actingAs($user);
 
     return $user;

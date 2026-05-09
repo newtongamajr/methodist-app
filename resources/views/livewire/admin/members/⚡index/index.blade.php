@@ -16,9 +16,9 @@
             @endforeach
         </flux:select>
 
-        <flux:select wire:model.live="memberTypeFilter">
-            <option value="">{{ __('All member types') }}</option>
-            @foreach (\App\Enums\MemberType::cases() as $type)
+        <flux:select wire:model.live="natureFilter">
+            <option value="">{{ __('All natures') }}</option>
+            @foreach (\App\Enums\PersonNature::cases() as $type)
                 <option value="{{ $type->value }}">{{ $type->label() }}</option>
             @endforeach
         </flux:select>
@@ -33,7 +33,7 @@
             <flux:table.columns>
                 <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'email'" :direction="$sortDir" wire:click="sort('email')">{{ __('Email') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'member_type'" :direction="$sortDir" wire:click="sort('member_type')">{{ __('I am a') }}</flux:table.column>
+                <flux:table.column>{{ __('I am a') }}</flux:table.column>
                 <flux:table.column>{{ __('Churches') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
             </flux:table.columns>
@@ -41,11 +41,15 @@
             <flux:table.rows>
                 @foreach ($this->members as $user)
                     <flux:table.row :key="'member-'.$user->id">
-                        <flux:table.cell variant="strong">{{ $user->name }}</flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $user->person?->name ?? $user->name }}</flux:table.cell>
                         <flux:table.cell>{{ $user->email }}</flux:table.cell>
                         <flux:table.cell>
-                            @if ($user->member_type)
-                                <flux:badge color="zinc">{{ $user->member_type->label() }}</flux:badge>
+                            @if ($user->person && ! empty($user->person->natures))
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach ($user->person->natures as $nature)
+                                        <flux:badge wire:key="member-{{ $user->id }}-nat-{{ $nature }}" color="zinc">{{ \App\Enums\PersonNature::tryFrom($nature)?->label() ?? $nature }}</flux:badge>
+                                    @endforeach
+                                </div>
                             @else
                                 —
                             @endif
@@ -53,7 +57,7 @@
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-1">
                                 @forelse ($user->churches as $c)
-                                    <flux:badge wire:key="member-{{ $user->id }}-church-{{ $c->id }}" :color="$user->church_id === $c->id ? 'emerald' : 'zinc'">
+                                    <flux:badge wire:key="member-{{ $user->id }}-church-{{ $c->id }}" :color="$user->person?->managing_church_id === $c->id ? 'emerald' : 'zinc'">
                                         {{ $c->name }}
                                     </flux:badge>
                                 @empty

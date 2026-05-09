@@ -55,7 +55,7 @@ class extends Component
     public function churches()
     {
         $user = auth()->user();
-        if ($user->hasRole('global_manager')) {
+        if ($user->hasRole('national_admin')) {
             return Church::orderBy('name')->get(['id', 'name']);
         }
         return Church::query()
@@ -81,7 +81,7 @@ class extends Component
             ->orderBy($this->sortBy, $this->sortDir)
             ->orderBy('start_time');
 
-        if (! $user->hasRole('global_manager')) {
+        if (! $user->hasRole('national_admin')) {
             $q->whereIn('church_id', $user->manageableChurchIds());
         }
 
@@ -100,7 +100,7 @@ class extends Component
     {
         $user = auth()->user();
         $schedule = PrayerSchedule::findOrFail($id);
-        if (! $user->hasRole('global_manager')) {
+        if (! $user->hasRole('national_admin')) {
             abort_unless($user->canManageChurch($schedule->church_id), 403);
         }
         $schedule->delete();

@@ -1,16 +1,19 @@
 <?php
 
-use App\Enums\MemberType;
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
 {
-    public string $member_type = '';
+    public string $nature = '';
 
     public ?int $region_id = null;
 
@@ -19,9 +22,10 @@ new class extends Component
     public function mount(): void
     {
         $user = Auth::user();
-        $this->member_type = $user->member_type?->value ?? MemberType::Member->value;
-        $this->church_id = $user->church_id;
-        $this->region_id = $user->primaryChurch?->ecclesiastical_region_id;
+        $person = $user->person;
+        $this->nature = $person?->natures[0] ?? PersonNature::Member->value;
+        $this->church_id = $person?->managing_church_id;
+        $this->region_id = $person?->managingChurch?->ecclesiastical_region_id;
     }
 
     public function updatedRegionId(): void
@@ -59,25 +63,35 @@ new class extends Component
         $user = Auth::user();
 
         $validated = $this->validate([
-            'member_type' => ['required', 'string', 'in:'.implode(',', array_map(fn (MemberType $c) => $c->value, MemberType::cases()))],
+            'nature' => ['required', 'string', 'in:'.implode(',', array_map(fn (PersonNature $c) => $c->value, PersonNature::cases()))],
             'region_id' => ['nullable', 'integer', 'exists:ecclesiastical_regions,id'],
             'church_id' => ['nullable', 'integer', 'exists:churches,id'],
         ]);
-
-        unset($validated['region_id']);
 
         if (($validated['church_id'] ?? null) === '') {
             $validated['church_id'] = null;
         }
 
-        $user->fill($validated);
-        $user->save();
-
-        if ($validated['church_id'] ?? null) {
-            $user->churches()->syncWithoutDetaching([
-                $validated['church_id'] => ['is_primary' => true],
+        DB::transaction(function () use ($user, $validated) {
+            $person = $user->person ?? Person::create([
+                'person_type' => PersonType::Individual->value,
+                'name' => $user->name,
             ]);
-        }
+            if (! $user->person) {
+                $user->person_id = $person->id;
+                $user->save();
+            }
+
+            $person->natures = [$validated['nature']];
+            $person->managing_church_id = $validated['church_id'] ?? null;
+            $person->save();
+
+            if (! empty($validated['church_id'])) {
+                $user->churches()->syncWithoutDetaching([
+                    $validated['church_id'] => ['is_primary' => true],
+                ]);
+            }
+        });
 
         $this->dispatch('profile-updated');
     }

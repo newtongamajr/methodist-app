@@ -19,7 +19,7 @@
                 <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDir" wire:click="sort('type')">{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Region') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'city'" :direction="$sortDir" wire:click="sort('city')">{{ __('City') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'primary_users_count'" :direction="$sortDir" wire:click="sort('primary_users_count')">{{ __('Members') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'members_count'" :direction="$sortDir" wire:click="sort('members_count')">{{ __('Members') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'is_active'" :direction="$sortDir" wire:click="sort('is_active')">{{ __('Active') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
@@ -35,7 +35,7 @@
                         </flux:table.cell>
                         <flux:table.cell><flux:badge color="zinc">{{ $church->region?->code }}</flux:badge></flux:table.cell>
                         <flux:table.cell>{{ $church->city ? $church->city.'/'.$church->state : '—' }}</flux:table.cell>
-                        <flux:table.cell>{{ $church->primary_users_count }}</flux:table.cell>
+                        <flux:table.cell>{{ $church->members_count }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge :color="$church->is_active ? 'emerald' : 'zinc'">
                                 {{ $church->is_active ? __('Active') : __('Inactive') }}

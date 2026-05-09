@@ -21,8 +21,8 @@ function attach(User $user, Church $church, bool $primary = false): void
 it('reports manageableChurches for a multi-church local manager', function () {
     $a = Church::factory()->create();
     $b = Church::factory()->create();
-    $manager = User::factory()->create(['church_id' => $a->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->create();
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -34,21 +34,21 @@ it('reports manageableChurches for a multi-church local manager', function () {
 it('listing of admins includes admins from any of the manager\'s churches', function () {
     $a = Church::factory()->create();
     $b = Church::factory()->create();
-    $manager = User::factory()->create(['church_id' => $a->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->create();
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
     $adminA = User::factory()->create(['name' => 'Admin A']);
-    $adminA->assignRole('local_manager');
+    $adminA->assignRole('local_admin');
     attach($adminA, $a, true);
 
     $adminB = User::factory()->create(['name' => 'Admin B']);
-    $adminB->assignRole('local_manager');
+    $adminB->assignRole('local_admin');
     attach($adminB, $b, true);
 
     $stranger = User::factory()->create(['name' => 'Stranger Else']);
-    $stranger->assignRole('local_manager');
+    $stranger->assignRole('local_admin');
     attach($stranger, Church::factory()->create(), true);
 
     $this->actingAs($manager)
@@ -63,8 +63,8 @@ it('master attaching new admin can pick from their pool but not foreign churches
     $a = Church::factory()->create();
     $b = Church::factory()->create();
     $foreign = Church::factory()->create();
-    $manager = User::factory()->create(['church_id' => $a->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->create();
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -76,7 +76,7 @@ it('master attaching new admin can pick from their pool but not foreign churches
         ->set('form.password', 'secret-password')
         ->set('form.church_ids', [$a->id, $b->id, $foreign->id])
         ->set('form.primary_church_id', $a->id)
-        ->set('form.role', 'local_manager')
+        ->set('form.role', 'local_admin')
         ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
@@ -84,7 +84,7 @@ it('master attaching new admin can pick from their pool but not foreign churches
     $helper = User::firstWhere('email', 'helper@m.test');
     expect($helper->churches->pluck('id')->all())
         ->toEqualCanonicalizing([$a->id, $b->id]);
-    expect($helper->church_id)->toBe($a->id);
+    expect($helper->person->managing_church_id)->toBe($a->id);
 });
 
 it('post editor list of available churches respects manager scope', function () {
@@ -92,7 +92,7 @@ it('post editor list of available churches respects manager scope', function () 
     $b = Church::factory()->create();
     $foreign = Church::factory()->create(['name' => 'Foreign Church']);
     $manager = User::factory()->create();
-    $manager->assignRole('local_manager');
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -107,7 +107,7 @@ it('local schedule editor scopes the church dropdown to manageable churches', fu
     $a = Church::factory()->create();
     $b = Church::factory()->create();
     $manager = User::factory()->create();
-    $manager->assignRole('local_manager');
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -147,7 +147,7 @@ it('comments queue shows comments from any of the manager\'s churches', function
     PostComment::factory()->for($postForeign)->create(['body' => 'Comment-Foreign']);
 
     $manager = User::factory()->create();
-    $manager->assignRole('local_manager');
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -162,8 +162,8 @@ it('comments queue shows comments from any of the manager\'s churches', function
 it('church context switcher persists the active church in session', function () {
     $a = Church::factory()->create();
     $b = Church::factory()->create();
-    $manager = User::factory()->create(['church_id' => $a->id]);
-    $manager->assignRole('local_manager');
+    $manager = User::factory()->create();
+    $manager->assignRole('local_admin');
     attach($manager, $a, true);
     attach($manager, $b);
 
@@ -177,7 +177,7 @@ it('church context switcher persists the active church in session', function () 
 
 it('shows the attached church to a regular member as a read-only badge', function () {
     $church = Church::factory()->create(['name' => 'Igreja Demo']);
-    $member = User::factory()->create(['church_id' => $church->id]);
+    $member = User::factory()->create();
     $member->assignRole('user');
     attach($member, $church, true);
 
@@ -190,7 +190,7 @@ it('shows the attached church to a regular member as a read-only badge', functio
 it('refuses a regular member trying to set a church they are not attached to', function () {
     $own = Church::factory()->create();
     $other = Church::factory()->create();
-    $member = User::factory()->create(['church_id' => $own->id]);
+    $member = User::factory()->create();
     $member->assignRole('user');
     attach($member, $own, true);
 

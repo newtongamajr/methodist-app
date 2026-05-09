@@ -1,42 +1,60 @@
 <?php
 
 use App\Enums\ChurchType;
-use App\Enums\PastorRole;
+use App\Enums\PersonNature;
 use App\Models\Church;
-use App\Models\Pastor;
-use App\Models\PastorAssignment;
+use App\Models\FunctionRole;
+use App\Models\Person;
+use App\Models\PersonRoleAssignment;
 use App\Models\User;
+use Database\Seeders\FunctionsSeeder;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
+    $this->seed(FunctionsSeeder::class);
 });
 
-it('reports only currently active assignments via Church::currentPastors', function () {
+function pastorPerson(string $name): Person
+{
+    return Person::factory()->create([
+        'name' => $name,
+        'natures' => [PersonNature::Pastor->value],
+    ]);
+}
+
+it('reports only currently active pastor assignments for a church', function () {
     $church = Church::factory()->create();
-    $pastorActive = Pastor::factory()->create(['name' => 'Pr. Active']);
-    $pastorPast = Pastor::factory()->create(['name' => 'Pr. Past']);
-    $pastorFuture = Pastor::factory()->create(['name' => 'Pr. Future']);
+    $main = FunctionRole::where('slug', 'main_pastor')->first();
+    $aux = FunctionRole::where('slug', 'auxiliary_pastor')->first();
+    $sem = FunctionRole::where('slug', 'seminarist')->first();
 
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastorActive->id, 'church_id' => $church->id,
-        'role' => PastorRole::Main->value,
-        'start_date' => now()->subYear()->toDateString(), 'end_date' => null,
+    $active = pastorPerson('Pr. Active');
+    $past = pastorPerson('Pr. Past');
+    $future = pastorPerson('Pr. Future');
+
+    PersonRoleAssignment::create([
+        'person_id' => $active->id, 'function_id' => $main->id, 'church_id' => $church->id,
+        'started_at' => now()->subYear()->toDateString(), 'ended_at' => null,
     ]);
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastorPast->id, 'church_id' => $church->id,
-        'role' => PastorRole::Auxiliary->value,
-        'start_date' => now()->subYears(3)->toDateString(),
-        'end_date' => now()->subYear()->toDateString(),
+    PersonRoleAssignment::create([
+        'person_id' => $past->id, 'function_id' => $aux->id, 'church_id' => $church->id,
+        'started_at' => now()->subYears(3)->toDateString(),
+        'ended_at' => now()->subYear()->toDateString(),
     ]);
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastorFuture->id, 'church_id' => $church->id,
-        'role' => PastorRole::Seminarist->value,
-        'start_date' => now()->addMonth()->toDateString(),
+    PersonRoleAssignment::create([
+        'person_id' => $future->id, 'function_id' => $sem->id, 'church_id' => $church->id,
+        'started_at' => now()->addMonth()->toDateString(),
     ]);
 
-    $names = $church->currentPastors()->pluck('name')->all();
+    $today = now()->toDateString();
+    $names = $church->pastorAssignments()
+        ->with('person')
+        ->where(fn ($q) => $q->whereNull('started_at')->orWhere('started_at', '<=', $today))
+        ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>=', $today))
+        ->get()->map(fn ($a) => $a->person->name)->all();
+
     expect($names)->toContain('Pr. Active');
     expect($names)->not->toContain('Pr. Past');
     expect($names)->not->toContain('Pr. Future');
@@ -45,65 +63,78 @@ it('reports only currently active assignments via Church::currentPastors', funct
 it('lets a pastor serve multiple churches simultaneously', function () {
     $a = Church::factory()->create();
     $b = Church::factory()->create();
-    $pastor = Pastor::factory()->create();
+    $main = FunctionRole::where('slug', 'main_pastor')->first();
+    $sem = FunctionRole::where('slug', 'seminarist')->first();
+    $pastor = pastorPerson('Pr. Multi');
 
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastor->id, 'church_id' => $a->id,
-        'role' => PastorRole::Main->value,
-        'start_date' => now()->subMonths(6)->toDateString(),
+    PersonRoleAssignment::create([
+        'person_id' => $pastor->id, 'function_id' => $main->id, 'church_id' => $a->id,
+        'started_at' => now()->subMonths(6)->toDateString(),
     ]);
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastor->id, 'church_id' => $b->id,
-        'role' => PastorRole::Seminarist->value,
-        'start_date' => now()->subMonth()->toDateString(),
+    PersonRoleAssignment::create([
+        'person_id' => $pastor->id, 'function_id' => $sem->id, 'church_id' => $b->id,
+        'started_at' => now()->subMonth()->toDateString(),
     ]);
 
-    expect($pastor->churches()->count())->toBe(2);
+    expect($pastor->roleAssignments()->count())->toBe(2);
 });
 
 it('preserves history when a pastor moves from one church to another', function () {
     $oldChurch = Church::factory()->create();
     $newChurch = Church::factory()->create();
-    $pastor = Pastor::factory()->create();
+    $main = FunctionRole::where('slug', 'main_pastor')->first();
+    $pastor = pastorPerson('Pr. Mover');
 
-    $assignment = PastorAssignment::factory()->create([
-        'pastor_id' => $pastor->id, 'church_id' => $oldChurch->id,
-        'role' => PastorRole::Main->value,
-        'start_date' => now()->subYear()->toDateString(),
+    $assignment = PersonRoleAssignment::create([
+        'person_id' => $pastor->id, 'function_id' => $main->id, 'church_id' => $oldChurch->id,
+        'started_at' => now()->subYear()->toDateString(),
     ]);
 
-    // End the old assignment yesterday so the pastor cleanly transitions today.
-    $assignment->update(['end_date' => now()->subDay()->toDateString()]);
+    $assignment->update(['ended_at' => now()->subDay()->toDateString()]);
 
-    PastorAssignment::factory()->create([
-        'pastor_id' => $pastor->id, 'church_id' => $newChurch->id,
-        'role' => PastorRole::Main->value,
-        'start_date' => now()->toDateString(),
+    PersonRoleAssignment::create([
+        'person_id' => $pastor->id, 'function_id' => $main->id, 'church_id' => $newChurch->id,
+        'started_at' => now()->toDateString(),
     ]);
 
-    expect($oldChurch->pastors()->count())->toBe(1); // history preserved
-    expect($oldChurch->currentPastors()->count())->toBe(0);
-    expect($newChurch->currentPastors()->count())->toBe(1);
+    expect($oldChurch->pastorAssignments()->count())->toBe(1);
+    $today = now()->toDateString();
+    expect(
+        $oldChurch->pastorAssignments()
+            ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>=', $today))
+            ->count(),
+    )->toBe(0);
+    expect(
+        $newChurch->pastorAssignments()
+            ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>=', $today))
+            ->count(),
+    )->toBe(1);
 });
 
 it('admin editor creates a brand-new pastor and a current assignment', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $church = Church::factory()->create();
+    $sem = FunctionRole::where('slug', 'seminarist')->first();
     $this->actingAs($super);
 
     Livewire::test('admin.churches.pastors.editor', ['churchId' => $church->id])
         ->set('form.pastorMode', 'new')
-        ->set('form.pastor_name', 'Pr. Novo')
-        ->set('form.pastor_email', 'novo@pastores.test')
-        ->set('form.role', 'seminarist')
+        ->set('form.person_name', 'Pr. Novo')
+        ->set('form.person_email', 'novo@pastores.test')
+        ->set('form.function_id', $sem->id)
         ->set('form.start_date', now()->toDateString())
         ->call('save')
         ->assertHasNoErrors();
 
-    $pastor = Pastor::firstWhere('email', 'novo@pastores.test');
+    $pastor = Person::query()
+        ->whereJsonContains('natures', PersonNature::Pastor->value)
+        ->where('name', 'Pr. Novo')
+        ->first();
     expect($pastor)->not->toBeNull();
-    expect($church->currentPastors()->where('pastors.id', $pastor->id)->exists())->toBeTrue();
+    expect(
+        $church->pastorAssignments()->where('person_id', $pastor->id)->exists(),
+    )->toBeTrue();
 });
 
 it('casts ChurchType properly', function () {

@@ -30,7 +30,7 @@ class extends Component
 
     protected function sortableColumns(): array
     {
-        return ['name', 'type', 'city', 'is_active', 'primary_users_count'];
+        return ['name', 'type', 'city', 'is_active', 'members_count'];
     }
 
     protected function defaultSortBy(): string
@@ -43,7 +43,7 @@ class extends Component
     {
         return Church::query()
             ->with(['region'])
-            ->withCount('primaryUsers')
+            ->withCount('members')
             ->when($this->search, function ($q) {
                 $term = '%'.addcslashes($this->search, '%_\\').'%';
                 $q->where(fn ($qq) => $qq->where('name', 'like', $term)

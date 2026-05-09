@@ -60,7 +60,7 @@ it('regenerates slots without dropping ones with signups', function () {
 
 it('lets a user join and leave a slot for their church', function () {
     $church = Church::factory()->create();
-    $user = User::factory()->create(['church_id' => $church->id]);
+    $user = User::factory()->forChurch($church)->create();
     $schedule = PrayerSchedule::factory()->create([
         'church_id' => $church->id,
         'date' => now()->addDay()->toDateString(),
@@ -94,8 +94,8 @@ it('refuses to overflow capacity', function () {
     $schedule->regenerateSlots();
     $slot = $schedule->slots()->first();
 
-    $first = User::factory()->create(['church_id' => $church->id]);
-    $second = User::factory()->create(['church_id' => $church->id]);
+    $first = User::factory()->forChurch($church)->create();
+    $second = User::factory()->forChurch($church)->create();
 
     PrayerSignup::create([
         'prayer_slot_id' => $slot->id,
@@ -122,7 +122,7 @@ it('blocks signing up to another church\'s slot', function () {
     $schedule->regenerateSlots();
     $slot = $schedule->slots()->first();
 
-    $userInB = User::factory()->create(['church_id' => $b->id]);
+    $userInB = User::factory()->forChurch($b)->create();
     $this->actingAs($userInB);
 
     try {
@@ -155,7 +155,7 @@ it('navigates between days via previousDay / nextDay', function () {
         $schedule->regenerateSlots();
     }
 
-    $user = User::factory()->create(['church_id' => $church->id]);
+    $user = User::factory()->forChurch($church)->create();
     $user->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
     $this->actingAs($user);
 
@@ -183,14 +183,14 @@ it('day calendar lists confirmed users for each slot', function () {
     $schedule->regenerateSlots();
     $slot = $schedule->slots()->orderBy('starts_at')->first();
 
-    $maria = User::factory()->create(['name' => 'Maria Demo', 'church_id' => $church->id]);
+    $maria = User::factory()->forChurch($church)->create(['name' => 'Maria Demo']);
     PrayerSignup::create([
         'prayer_slot_id' => $slot->id,
         'user_id' => $maria->id,
         'status' => 'confirmed',
     ]);
 
-    $viewer = User::factory()->create(['church_id' => $church->id]);
+    $viewer = User::factory()->forChurch($church)->create();
     $this->actingAs($viewer);
 
     Livewire::test('prayer.index')
@@ -226,7 +226,7 @@ it('user filter lists only members who have at least one confirmed slot in this 
     // No relation at all → should NOT appear.
     User::factory()->create(['name' => 'Carol Outsider']);
 
-    $viewer = User::factory()->create(['church_id' => $church->id]);
+    $viewer = User::factory()->forChurch($church)->create();
     $this->actingAs($viewer);
 
     Livewire::test('prayer.index')

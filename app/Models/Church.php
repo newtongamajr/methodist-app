@@ -18,6 +18,7 @@ class Church extends Model
 
     protected $fillable = [
         'ecclesiastical_region_id',
+        'district_id',
         'type',
         'name',
         'slug',
@@ -52,26 +53,16 @@ class Church extends Model
         return $this->belongsTo(EcclesiasticalRegion::class, 'ecclesiastical_region_id');
     }
 
+    public function district(): BelongsTo
+    {
+        return $this->belongsTo(District::class);
+    }
+
     public function pastorAssignments(): HasMany
     {
-        return $this->hasMany(PastorAssignment::class)->orderBy('display_order');
-    }
-
-    public function pastors(): BelongsToMany
-    {
-        return $this->belongsToMany(Pastor::class, 'pastor_assignments')
-            ->withPivot(['role', 'start_date', 'end_date', 'display_order'])
-            ->withTimestamps();
-    }
-
-    public function currentPastors(): BelongsToMany
-    {
-        $today = now()->toDateString();
-
-        return $this->pastors()
-            ->where(fn ($q) => $q->whereNull('pastor_assignments.start_date')->orWhere('pastor_assignments.start_date', '<=', $today))
-            ->where(fn ($q) => $q->whereNull('pastor_assignments.end_date')->orWhere('pastor_assignments.end_date', '>=', $today))
-            ->orderByPivot('display_order');
+        return $this->hasMany(PersonRoleAssignment::class)
+            ->whereHas('function', fn ($q) => $q->whereJsonContains('applies_to', 'pastor'))
+            ->orderBy('started_at');
     }
 
     public function members(): BelongsToMany
@@ -79,10 +70,5 @@ class Church extends Model
         return $this->belongsToMany(User::class)
             ->withPivot('is_primary')
             ->withTimestamps();
-    }
-
-    public function primaryUsers(): HasMany
-    {
-        return $this->hasMany(User::class, 'church_id');
     }
 }

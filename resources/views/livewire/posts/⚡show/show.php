@@ -89,7 +89,7 @@ class extends Component
 
         // Admins (global or local managers) bypass moderation — their comments
         // post immediately. Everyone else lands in the pending queue.
-        $isAdmin = $user->hasRole('global_manager') || $user->hasRole('local_manager');
+        $isAdmin = $user->hasRole('national_admin') || $user->hasRole('local_admin');
 
         PostComment::create([
             'post_id' => $this->post->id,

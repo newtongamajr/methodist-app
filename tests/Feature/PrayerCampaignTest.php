@@ -13,7 +13,7 @@ beforeEach(function () {
 
 it('lets a global manager create a prayer campaign', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $this->actingAs($super);
 
     Livewire::test('admin.prayer-campaigns.editor')
@@ -34,7 +34,7 @@ it('lets a global manager create a prayer campaign', function () {
 
 it('rejects a campaign with end before start', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $this->actingAs($super);
 
     Livewire::test('admin.prayer-campaigns.editor')
@@ -56,7 +56,7 @@ it('blocks regular users from prayer campaign CRUD', function () {
 it('refuses a schedule whose date is outside the campaign window', function () {
     $church = Church::factory()->create();
     $manager = User::factory()->create();
-    $manager->assignRole('global_manager');
+    $manager->assignRole('national_admin');
     $this->actingAs($manager);
 
     $campaign = PrayerCampaign::factory()->range('2026-05-04', '2026-05-24')->create();
@@ -114,7 +114,7 @@ it('only lists campaigns whose window overlaps the current month on /prayer', fu
     )->create(['name' => 'Future-Only']);
 
     $church = Church::factory()->create();
-    $user = User::factory()->create(['church_id' => $church->id]);
+    $user = User::factory()->forChurch($church)->create();
     $user->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
     $this->actingAs($user);
 
