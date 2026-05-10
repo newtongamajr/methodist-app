@@ -84,7 +84,7 @@
                         <div class="flex size-10 items-center justify-center rounded-lg bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300">
                             <flux:icon.clock class="size-5" />
                         </div>
-                        <flux:heading>{{ __('Reserve a prayer slot') }}</flux:heading>
+                        <flux:heading>{{ __('Reserve a prayer schedule') }}</flux:heading>
                     </div>
                     <flux:text class="mt-3">
                         {{ __('Reserve 30-minute or 1-hour windows during the campaign and pray with brothers and sisters from your church — at the temple or from home.') }}
@@ -126,7 +126,7 @@
                 @php
                     $steps = [
                         ['title' => __('Pick your church'), 'body' => __("Choose the local Methodist congregation you belong to or the one that's closest to you."), 'color' => 'var(--color-accent)'],
-                        ['title' => __('Choose your moment'), 'body' => __("Sign up for the prayer slots that fit your day. Each church has a coverage goal — your hour might be the one that's missing."), 'color' => 'var(--color-methodist-blue)'],
+                        ['title' => __('Choose your moment'), 'body' => __("Sign up for the prayer schedules that fit your day. Each church has a coverage goal — your hour might be the one that's missing."), 'color' => 'var(--color-methodist-blue)'],
                         ['title' => __('Walk together'), 'body' => __('Add your fasting plan, share testimonies, and be edified by what others are sharing.'), 'color' => '#d97706'],
                     ];
                 @endphp

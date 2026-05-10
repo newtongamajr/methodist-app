@@ -18,6 +18,15 @@ class PrayerScheduleForm extends Form
 
     public string $date = '';
 
+    /**
+     * Create-mode multi-date selection. Each picked date materializes as its
+     * own PrayerSchedule row sharing the rest of the configuration. Empty in
+     * edit mode — that path goes through `$date` instead.
+     *
+     * @var array<int, string>
+     */
+    public array $dates = [];
+
     public string $start_time = '06:00';
 
     public string $end_time = '20:00';
@@ -32,10 +41,16 @@ class PrayerScheduleForm extends Form
 
     public function rules(): array
     {
+        // In edit mode only the single `date` matters; in create mode the
+        // `dates` array drives the fan-out and `date` is left blank.
+        $isEditing = (bool) $this->schedule;
+
         return [
             'church_id' => ['required', 'integer', 'exists:churches,id'],
             'prayer_campaign_id' => ['required', 'integer', 'exists:prayer_campaigns,id'],
-            'date' => ['required', 'date'],
+            'date' => [$isEditing ? 'required' : 'nullable', 'date'],
+            'dates' => [$isEditing ? 'nullable' : 'required', 'array', $isEditing ? 'nullable' : 'min:1'],
+            'dates.*' => ['date'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'slot_minutes' => ['required', 'integer', 'in:30,60'],

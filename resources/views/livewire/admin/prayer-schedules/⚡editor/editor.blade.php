@@ -44,23 +44,45 @@
         @endif
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:date-picker
-                wire:model="form.date"
-                :label="__('Date')"
-                required
-                :min="$this->campaign?->start_date?->format('Y-m-d')"
-                :max="$this->campaign?->end_date?->format('Y-m-d')"
-            />
+            @if ($form->schedule)
+                {{-- Edit mode: single existing row → single date picker. --}}
+                <flux:date-picker
+                    wire:model="form.date"
+                    :label="__('Date')"
+                    type="input"
+                    selectable-header
+                    required
+                    :min="$this->campaign?->start_date?->format('Y-m-d')"
+                    :max="$this->campaign?->end_date?->format('Y-m-d')"
+                />
+            @else
+                {{-- Create mode: pillbox of every campaign date from today on.
+                     Each pick fans out into its own PrayerSchedule on save. --}}
+                <div class="sm:col-span-3">
+                    <flux:pillbox
+                        wire:model="form.dates"
+                        :label="__('Dates')"
+                        :placeholder="empty($this->availableDates) ? __('Pick a campaign first.') : __('Pick one or more dates…')"
+                        multiple
+                        searchable
+                        clearable
+                    >
+                        @foreach ($this->availableDates as $opt)
+                            <flux:pillbox.option :value="$opt['value']" :label="$opt['label']" />
+                        @endforeach
+                    </flux:pillbox>
+                </div>
+            @endif
             <flux:time-picker wire:model="form.start_time" :label="__('Start time')" required />
             <flux:time-picker wire:model="form.end_time" :label="__('End time')" required />
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model="form.slot_minutes" :label="__('Slot length')">
+            <flux:select wire:model="form.slot_minutes" :label="__('Schedule length')">
                 <option value="30">30 {{ __('minutes') }}</option>
                 <option value="60">60 {{ __('minutes') }}</option>
             </flux:select>
-            <flux:input wire:model="form.capacity_per_slot" :label="__('Max prayers per slot')" type="number" min="1" max="200" required />
+            <flux:input wire:model="form.capacity_per_slot" :label="__('Max people of praying per schedule')" type="number" min="1" max="200" required />
             <flux:select wire:model="form.mode" :label="__('Mode')">
                 @foreach (\App\Enums\LocationMode::cases() as $m)
                     <option value="{{ $m->value }}">{{ $m->label() }}</option>
@@ -78,7 +100,7 @@
 
     @if ($form->schedule && $form->schedule->slots()->count())
         <div class="space-y-3">
-            <flux:heading size="lg">{{ __('Slots') }}</flux:heading>
+            <flux:heading size="lg">{{ __('Schedules') }}</flux:heading>
             <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($form->schedule->slots as $slot)
                     <div wire:key="schedule-slot-{{ $slot->id }}" class="rounded-md border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-700 dark:bg-zinc-900">
