@@ -64,7 +64,14 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
-            <flux:date-picker wire:model="birthdate" :label="__('Birthdate')" />
+            <flux:date-picker
+                wire:model="birthdate"
+                :label="__('Birthdate')"
+                type="input"
+                selectable-header
+                :min="now()->subYears(120)->toDateString()"
+                :max="now()->toDateString()"
+            />
         </div>
 
         <flux:select wire:model="locale" :label="__('Language')">

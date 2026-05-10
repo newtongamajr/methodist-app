@@ -7,7 +7,14 @@
     <form wire:submit="updateContact" class="mt-6 space-y-5">
         <div class="grid gap-4 sm:grid-cols-2">
             <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
-            <flux:date-picker wire:model="birthdate" :label="__('Birthdate')" />
+            <flux:date-picker
+                wire:model="birthdate"
+                :label="__('Birthdate')"
+                type="input"
+                selectable-header
+                :min="now()->subYears(120)->toDateString()"
+                :max="now()->toDateString()"
+            />
         </div>
 
         <div class="flex items-center gap-4 pt-2">

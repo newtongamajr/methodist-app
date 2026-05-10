@@ -27,7 +27,7 @@
                 <flux:date-picker
                     wire:model="form.birthdate"
                     :label="__('Birthdate')"
-                    with-inputs
+                    type="input"
                     selectable-header
                     :min="now()->subYears(120)->toDateString()"
                     :max="now()->toDateString()"
@@ -49,7 +49,7 @@
             <flux:date-picker
                 wire:model="form.birthdate"
                 :label="__('Foundation date')"
-                with-inputs
+                type="input"
                 selectable-header
                 :max="now()->toDateString()"
             />
