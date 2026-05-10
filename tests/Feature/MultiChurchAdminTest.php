@@ -119,8 +119,13 @@ it('post editor list of available churches respects manager scope', function () 
 
     $this->actingAs($manager);
 
-    Livewire::test('admin.posts.editor')
-        ->assertSet('form.scope', 'local')
+    // Local admin: the church pillbox lists only their managed churches
+    // (a + b), and the primary church is pre-selected as a default.
+    $component = Livewire::test('admin.posts.editor');
+    $available = $component->instance()->availableChurches->pluck('id')->all();
+    expect($available)->toContain($a->id, $b->id);
+    expect($available)->not->toContain($foreign->id);
+    $component->assertSet('form.church_ids', [$a->id])
         ->assertDontSee('Foreign Church');
 });
 

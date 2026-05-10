@@ -67,7 +67,7 @@
             </div>
 
             <div class="relative mx-auto max-h-[60vh] overflow-hidden bg-zinc-100 dark:bg-zinc-900" wire:ignore>
-                <img x-ref="cropImage" alt="" class="block max-w-full" />
+                <img data-crop-image alt="" class="block max-w-full" />
             </div>
 
             <div class="flex flex-wrap gap-2">

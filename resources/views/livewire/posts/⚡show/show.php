@@ -21,7 +21,7 @@ class extends Component
     public function mount(string $slug): void
     {
         $this->post = Post::where('slug', $slug)
-            ->with(['media', 'embeds'])
+            ->with(['media', 'embeds', 'scopes'])
             ->published()
             ->firstOrFail();
 

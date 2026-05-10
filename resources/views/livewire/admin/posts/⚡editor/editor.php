@@ -1,12 +1,14 @@
 <?php
 
 use App\Enums\EmbedProvider;
-use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use App\Livewire\Forms\PostForm;
 use App\Models\Church;
+use App\Models\District;
+use App\Models\EcclesiasticalRegion;
 use App\Models\Post;
 use App\Models\PostEmbed;
+use App\Models\PostScope as PostScopeRow;
 use App\Services\EmbedLookupService;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -40,28 +42,79 @@ class extends Component
         abort_unless($user && ($user->can('posts.create.shared') || $user->can('posts.create.local')), 403);
 
         if ($postId) {
-            $post = Post::with(['media', 'embeds'])->findOrFail($postId);
+            $post = Post::with(['media', 'embeds', 'scopes'])->findOrFail($postId);
             $this->authorize('update', $post);
             $this->form->setPost($post);
         } else {
-            $this->form->scope = $user->can('posts.create.shared') ? PostScope::Shared->value : PostScope::Local->value;
             $this->form->status = PostStatus::Draft->value;
-            $this->form->church_id = $user->currentChurchId();
+
+            // Every audience picker starts off — the author explicitly opts
+            // in to national / region / district / church scopes per post,
+            // so a national admin doesn't accidentally publish nationally
+            // when they meant a single church. Local-only admins still get
+            // their primary church pre-checked since that's the only scope
+            // they can publish to anyway.
+            if (! $user->hasAnyRole(['national_admin', 'regional_admin', 'district_admin']) && $user->hasRole('local_admin')) {
+                $primary = $user->churches()->wherePivot('is_primary', true)->first();
+                if ($primary) {
+                    $this->form->church_ids = [$primary->id];
+                }
+            }
         }
     }
 
-    #[Computed]
-    public function churches(): Collection
+    /** Whether the actor is allowed to flip the "national" checkbox. */
+    public function canPublishNational(): bool
     {
-        $user = auth()->user();
-        if ($user->can('posts.create.shared')) {
-            return Church::orderBy('name')->get(['id', 'name', 'city', 'state']);
+        return auth()->user()?->hasRole('national_admin') === true;
+    }
+
+    /** Regions the actor is allowed to publish to. */
+    #[Computed]
+    public function availableRegions(): Collection
+    {
+        $ids = auth()->user()->manageableRegionIds();
+        if (empty($ids)) {
+            return collect();
         }
 
-        return Church::query()
-            ->whereIn('id', $user->manageableChurchIds())
+        return EcclesiasticalRegion::query()
+            ->whereIn('id', $ids)
+            ->orderBy('display_order')
             ->orderBy('name')
-            ->get(['id', 'name', 'city', 'state']);
+            ->get(['id', 'code', 'name']);
+    }
+
+    /** Districts the actor is allowed to publish to. */
+    #[Computed]
+    public function availableDistricts(): Collection
+    {
+        $ids = auth()->user()->manageableDistrictIds();
+        if (empty($ids)) {
+            return collect();
+        }
+
+        return District::query()
+            ->whereIn('id', $ids)
+            ->orderBy('display_order')
+            ->orderBy('name')
+            ->get(['id', 'name', 'ecclesiastical_region_id']);
+    }
+
+    /** Churches the actor is allowed to publish to. */
+    #[Computed]
+    public function availableChurches(): Collection
+    {
+        return auth()->user()
+            ->manageableChurches()
+            ->map(fn ($c) => (object) [
+                'id' => $c->id,
+                'name' => $c->name,
+                'city' => $c->city,
+                'state' => $c->state,
+                'district_id' => $c->district_id,
+                'ecclesiastical_region_id' => $c->ecclesiastical_region_id,
+            ]);
     }
 
     public function save(): void
@@ -78,17 +131,44 @@ class extends Component
             'newDocuments.*' => ['file', 'mimes:pdf', 'max:20480'],
         ]);
 
-        if ($data['scope'] === PostScope::Shared->value) {
-            abort_unless($user->can('posts.create.shared'), 403);
-            $data['church_id'] = null;
-        } else {
-            abort_unless($user->can('posts.create.local'), 403);
-            if (! $data['church_id']) {
-                $data['church_id'] = $user->currentChurchId();
-            }
-            if (! $user->can('posts.update.any')) {
-                abort_unless($user->canManageChurch((int) $data['church_id']), 403);
-            }
+        // ─── Scope authorization ────────────────────────────────────────
+        // Reject the save when any picked scope falls outside what this
+        // user is allowed to publish to. National flag is only for
+        // national_admin; every region/district/church id has to live in
+        // the actor's manageable set.
+        if ($data['national_post'] && ! $this->canPublishNational()) {
+            abort(403);
+        }
+
+        $allowedRegions = array_map('intval', $user->manageableRegionIds());
+        $allowedDistricts = array_map('intval', $user->manageableDistrictIds());
+        $allowedChurches = array_map('intval', $user->manageableChurchIds());
+
+        // Cast picked IDs to int — Livewire deserializes pillbox values as
+        // strings, and a strict in_array against an int-keyed allow-list
+        // would otherwise reject a national admin's own regions.
+        $data['region_ids'] = array_map('intval', $data['region_ids']);
+        $data['district_ids'] = array_map('intval', $data['district_ids']);
+        $data['church_ids'] = array_map('intval', $data['church_ids']);
+
+        foreach ($data['region_ids'] as $rid) {
+            abort_unless(in_array($rid, $allowedRegions, true), 403);
+        }
+        foreach ($data['district_ids'] as $did) {
+            abort_unless(in_array($did, $allowedDistricts, true), 403);
+        }
+        foreach ($data['church_ids'] as $cid) {
+            abort_unless(in_array($cid, $allowedChurches, true), 403);
+        }
+
+        // Need at least one audience picked, otherwise the post has no readers.
+        if (! $data['national_post']
+            && empty($data['region_ids'])
+            && empty($data['district_ids'])
+            && empty($data['church_ids'])) {
+            $this->addError('form.scopes', __('Pick at least one audience for this post.'));
+
+            return;
         }
 
         if ($data['status'] === PostStatus::Published->value && empty($data['published_at'])) {
@@ -97,19 +177,69 @@ class extends Component
             $data['published_at'] = null;
         }
 
+        // ─── Persist the post + its scope rows ──────────────────────────
+        $postPayload = collect($data)->only([
+            'title', 'excerpt', 'body', 'status', 'published_at',
+        ])->all();
+
         if ($this->form->post) {
             $this->authorize('update', $this->form->post);
-            $this->form->post->update($data);
+            $this->form->post->update($postPayload);
         } else {
-            $data['author_id'] = $user->id;
-            $this->form->post = Post::create($data);
+            $postPayload['author_id'] = $user->id;
+            $this->form->post = Post::create($postPayload);
         }
+
+        $this->syncScopes($data);
 
         $this->persistPendingMedia();
 
         session()->flash('status', __('Post saved.'));
 
         $this->redirect(route('admin.posts.edit', $this->form->post), navigate: true);
+    }
+
+    /**
+     * Replace the post's scope rows with the freshly-picked set. Each
+     * shape (national / region / district / church) maps to its own row;
+     * district rows derive their region from the District model;
+     * church rows derive both. Idempotent — wipes and rewrites.
+     */
+    private function syncScopes(array $data): void
+    {
+        $post = $this->form->post;
+
+        $rows = [];
+
+        if ($data['national_post']) {
+            $rows[] = ['national_post' => true];
+        }
+
+        foreach ($data['region_ids'] as $rid) {
+            $rows[] = ['region_id' => $rid];
+        }
+
+        $districts = District::query()->whereIn('id', $data['district_ids'])->get(['id', 'ecclesiastical_region_id']);
+        foreach ($districts as $d) {
+            $rows[] = [
+                'region_id' => $d->ecclesiastical_region_id,
+                'district_id' => $d->id,
+            ];
+        }
+
+        $churches = Church::query()->whereIn('id', $data['church_ids'])->get(['id', 'district_id', 'ecclesiastical_region_id']);
+        foreach ($churches as $c) {
+            $rows[] = [
+                'region_id' => $c->ecclesiastical_region_id,
+                'district_id' => $c->district_id,
+                'church_id' => $c->id,
+            ];
+        }
+
+        $post->scopes()->delete();
+        foreach ($rows as $row) {
+            PostScopeRow::create(['post_id' => $post->id] + $row);
+        }
     }
 
     protected function persistPendingMedia(): void

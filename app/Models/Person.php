@@ -493,13 +493,17 @@ class Person extends Model implements HasMedia
             ->fit(Fit::Crop, 128, 128)
             ->nonQueued();
 
+        // Match the User avatar conversions: keep `md` / `lg` synchronous
+        // so callers don't need a queue worker to display them.
         $this->addMediaConversion('md')
             ->performOnCollections('photo')
-            ->fit(Fit::Crop, 256, 256);
+            ->fit(Fit::Crop, 256, 256)
+            ->nonQueued();
 
         $this->addMediaConversion('lg')
             ->performOnCollections('photo')
-            ->fit(Fit::Crop, 512, 512);
+            ->fit(Fit::Crop, 512, 512)
+            ->nonQueued();
     }
 
     public function photoUrl(string $conversion = 'md'): ?string

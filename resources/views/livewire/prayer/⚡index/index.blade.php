@@ -254,8 +254,11 @@
                                                 $personName = $signup->person?->name;
                                                 $userName = $signup->user?->name;
                                                 $isProxied = $personName && $userName && $signup->person_id !== $signup->user?->person_id;
-                                                $displayName = $isProxied
-                                                    ? __(':author in the name of :person', ['author' => $userName, 'person' => $personName])
+                                                // For confirmation prompts and aria-labels we still need a
+                                                // plain string — fall back to "author → person" assembled
+                                                // by hand so the modal heading reads naturally.
+                                                $plainName = $isProxied
+                                                    ? $userName.' → '.$personName
                                                     : ($personName ?? $userName ?? '—');
                                                 $isOwn = $signup->person_id && $signup->person_id === $myPersonId;
                                             @endphp
@@ -268,7 +271,13 @@
                                                     'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => ! $isOwn && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
                                                 ])
                                             >
-                                                {{ $displayName }}
+                                                @if ($isProxied)
+                                                    <span>{{ $userName }}</span>
+                                                    <flux:icon.arrow-right variant="micro" class="size-3 opacity-70" />
+                                                    <span>{{ $personName }}</span>
+                                                @else
+                                                    {{ $personName ?? $userName ?? '—' }}
+                                                @endif
                                                 @if ($this->isAdminHere && ! $isOwn && ! $isPast)
                                                     <flux:modal.trigger :name="'remove-signup-'.$signup->id">
                                                         <button
@@ -281,7 +290,7 @@
                                                     </flux:modal.trigger>
                                                     <x-confirm-delete
                                                         :name="'remove-signup-'.$signup->id"
-                                                        :heading="__('Remove :name from this schedule?', ['name' => $displayName])"
+                                                        :heading="__('Remove :name from this schedule?', ['name' => $plainName])"
                                                         :confirmLabel="__('Remove')"
                                                         action="removeSignup({{ $signup->id }})"
                                                     />

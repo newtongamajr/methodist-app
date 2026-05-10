@@ -17,7 +17,7 @@
                         <div class="mt-2 truncate text-xs text-zinc-500">
                             {{ __('On') }}
                             <a class="hover:underline" href="{{ route('posts.show', $comment->post->slug) }}" wire:navigate>{{ $comment->post->title }}</a>
-                            @if ($comment->post->church) — {{ $comment->post->church->name }} @endif
+                            @php $churchNames = $comment->post->scopes->pluck("church.name")->filter()->unique()->values(); @endphp @if ($churchNames->isNotEmpty()) — {{ $churchNames->join(", ") }} @endif
                         </div>
                         <div class="mt-3 flex gap-2">
                             <flux:button wire:click="approve({{ $comment->id }})" size="sm" variant="primary">{{ __('Approve') }}</flux:button>
@@ -45,7 +45,7 @@
                         <div class="mt-2 truncate text-xs text-zinc-500">
                             {{ __('On') }}
                             <a class="hover:underline" href="{{ route('posts.show', $comment->post->slug) }}" wire:navigate>{{ $comment->post->title }}</a>
-                            @if ($comment->post->church) — {{ $comment->post->church->name }} @endif
+                            @php $churchNames = $comment->post->scopes->pluck("church.name")->filter()->unique()->values(); @endphp @if ($churchNames->isNotEmpty()) — {{ $churchNames->join(", ") }} @endif
                         </div>
                         <div class="mt-3 flex gap-2">
                             <flux:button wire:click="reject({{ $comment->id }})" size="sm" variant="ghost">{{ __('Reject') }}</flux:button>
@@ -72,7 +72,7 @@
                         <div class="mt-2 truncate text-xs text-zinc-500">
                             {{ __('On') }}
                             <a class="hover:underline" href="{{ route('posts.show', $comment->post->slug) }}" wire:navigate>{{ $comment->post->title }}</a>
-                            @if ($comment->post->church) — {{ $comment->post->church->name }} @endif
+                            @php $churchNames = $comment->post->scopes->pluck("church.name")->filter()->unique()->values(); @endphp @if ($churchNames->isNotEmpty()) — {{ $churchNames->join(", ") }} @endif
                         </div>
                         <div class="mt-3 flex gap-2">
                             <flux:button wire:click="approve({{ $comment->id }})" size="sm" variant="primary">{{ __('Approve') }}</flux:button>

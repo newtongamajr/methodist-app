@@ -9,6 +9,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 new class extends Component
@@ -20,6 +21,18 @@ new class extends Component
         $logout();
 
         $this->redirect('/', navigate: true);
+    }
+
+    /**
+     * Re-render the menubar so the avatar in the profile dropdown picks up
+     * the freshly-uploaded image. The avatar URL is computed at render
+     * time (not via wire:model), so this otherwise-empty handler is the
+     * cheapest way to bust the cached fragment.
+     */
+    #[On('avatar-updated')]
+    public function refreshAvatar(): void
+    {
+        // Body-less on purpose — Livewire re-renders after every action.
     }
 
     public function switchAppearance(string $appearance): void

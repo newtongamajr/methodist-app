@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\CommentStatus;
-use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use App\Support\GenerateUniqueSlug;
 use Database\Factories\PostFactory;
@@ -27,8 +26,6 @@ class Post extends Model implements HasMedia
 
     protected $fillable = [
         'author_id',
-        'church_id',
-        'scope',
         'status',
         'title',
         'slug',
@@ -40,7 +37,6 @@ class Post extends Model implements HasMedia
     protected function casts(): array
     {
         return [
-            'scope' => PostScope::class,
             'status' => PostStatus::class,
             'published_at' => 'datetime',
         ];
@@ -77,9 +73,14 @@ class Post extends Model implements HasMedia
         return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function church(): BelongsTo
+    /**
+     * One row per audience the post is published to. Visibility is OR
+     * across the rows: any matching row makes the post visible to that
+     * user. See PostScope for the four allowed shapes.
+     */
+    public function scopes(): HasMany
     {
-        return $this->belongsTo(Church::class);
+        return $this->hasMany(PostScope::class);
     }
 
     public function legacyMedia(): HasMany
@@ -114,18 +115,35 @@ class Post extends Model implements HasMedia
             ->where('published_at', '<=', now());
     }
 
+    /**
+     * Posts a user is allowed to see. The visibility check is "exists at
+     * least one post_scopes row that matches the user's profile":
+     *
+     *   - any row with national_post = true       → visible to all
+     *   - region-only row matching user's region  → visible
+     *   - district row matching user's district   → visible
+     *   - local row matching user's church        → visible
+     *
+     * The user's region/district come from their primary church_user row
+     * (`is_primary = true`). Anonymous users only see national posts.
+     */
     public function scopeVisibleTo(Builder $query, ?User $user): Builder
     {
-        $managingChurchId = $user?->person?->managing_church_id;
+        $userRow = $user?->churches()->wherePivot('is_primary', true)->first();
+        $churchId = $userRow?->id;
+        $districtId = $userRow?->pivot?->district_id;
+        $regionId = $userRow?->pivot?->region_id;
 
-        return $query->where(function (Builder $q) use ($managingChurchId) {
-            $q->where('scope', PostScope::Shared);
-
-            if ($managingChurchId) {
-                $q->orWhere(fn ($qq) => $qq
-                    ->where('scope', PostScope::Local)
-                    ->where('church_id', $managingChurchId));
-            }
+        return $query->whereHas('scopes', function (Builder $q) use ($churchId, $districtId, $regionId) {
+            $q->where('national_post', true)
+                ->when($regionId, fn ($qq) => $qq->orWhere(fn ($q3) => $q3
+                    ->where('region_id', $regionId)
+                    ->whereNull('district_id')
+                    ->whereNull('church_id')))
+                ->when($districtId, fn ($qq) => $qq->orWhere(fn ($q3) => $q3
+                    ->where('district_id', $districtId)
+                    ->whereNull('church_id')))
+                ->when($churchId, fn ($qq) => $qq->orWhere('church_id', $churchId));
         });
     }
 

@@ -29,6 +29,9 @@
     </script>
 </head>
 <body class="font-sans antialiased text-zinc-900 dark:text-zinc-100 bg-white dark:bg-zinc-950">
+    {{-- The landing page renders its own dark zinc-950 footer with the
+         GalileoSoft credit baked in (see livewire/⚡landing/landing.blade.php),
+         so we don't include the shared <x-galileosoft-footer /> here. --}}
     {{ $slot }}
 
     @fluxScripts
