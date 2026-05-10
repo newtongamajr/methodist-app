@@ -15,6 +15,7 @@ class FastingEntry extends Model
 
     protected $fillable = [
         'user_id',
+        'person_id',
         'fasting_campaign_id',
         'date',
         'type',
@@ -34,6 +35,11 @@ class FastingEntry extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
     }
 
     public function campaign(): BelongsTo

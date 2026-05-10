@@ -69,6 +69,8 @@ class RegistrationTest extends TestCase
         $this->assertSame($church->id, $user->person->managing_church_id);
         $this->assertTrue($user->churches->contains($church));
         $this->assertSame(['interested'], $user->person->natures);
-        $this->assertSame('(11) 99999-0000', $user->person->contacts()->where('type', 'phone')->value('value'));
+        // Register creates a Mobile contact whose stored value is already
+        // prefixed with the country calling code (default BR / +55).
+        $this->assertSame('+55 (11) 99999-0000', $user->person->contacts()->where('type', 'mobile')->value('value'));
     }
 }

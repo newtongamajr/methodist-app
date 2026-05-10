@@ -21,11 +21,26 @@ new class extends Component
         }
 
         $user = Auth::user();
+        $path = $this->newAvatar->getRealPath();
+
         $user->clearMediaCollection('avatar');
-        $user->addMedia($this->newAvatar->getRealPath())
+        $user->addMedia($path)
+            ->preservingOriginal()
             ->usingFileName('avatar.png')
             ->usingName('avatar')
             ->toMediaCollection('avatar');
+
+        // Mirror the freshly-uploaded image to the linked Person ONLY if the
+        // Person has no photo yet. Once the Person has any photo, future
+        // avatar changes leave it alone — the inverse direction never applies.
+        $person = $user->person;
+        if ($person && $person->getFirstMedia('photo') === null) {
+            $person->addMedia($path)
+                ->preservingOriginal()
+                ->usingFileName('photo.png')
+                ->usingName('photo')
+                ->toMediaCollection('photo');
+        }
 
         $this->newAvatar = null;
         $this->dispatch('avatar-updated');

@@ -12,6 +12,7 @@ class PersonContact extends Model
         'person_id',
         'type',
         'value',
+        'country',
         'label',
         'is_primary',
         'metadata',

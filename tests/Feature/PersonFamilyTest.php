@@ -181,6 +181,98 @@ it('rejects a self-relationship via the modal (observer guard)', function () {
         ->assertHasErrors(['form.related_person_id']);
 });
 
+it('surfaces a partner\'s child as a stepchild without storing a duplicate row', function () {
+    // A is married to B. A has child C. B should see C as a stepchild on
+    // their family list — NO new relationship row exists between B and C.
+    $a = Person::factory()->create(['name' => 'A']);
+    $b = Person::factory()->create(['name' => 'B']);
+    $c = Person::factory()->create(['name' => 'C']);
+
+    PersonRelationship::create([
+        'person_id' => $a->id, 'related_person_id' => $b->id,
+        'relationship_type' => PersonRelationshipType::Spouse->value,
+    ]);
+    PersonRelationship::create([
+        'person_id' => $a->id, 'related_person_id' => $c->id,
+        'relationship_type' => PersonRelationshipType::ParentOf->value,
+    ]);
+
+    expect($b->fresh()->stepchildren()->pluck('name')->all())->toBe(['C']);
+    expect($c->fresh()->stepparents()->pluck('name')->all())->toBe(['B']);
+
+    // The relationship is purely derived — no row directly connects B↔C.
+    expect(PersonRelationship::query()
+        ->where(fn ($q) => $q->where('person_id', $b->id)->where('related_person_id', $c->id))
+        ->orWhere(fn ($q) => $q->where('person_id', $c->id)->where('related_person_id', $b->id))
+        ->exists())->toBeFalse();
+});
+
+it('derives parents-in-law and children-in-law from the active spouse', function () {
+    // A married B. B's mother is M. → M is A's parent-in-law.
+    // A's child is K, K married L → L is A's child-in-law.
+    $a = Person::factory()->create(['name' => 'A']);
+    $b = Person::factory()->create(['name' => 'B']);
+    $m = Person::factory()->create(['name' => 'M']);
+    $k = Person::factory()->create(['name' => 'K']);
+    $l = Person::factory()->create(['name' => 'L']);
+
+    PersonRelationship::create([
+        'person_id' => $a->id, 'related_person_id' => $b->id,
+        'relationship_type' => PersonRelationshipType::Spouse->value,
+    ]);
+    PersonRelationship::create([
+        'person_id' => $m->id, 'related_person_id' => $b->id,
+        'relationship_type' => PersonRelationshipType::ParentOf->value,
+    ]);
+    PersonRelationship::create([
+        'person_id' => $a->id, 'related_person_id' => $k->id,
+        'relationship_type' => PersonRelationshipType::ParentOf->value,
+    ]);
+    PersonRelationship::create([
+        'person_id' => $k->id, 'related_person_id' => $l->id,
+        'relationship_type' => PersonRelationshipType::Spouse->value,
+    ]);
+
+    expect($a->fresh()->parentsInLaw()->pluck('name')->all())->toBe(['M']);
+    expect($a->fresh()->childrenInLaw()->pluck('name')->all())->toBe(['L']);
+});
+
+it('derives siblings-in-law from spouse and from siblings\' spouses', function () {
+    // I'm married to S. S's brother is BIL_a (a "brother-in-law via spouse").
+    // I also have a sister Sis, married to BIL_b ("brother-in-law via my sibling").
+    $me = Person::factory()->create(['name' => 'Me']);
+    $s = Person::factory()->create(['name' => 'S']);
+    $sParent = Person::factory()->create(['name' => 'SParent']);
+    $bilA = Person::factory()->create(['name' => 'BILa']);
+    $myParent = Person::factory()->create(['name' => 'MyParent']);
+    $sis = Person::factory()->create(['name' => 'Sis']);
+    $bilB = Person::factory()->create(['name' => 'BILb']);
+
+    PersonRelationship::create([
+        'person_id' => $me->id, 'related_person_id' => $s->id,
+        'relationship_type' => PersonRelationshipType::Spouse->value,
+    ]);
+    foreach ([$s, $bilA] as $kid) {
+        PersonRelationship::create([
+            'person_id' => $sParent->id, 'related_person_id' => $kid->id,
+            'relationship_type' => PersonRelationshipType::ParentOf->value,
+        ]);
+    }
+    foreach ([$me, $sis] as $kid) {
+        PersonRelationship::create([
+            'person_id' => $myParent->id, 'related_person_id' => $kid->id,
+            'relationship_type' => PersonRelationshipType::ParentOf->value,
+        ]);
+    }
+    PersonRelationship::create([
+        'person_id' => $sis->id, 'related_person_id' => $bilB->id,
+        'relationship_type' => PersonRelationshipType::Spouse->value,
+    ]);
+
+    $names = $me->fresh()->siblingsInLaw()->pluck('name')->sort()->values()->all();
+    expect($names)->toBe(['BILa', 'BILb']);
+});
+
 it('finds candidate persons by name search inside the modal', function () {
     actingAsSuperFamily();
     $person = Person::factory()->create();

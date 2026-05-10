@@ -130,6 +130,7 @@
                 $slots = $this->daySlots;
                 $mine = $this->mySignups;
                 $myId = auth()->id();
+                $myPersonId = auth()->user()?->effectivePerson()?->id;
             @endphp
 
             @if ($slots->isEmpty())
@@ -188,17 +189,26 @@
                                 @else
                                     <div class="flex flex-wrap gap-1">
                                         @foreach ($slot->confirmedSignups as $signup)
+                                            @php
+                                                $personName = $signup->person?->name;
+                                                $userName = $signup->user?->name;
+                                                $isProxied = $personName && $userName && $signup->person_id !== $signup->user?->person_id;
+                                                $displayName = $isProxied
+                                                    ? __(':author in the name of :person', ['author' => $userName, 'person' => $personName])
+                                                    : ($personName ?? $userName ?? '—');
+                                                $isOwn = $signup->person_id && $signup->person_id === $myPersonId;
+                                            @endphp
                                             <span
                                                 wire:key="signup-{{ $signup->id }}"
                                                 @class([
                                                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
-                                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $signup->user_id === $myId,
-                                                    'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200' => $coverageFilter === 'user' && $signup->user_id === (int) $userFilterId && $signup->user_id !== $myId,
-                                                    'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => $signup->user_id !== $myId && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
+                                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $isOwn,
+                                                    'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200' => $coverageFilter === 'user' && $signup->user_id === (int) $userFilterId && ! $isOwn,
+                                                    'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => ! $isOwn && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
                                                 ])
                                             >
-                                                {{ $signup->user?->name ?? '—' }}
-                                                @if ($this->isAdminHere && $signup->user_id !== $myId && ! $isPast)
+                                                {{ $displayName }}
+                                                @if ($this->isAdminHere && ! $isOwn && ! $isPast)
                                                     <flux:modal.trigger :name="'remove-signup-'.$signup->id">
                                                         <button
                                                             type="button"
@@ -210,7 +220,7 @@
                                                     </flux:modal.trigger>
                                                     <x-confirm-delete
                                                         :name="'remove-signup-'.$signup->id"
-                                                        :heading="__('Remove :name from this slot?', ['name' => $signup->user?->name ?? '—'])"
+                                                        :heading="__('Remove :name from this slot?', ['name' => $displayName])"
                                                         :confirmLabel="__('Remove')"
                                                         action="removeSignup({{ $signup->id }})"
                                                     />

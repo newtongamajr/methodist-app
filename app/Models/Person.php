@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\PersonNature;
 use App\Enums\PersonRelationshipType;
@@ -46,6 +47,7 @@ class Person extends Model implements HasMedia
         return [
             'person_type' => PersonType::class,
             'birthdate' => 'date',
+            'gender' => Gender::class,
             'marital_status' => MaritalStatus::class,
             'natures' => 'array',
             'additional_data' => 'array',
@@ -257,6 +259,91 @@ class Person extends Model implements HasMedia
         return $this->siblings()
             ->flatMap(fn (self $s) => $s->children())
             ->unique('id')
+            ->values();
+    }
+
+    /**
+     * Parents-in-law: my active spouse's parents. Active spouse only — an ex's
+     * parents are not currently in-laws.
+     */
+    public function parentsInLaw(): Collection
+    {
+        $spouse = $this->spouse();
+        if (! $spouse) {
+            return new Collection;
+        }
+
+        return $spouse->parents()
+            ->reject(fn (self $p) => $p->id === $this->id)
+            ->values();
+    }
+
+    /**
+     * Children-in-law: spouses of my children. Each child's active spouse is
+     * counted at most once; my own spouse is excluded (in case of a graph loop).
+     */
+    public function childrenInLaw(): Collection
+    {
+        $myId = $this->id;
+
+        return $this->children()
+            ->map(fn (self $c) => $c->spouse())
+            ->filter()
+            ->unique('id')
+            ->reject(fn (self $sp) => $sp->id === $myId)
+            ->values();
+    }
+
+    /**
+     * Brothers- and sisters-in-law: spouse's siblings UNION my siblings'
+     * spouses. Active spouse only — past unions don't generate ongoing in-laws.
+     */
+    public function siblingsInLaw(): Collection
+    {
+        $spouse = $this->spouse();
+        $fromSpouse = $spouse ? $spouse->siblings() : new Collection;
+        $fromMySiblings = $this->siblings()
+            ->map(fn (self $s) => $s->spouse())
+            ->filter()
+            ->values();
+
+        return $fromSpouse->concat($fromMySiblings)
+            ->unique('id')
+            ->reject(fn (self $p) => $p->id === $this->id)
+            ->values();
+    }
+
+    /**
+     * Step-children: my active spouse's children that aren't already mine.
+     * This is what makes the user's child appear on the spouse's family tab
+     * without storing a duplicate relationship row.
+     */
+    public function stepchildren(): Collection
+    {
+        $spouse = $this->spouse();
+        if (! $spouse) {
+            return new Collection;
+        }
+        $myChildIds = $this->children()->pluck('id');
+
+        return $spouse->children()
+            ->reject(fn (self $c) => $myChildIds->contains($c->id))
+            ->values();
+    }
+
+    /**
+     * Step-parents: spouses of my parents that aren't themselves my parents.
+     * Inverse of stepchildren() — surfaces on the child's family tab.
+     */
+    public function stepparents(): Collection
+    {
+        $myParentIds = $this->parents()->pluck('id');
+
+        return $this->parents()
+            ->map(fn (self $p) => $p->spouse())
+            ->filter()
+            ->unique('id')
+            ->reject(fn (self $sp) => $myParentIds->contains($sp->id) || $sp->id === $this->id)
             ->values();
     }
 

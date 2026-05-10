@@ -183,9 +183,23 @@
 
         <div class="space-y-4 pt-4">
             @forelse ($this->approvedComments as $comment)
+                @php
+                    // When the recording user differs from the participant
+                    // Person (a parent commenting on behalf of a child), show
+                    // BOTH names so the audience sees the act-as attribution.
+                    $authorName = $comment->author?->name;
+                    $personName = $comment->person?->name;
+                    $isProxied = $personName && $authorName && $comment->person_id !== $comment->author?->person_id;
+                @endphp
                 <div wire:key="comment-{{ $comment->id }}" class="rounded-md bg-zinc-50 p-4 dark:bg-zinc-800/60">
                     <div class="flex items-center justify-between text-sm">
-                        <span class="font-medium">{{ $comment->author?->name }}</span>
+                        <span class="font-medium">
+                            @if ($isProxied)
+                                {{ __(':author in the name of :person', ['author' => $authorName, 'person' => $personName]) }}
+                            @else
+                                {{ $personName ?? $authorName }}
+                            @endif
+                        </span>
                         <span class="text-zinc-500">{{ $comment->created_at->diffForHumans() }}</span>
                     </div>
                     <p class="mt-2 whitespace-pre-line text-zinc-700 dark:text-zinc-200">{{ $comment->body }}</p>
