@@ -19,21 +19,34 @@
                 <option value="passport">{{ __('Passport') }}</option>
                 <option value="other">{{ __('Other') }}</option>
             </flux:select>
+            @php
+                // Drive the live mask off the selected tax_id_type. Null entries are
+                // skipped by Blade's `:`-binding so the input has no x-mask /
+                // maxlength when the type is passport or other.
+                $taxIdMask = match ($form->tax_id_type) {
+                    'cpf' => '999.999.999-99',
+                    'cnpj' => '99.999.999/9999-99',
+                    default => null,
+                };
+                $taxIdPlaceholder = match ($form->tax_id_type) {
+                    'cpf' => '000.000.000-00',
+                    'cnpj' => '00.000.000/0000-00',
+                    default => null,
+                };
+                $taxIdMaxLength = match ($form->tax_id_type) {
+                    'cpf' => 14,
+                    'cnpj' => 18,
+                    default => null,
+                };
+            @endphp
             <div class="sm:col-span-2">
                 <flux:input
                     wire:model="form.tax_id"
                     :label="__('Tax ID')"
-                    @if ($form->tax_id_type === 'cpf')
-                        inputmode="numeric"
-                        maxlength="14"
-                        x-mask="999.999.999-99"
-                        placeholder="000.000.000-00"
-                    @elseif ($form->tax_id_type === 'cnpj')
-                        inputmode="numeric"
-                        maxlength="18"
-                        x-mask="99.999.999/9999-99"
-                        placeholder="00.000.000/0000-00"
-                    @endif
+                    :inputmode="$taxIdMask ? 'numeric' : null"
+                    :maxlength="$taxIdMaxLength"
+                    :x-mask="$taxIdMask"
+                    :placeholder="$taxIdPlaceholder"
                 />
             </div>
         </div>
