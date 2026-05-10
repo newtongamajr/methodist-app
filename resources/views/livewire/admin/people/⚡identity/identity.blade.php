@@ -12,14 +12,30 @@
         <flux:input wire:model="form.preferred_name" :label="__('Preferred name')" />
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model="form.tax_id_type" :label="__('Tax ID type')">
+            <flux:select wire:model.live="form.tax_id_type" :label="__('Tax ID type')">
                 <option value="">{{ __('— None —') }}</option>
                 <option value="cpf">{{ __('CPF') }}</option>
                 <option value="cnpj">{{ __('CNPJ') }}</option>
                 <option value="passport">{{ __('Passport') }}</option>
                 <option value="other">{{ __('Other') }}</option>
             </flux:select>
-            <flux:input wire:model="form.tax_id" :label="__('Tax ID')" class="sm:col-span-2" />
+            <div class="sm:col-span-2">
+                <flux:input
+                    wire:model="form.tax_id"
+                    :label="__('Tax ID')"
+                    @if ($form->tax_id_type === 'cpf')
+                        inputmode="numeric"
+                        maxlength="14"
+                        x-mask="999.999.999-99"
+                        placeholder="000.000.000-00"
+                    @elseif ($form->tax_id_type === 'cnpj')
+                        inputmode="numeric"
+                        maxlength="18"
+                        x-mask="99.999.999/9999-99"
+                        placeholder="00.000.000/0000-00"
+                    @endif
+                />
+            </div>
         </div>
 
         @if ($form->person_type === 'individual')
