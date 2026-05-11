@@ -28,7 +28,10 @@
     </script>
 </head>
 <body class="font-sans antialiased text-zinc-900 dark:text-zinc-100">
-    <div class="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    {{-- Sticky-footer scaffold: flex column at min screen height pushes the
+         shared GalileoSoft credit to the bottom of short pages while
+         letting it sit naturally below long ones. --}}
+    <div class="flex min-h-screen flex-col bg-zinc-50 dark:bg-zinc-950">
         <livewire:layout.navigation />
 
         @auth
@@ -43,9 +46,11 @@
             </header>
         @endif
 
-        <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <main class="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:px-8">
             {{ $slot }}
         </main>
+
+        <x-galileosoft-footer />
     </div>
 
     @fluxScripts

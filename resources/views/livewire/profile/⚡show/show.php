@@ -12,7 +12,7 @@ new
 class extends Component
 {
     #[Url(as: 'tab')]
-    public string $tab = 'identity';
+    public string $tab = 'avatar';
 
     /** Linked Person id, ensured-to-exist on first profile visit. */
     public ?int $personId = null;

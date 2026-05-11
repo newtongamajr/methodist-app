@@ -19,7 +19,7 @@ class extends Component
         return Post::query()
             ->published()
             ->visibleTo(auth()->user())
-            ->with(['author', 'church', 'media'])
+            ->with(['author', 'media', 'scopes'])
             ->withCount(['likes', 'approvedComments as comments_count'])
             ->latest('published_at')
             ->paginate(10);

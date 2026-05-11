@@ -50,18 +50,31 @@ class extends Component
         $user = auth()->user();
 
         $q = PostComment::query()
-            ->with(['author', 'post.church'])
+            ->with(['author', 'post.scopes.church:id,name'])
             ->where('status', $status)
             ->latest()
             ->limit(50);
 
         if (! $user->can('posts.update.any')) {
-            $manageable = $user->manageableChurchIds();
-            $q->whereHas('post', fn ($qp) => $qp
-                ->where(function ($qq) use ($manageable) {
-                    $qq->whereIn('church_id', $manageable)
-                        ->orWhereNull('church_id');
-                }));
+            // Show comments on posts that target a scope this admin
+            // manages, plus all national posts. Mirrors the post-list
+            // visibility on the admin Posts index.
+            $regions = $user->manageableRegionIds();
+            $districts = $user->manageableDistrictIds();
+            $churches = $user->manageableChurchIds();
+
+            $q->whereHas('post.scopes', function ($qs) use ($regions, $districts, $churches) {
+                $qs->where('national_post', true);
+                if ($regions) {
+                    $qs->orWhereIn('region_id', $regions);
+                }
+                if ($districts) {
+                    $qs->orWhereIn('district_id', $districts);
+                }
+                if ($churches) {
+                    $qs->orWhereIn('church_id', $churches);
+                }
+            });
         }
 
         return $q->get();

@@ -9,7 +9,7 @@
     <div class="space-y-3">
         <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by title…')" icon="magnifying-glass" />
 
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <flux:select wire:model.live="statusFilter">
                 <option value="">{{ __('All statuses') }}</option>
                 @foreach ($statuses as $s)
@@ -17,17 +17,10 @@
                 @endforeach
             </flux:select>
 
-            <flux:select wire:model.live="scopeFilter">
-                <option value="">{{ __('All scopes') }}</option>
-                @foreach ($scopes as $s)
-                    <option value="{{ $s->value }}">{{ $s->label() }}</option>
-                @endforeach
-            </flux:select>
-
-            <flux:select wire:model.live="churchFilter">
-                <option value="">{{ __('All churches') }}</option>
-                @foreach ($this->availableChurches as $church)
-                    <option value="{{ $church['id'] }}">{{ $church['name'] }}</option>
+            <flux:select wire:model.live="audienceFilter">
+                <option value="">{{ __('All audiences') }}</option>
+                @foreach ($audiences as $value => $label)
+                    <option value="{{ $value }}">{{ $label }}</option>
                 @endforeach
             </flux:select>
 
@@ -50,7 +43,7 @@
                 <flux:table.column sortable :sorted="$sortBy === 'title'" :direction="$sortDir" wire:click="sort('title')">
                     {{ __('Title') }}
                 </flux:table.column>
-                <flux:table.column>{{ __('Scope') }}</flux:table.column>
+                <flux:table.column>{{ __('Audience') }}</flux:table.column>
                 <flux:table.column>{{ __('Status') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'author'" :direction="$sortDir" wire:click="sort('author')">
                     {{ __('Author') }}
@@ -65,17 +58,40 @@
                 @foreach ($this->posts as $post)
                     <flux:table.row :key="'post-'.$post->id">
                         <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.posts.edit', $post) }}" class="hover:underline" wire:navigate>
-                                {{ $post->title }}
-                            </a>
+                            <div class="flex items-center gap-3">
+                                @php($thumb = $post->coverUrl('thumb'))
+                                @if ($thumb)
+                                    <img
+                                        src="{{ $thumb }}"
+                                        alt=""
+                                        class="aspect-video w-32 shrink-0 rounded-md object-cover ring-1 ring-zinc-200 dark:ring-zinc-700"
+                                    />
+                                @else
+                                    <div
+                                        class="flex aspect-video w-32 shrink-0 items-center justify-center rounded-md bg-zinc-100 ring-1 ring-zinc-200 dark:bg-zinc-800 dark:ring-zinc-700"
+                                        aria-hidden="true"
+                                    >
+                                        <flux:icon.photo class="size-6 text-zinc-400" />
+                                    </div>
+                                @endif
+                                <span class="min-w-0 break-words">{{ $post->title }}</span>
+                            </div>
                         </flux:table.cell>
                         <flux:table.cell>
-                            <flux:badge :color="$post->scope->value === 'shared' ? 'sky' : 'zinc'">
-                                {{ $post->scope->label() }}
-                            </flux:badge>
-                            @if ($post->scope->value === 'local' && $post->church)
-                                <div class="mt-1 text-xs text-zinc-500">{{ $post->church->name }}</div>
-                            @endif
+                            {{-- Shape badges per scope row, deduped by shape
+                                 so a post hitting 5 churches shows one
+                                 "Local" tag instead of five. Inline @php()
+                                 form survives Flux's Blaze slot compilation
+                                 reliably, where the multi-statement block
+                                 sometimes drops the variables. --}}
+                            @php($shapes = $post->scopes->map(fn ($s) => $s->shape())->unique()->values())
+                            <div class="flex flex-wrap gap-1">
+                                @foreach ($shapes as $shape)
+                                    @php($shapeColor = match ($shape) { 'national' => 'sky', 'regional' => 'indigo', 'district' => 'amber', default => 'zinc' })
+                                    @php($shapeLabel = match ($shape) { 'national' => __('National'), 'regional' => __('Regional'), 'district' => __('District'), default => __('Local') })
+                                    <flux:badge size="sm" :color="$shapeColor">{{ $shapeLabel }}</flux:badge>
+                                @endforeach
+                            </div>
                         </flux:table.cell>
                         <flux:table.cell>
                             <flux:badge :color="match($post->status->value) { 'published' => 'emerald', 'archived' => 'zinc', default => 'amber' }">
@@ -91,16 +107,27 @@
                             @endif
                         </flux:table.cell>
                         <flux:table.cell align="end">
-                            <flux:tooltip :content="__('Delete')">
-                                <flux:modal.trigger :name="'delete-post-'.$post->id">
-                                    <flux:button size="sm" variant="ghost" icon="trash" />
-                                </flux:modal.trigger>
-                            </flux:tooltip>
-                            <x-confirm-delete
-                                :name="'delete-post-'.$post->id"
-                                :heading="__('Delete this post?')"
-                                action="delete({{ $post->id }})"
-                            />
+                            <div class="inline-flex items-center gap-1">
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button
+                                        :href="route('admin.posts.edit', $post)"
+                                        wire:navigate
+                                        size="sm"
+                                        variant="ghost"
+                                        icon="pencil-square"
+                                    />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:modal.trigger :name="'delete-post-'.$post->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
+                                </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-post-'.$post->id"
+                                    :heading="__('Delete this post?')"
+                                    action="delete({{ $post->id }})"
+                                />
+                            </div>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach
