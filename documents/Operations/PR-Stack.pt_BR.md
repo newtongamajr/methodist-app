@@ -1,10 +1,9 @@
-# Stack de PRs — code review até a Phase 6 + polish da Identity tab
+# Stack de PRs — code review até a Phase 7 da Person Architecture
 
-Doze PRs empilhados entregam toda a trajetória entre `main` e a Phase 6 da
-Person Architecture mais o polish da Identity tab no topo. Eles estão
-**empilhados** (a base de cada PR é o head do PR de baixo), não são paralelos,
-porque cada um depende do anterior. Tentar mergear fora de ordem vai gerar
-conflitos.
+Treze PRs empilhados entregam toda a trajetória entre `main` e a Phase 7 da
+Person Architecture. Eles estão **empilhados** (a base de cada PR é o head
+do PR de baixo), não são paralelos, porque cada um depende do anterior.
+Tentar mergear fora de ordem vai gerar conflitos.
 
 ## Ordem de merge (de baixo para cima)
 
@@ -22,8 +21,9 @@ conflitos.
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Unificação Orgs-as-Persons (Region / District / Church cada um respaldado por um Org-Person; Sede Nacional como uma ER especial) |
 | 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (admin de Groups — councils / ministries / commissions em 4 níveis com assignments de membros + helpers) |
 | 12 | `persons-identity-polish` | `persons-phase-6` | Polish da Identity tab (nature Youth, enum MaritalStatus, datas com input typeable, label condicional Birthdate/Foundation date, filtro de natures por person_type) |
+| 13 | `persons-phase-7` | `persons-identity-polish` | Person Architecture Phase 7 (inferência de nature por idade, toggle de act-as parental + banner, tab Family no /profile, quick-add de visitor) |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12.**
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13.**
 À medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base
 do próximo da fila para `main` (ou para a nova base, se aplicável). Não use
 squash-merge — preserve o histórico de commits para que a intenção em
@@ -43,6 +43,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/10
 - https://github.com/newtongamajr/methodist-app/pull/11
 - https://github.com/newtongamajr/methodist-app/pull/12
+- https://github.com/newtongamajr/methodist-app/pull/13
 
 ## Por que empilhado, e não um PR único
 
@@ -66,10 +67,24 @@ ficou na **opção 2**: o seed cobre todos os casos reais até agora, não
 entra `/admin/functions` neste PR; pode crescer depois se aparecer demanda
 real.
 
-Continuam adiados para a Phase 7 + Phase 8:
+A Phase 7 entrega a UI de children / teenagers / visitors mais o
+mecanismo de act-as parental. `Person::inferAgeBasedNature()` retorna
+Child para 0–11 e Teenager para 12–17; adultos não recebem auto-suggest.
+`User::canActAs()` faz o gate do act-as parental: exige um link
+parent_of (ou guardian_of) com uma Person que seja menor (por birthdate
+ou pela nature child/teenager quando birthdate está ausente). A session
+var `acting_as_person_id` guarda o alvo; um componente Livewire
+`acting-as-banner` no app layout mostra "Acting on behalf of …" com
+botão de Stop. Uma nova tab Family no `/profile` lista pais / cônjuge /
+filhos / tutelados / afilhados e renderiza um botão "Act as" ao lado de
+cada Person que o usuário pode acompanhar. O quick-add de visitor
+adiciona um botão "New visitor" em `/admin/people` que pre-seeda a
+nature visitor no editor.
 
-- **Children / Teenagers / Visitors** com UI ativa + fluxo de act-as parental (Phase 7)
-- **Tab Family no `/profile`** (Phase 7, junto com act-as)
+Continuam adiados para a Phase 8:
+
+- **Wirar prayer signups + fasting entries para escrever rows scoped na effective Person** (Phase 8) — a Phase 7 entrega o toggle de session + Family UI; os controllers que consomem via `User::effectivePerson()` ficam num follow-up
+- **Cron auto-promote** quando uma criança cruza o threshold de teenager (Phase 8 — job de operations)
 - **Remover as colunas duplicadas em cache** nas tabelas de org (Phase 8 — ver plano)
 - **Composição inline das Person tabs** nos editores de Region / District / Church (Phase 8 — atualmente o botão "Open as Person" é a ponte)
 - **CRUD de Functions** — fica seeded-only a menos que apareça demanda real; revisita se for o caso
@@ -78,9 +93,9 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os doze PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os treze PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#12) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #12 (235 tests / 567 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #12
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 556 keys no HEAD do #12
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#13) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #13 (251 tests / 589 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #13
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 570 keys no HEAD do #13

@@ -1,10 +1,9 @@
-# PR stack — code review through Person Architecture Phase 6 + Identity tab polish
+# PR stack — code review through Person Architecture Phase 7
 
-Twelve stacked PRs ship the entire trajectory from `main` up through Phase 6
-of the Person Architecture plus the Identity-tab polish layered on top. They
-are stacked (each PR's base is the head of the next one down), not parallel,
-because each builds on its predecessor. Trying to merge them out of order
-will produce conflicts.
+Thirteen stacked PRs ship the entire trajectory from `main` up through
+Phase 7 of the Person Architecture. They are stacked (each PR's base is
+the head of the next one down), not parallel, because each builds on its
+predecessor. Trying to merge them out of order will produce conflicts.
 
 ## Merge order (bottom up)
 
@@ -22,8 +21,9 @@ will produce conflicts.
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Orgs-as-Persons unification (Region / District / Church each backed by an Org-Person; National HQ as a special ER row) |
 | 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (Groups admin — councils / ministries / commissions at 4 levels with member assignments + helper queries) |
 | 12 | `persons-identity-polish` | `persons-phase-6` | Identity tab polish (Youth nature, MaritalStatus enum, type-able dates, conditional Birthdate/Foundation date label, nature filter by person_type) |
+| 13 | `persons-phase-7` | `persons-identity-polish` | Person Architecture Phase 7 (age-based nature inference, parental act-as session toggle + banner, Profile Family tab, visitor quick-add) |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12.**
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13.**
 As each PR merges, GitHub will auto-retarget the next one in the chain to
 `main` (or to whatever the new base is). Do not squash-merge — preserve the
 commit history so the layered intent stays legible in `git log`.
@@ -42,6 +42,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/10
 - https://github.com/newtongamajr/methodist-app/pull/11
 - https://github.com/newtongamajr/methodist-app/pull/12
+- https://github.com/newtongamajr/methodist-app/pull/13
 
 ## Why stacked, not one big PR
 
@@ -53,21 +54,23 @@ chunks the work was actually executed in.
 
 ## What's *not* in this stack
 
-Phase 6 ships the full Groups admin: `/admin/groups` CRUD with kind /
-level / scope filters, an editor with conditional level-driven scope
-pickers, an embedded Members section with modal add/edit, helper queries
-on Group / Person / Church / EcclesiasticalRegion / District (`members`,
-`functionHolder`, `groupsAsLeader`, `groupsByKind`, `national` scope), and
-the People → Roles tab now picks a real group for council/ministry/commission
-functions instead of the Phase 6 placeholder callout. The Functions CRUD
-decision (Phase 6 plan §6) lands on **option 2**: the seeded function list
-covers every real case so far, no `/admin/functions` UI in this PR; it can
-grow later if a real demand surfaces.
+Phase 7 ships the children / teenagers / visitors UI plus the parental
+act-as mechanic. `Person::inferAgeBasedNature()` returns Child for ages
+0–11 and Teenager for 12–17; adults get no auto-suggest. `User::canActAs()`
+gates parental act-as: requires a parent_of (or guardian_of) link to a
+target Person who is a minor (by birthdate or by carrying child/teenager
+nature when birthdate is missing). The session var `acting_as_person_id`
+holds the target; an `acting-as-banner` Livewire component sits in the
+app layout and surfaces "Acting on behalf of …" with a Stop button. A new
+Family tab on `/profile` shows parents / spouse / children / wards /
+godchildren and renders an "Act as" button next to each Person the
+current user can act on. Visitor quick-add adds a "New visitor" button
+on `/admin/people` that pre-seeds nature=visitor on the editor.
 
-Still deferred to Phase 7 + Phase 8:
+Still deferred to Phase 8:
 
-- **Children / Teenagers / Visitors** activated UI + parental act-as flow (Phase 7)
-- **Family tab on `/profile`** (Phase 7, alongside act-as)
+- **Wire prayer signups + fasting entries to write rows scoped to the effective Person** (Phase 8) — Phase 7 ships the act-as session toggle + Family UI; the controllers that consume it via `User::effectivePerson()` are a follow-up
+- **Cron auto-promote** when a child crosses the teenager threshold (Phase 8 — operations job)
 - **Drop the duplicated cached columns** on org tables (Phase 8 — see plan doc)
 - **Inline composition of Person tabs** into Region / District / Church editors (Phase 8 — currently the "Open as Person" button is the bridge)
 - **Functions CRUD** — leave seeded-only unless a real demand surfaces; revisit if needed
@@ -76,9 +79,9 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 
 ## Verification before merging the chain
 
-- [ ] All twelve PRs are open, in the right order, against the right base
+- [ ] All thirteen PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#12) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #12 (235 tests / 567 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #12
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 556 keys at HEAD of #12
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#13) — proves the whole chain composes
+- [ ] `php artisan test --compact` is green at HEAD of #13 (251 tests / 589 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #13
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 570 keys at HEAD of #13

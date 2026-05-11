@@ -1,9 +1,14 @@
 <div class="space-y-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
         <flux:heading size="xl">{{ __('People') }}</flux:heading>
-        <flux:button :href="route('admin.people.create')" variant="primary" icon="plus" wire:navigate>
-            {{ __('New person') }}
-        </flux:button>
+        <div class="flex gap-2">
+            <flux:button :href="route('admin.people.create', ['nature' => 'visitor'])" variant="ghost" icon="user-plus" wire:navigate>
+                {{ __('New visitor') }}
+            </flux:button>
+            <flux:button :href="route('admin.people.create')" variant="primary" icon="plus" wire:navigate>
+                {{ __('New person') }}
+            </flux:button>
+        </div>
     </div>
 
     @error('person')

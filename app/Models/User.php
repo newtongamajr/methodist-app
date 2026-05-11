@@ -150,6 +150,62 @@ class User extends Authenticatable implements HasMedia
         return $this->hasAnyRole(['national_admin', 'regional_admin', 'district_admin', 'local_admin']);
     }
 
+    // ─── Parental act-as (Phase 7) ──────────────────────────────────────────
+    //
+    // A logged-in User can "act as" a related Person when:
+    //   1. They have a Person of their own (almost always the case)
+    //   2. Their Person has a parent_of (or guardian_of) relationship with the target
+    //   3. The target Person is a minor (child or teenager nature, OR age <=17)
+    //
+    // The current acting-as target is stored on the session as
+    // `acting_as_person_id` and consumed by request()-scoped helpers.
+
+    public function canActAs(Person $target): bool
+    {
+        $self = $this->person;
+        if (! $self || $self->id === $target->id) {
+            return false;
+        }
+
+        if (! $target->isMinor()) {
+            return false;
+        }
+
+        // Check for a parental link in either direction (parent_of OR guardian_of).
+        $children = $self->children()->pluck('id')->merge($self->wards()->pluck('id'));
+
+        return $children->contains($target->id);
+    }
+
+    /** The Person the current session is acting as, if any. */
+    public function actingAsPerson(): ?Person
+    {
+        $id = session('acting_as_person_id');
+        if (! $id) {
+            return null;
+        }
+
+        $target = Person::find($id);
+        if (! $target || ! $this->canActAs($target)) {
+            session()->forget('acting_as_person_id');
+
+            return null;
+        }
+
+        return $target;
+    }
+
+    /**
+     * Effective Person for the current request — the acted-as Person if any,
+     * else the user's own Person. Used by controllers that record an action
+     * on someone's behalf (prayer signups, fasting entries — wired in a
+     * follow-up PR).
+     */
+    public function effectivePerson(): ?Person
+    {
+        return $this->actingAsPerson() ?? $this->person;
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('avatar')
