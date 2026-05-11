@@ -21,8 +21,8 @@
         <flux:textarea wire:model="form.description" :label="__('Description')" rows="2" />
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:input wire:model="form.start_date" :label="__('Start date')" type="date" required />
-            <flux:input wire:model="form.end_date" :label="__('End date')" type="date" required />
+            <flux:date-picker wire:model="form.start_date" :label="__('Start date')" required />
+            <flux:date-picker wire:model="form.end_date" :label="__('End date')" required />
             <flux:checkbox wire:model="form.is_active" :label="__('Active')" />
         </div>
 

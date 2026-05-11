@@ -59,41 +59,35 @@
         <flux:text class="mt-3 text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
     @enderror
 
-    <div
-        x-cloak
-        x-show="open"
-        x-transition.opacity
-        class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/70 p-4"
-        x-on:keydown.escape.window="close()"
-    >
-        <div class="w-full max-w-2xl rounded-lg bg-white shadow-xl dark:bg-zinc-800">
-            <div class="flex items-center justify-between border-b border-zinc-200 px-6 py-4 dark:border-zinc-700">
-                <flux:heading size="md">{{ __('Crop your avatar') }}</flux:heading>
-                <flux:button type="button" variant="ghost" icon="x-mark" x-on:click="close()" />
+    <flux:modal name="avatar-cropper" class="md:w-2xl" @close="close()">
+        <div class="space-y-4">
+            <div>
+                <flux:heading size="lg">{{ __('Crop your avatar') }}</flux:heading>
+                <flux:text class="mt-1">{{ __('Frame and rotate the image, then save.') }}</flux:text>
             </div>
 
-            <div class="px-6 py-4">
-                <div class="relative mx-auto max-h-[60vh] overflow-hidden bg-zinc-100 dark:bg-zinc-900">
-                    <img x-ref="cropImage" alt="" class="block max-w-full" />
-                </div>
-
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <flux:button type="button" size="sm" icon="magnifying-glass-plus" x-on:click="zoom(0.1)">{{ __('Zoom in') }}</flux:button>
-                    <flux:button type="button" size="sm" icon="magnifying-glass-minus" x-on:click="zoom(-0.1)">{{ __('Zoom out') }}</flux:button>
-                    <flux:button type="button" size="sm" icon="arrow-uturn-left" x-on:click="rotate(-90)">{{ __('Rotate −90°') }}</flux:button>
-                    <flux:button type="button" size="sm" icon="arrow-uturn-right" x-on:click="rotate(90)">{{ __('Rotate +90°') }}</flux:button>
-                    <flux:button type="button" size="sm" icon="arrows-right-left" x-on:click="flipH()">{{ __('Flip horizontal') }}</flux:button>
-                    <flux:button type="button" size="sm" icon="arrows-up-down" x-on:click="flipV()">{{ __('Flip vertical') }}</flux:button>
-                </div>
+            <div class="relative mx-auto max-h-[60vh] overflow-hidden bg-zinc-100 dark:bg-zinc-900" wire:ignore>
+                <img x-ref="cropImage" alt="" class="block max-w-full" />
             </div>
 
-            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 px-6 py-4 dark:border-zinc-700">
-                <flux:button type="button" variant="ghost" x-on:click="close()" :disabled="false">{{ __('Cancel') }}</flux:button>
+            <div class="flex flex-wrap gap-2">
+                <flux:button type="button" size="sm" icon="magnifying-glass-plus" x-on:click="zoom(0.1)">{{ __('Zoom in') }}</flux:button>
+                <flux:button type="button" size="sm" icon="magnifying-glass-minus" x-on:click="zoom(-0.1)">{{ __('Zoom out') }}</flux:button>
+                <flux:button type="button" size="sm" icon="arrow-uturn-left" x-on:click="rotate(-90)">{{ __('Rotate −90°') }}</flux:button>
+                <flux:button type="button" size="sm" icon="arrow-uturn-right" x-on:click="rotate(90)">{{ __('Rotate +90°') }}</flux:button>
+                <flux:button type="button" size="sm" icon="arrows-right-left" x-on:click="flipH()">{{ __('Flip horizontal') }}</flux:button>
+                <flux:button type="button" size="sm" icon="arrows-up-down" x-on:click="flipV()">{{ __('Flip vertical') }}</flux:button>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <flux:modal.close>
+                    <flux:button type="button" variant="ghost">{{ __('Cancel') }}</flux:button>
+                </flux:modal.close>
                 <flux:button type="button" variant="primary" icon="check" x-on:click="save()" x-bind:disabled="saving">
                     <span x-show="! saving">{{ __('Save avatar') }}</span>
                     <span x-show="saving" x-cloak>{{ __('Saving…') }}</span>
                 </flux:button>
             </div>
         </div>
-    </div>
+    </flux:modal>
 </section>

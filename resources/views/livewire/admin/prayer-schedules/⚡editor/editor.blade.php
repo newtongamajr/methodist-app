@@ -41,16 +41,15 @@
         @endif
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:input
+            <flux:date-picker
                 wire:model="form.date"
                 :label="__('Date')"
-                type="date"
                 required
                 :min="$this->campaign?->start_date?->format('Y-m-d')"
                 :max="$this->campaign?->end_date?->format('Y-m-d')"
             />
-            <flux:input wire:model="form.start_time" :label="__('Start time')" type="time" required />
-            <flux:input wire:model="form.end_time" :label="__('End time')" type="time" required />
+            <flux:time-picker wire:model="form.start_time" :label="__('Start time')" required />
+            <flux:time-picker wire:model="form.end_time" :label="__('End time')" required />
         </div>
 
         <div class="grid gap-4 sm:grid-cols-3">

@@ -20,7 +20,7 @@
 
         <div class="grid gap-4 sm:grid-cols-3">
             <flux:input wire:model="form.phone" :label="__('Phone')" type="tel" />
-            <flux:input wire:model="form.birthdate" :label="__('Birthdate')" type="date" />
+            <flux:date-picker wire:model="form.birthdate" :label="__('Birthdate')" />
             <flux:input
                 wire:model="form.password"
                 :label="$form->user ? __('New password (leave blank to keep current)') : __('Initial password')"
