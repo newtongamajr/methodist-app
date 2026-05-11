@@ -10,6 +10,7 @@ use App\Support\GenerateUniqueSlug;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new
@@ -17,6 +18,10 @@ new
 class extends Component
 {
     public DistrictForm $form;
+
+    /** Active tab when editing — bookmarkable via ?tab=. */
+    #[Url(as: 'tab')]
+    public string $tab = 'details';
 
     public function mount(?int $districtId = null, ?int $region = null): void
     {

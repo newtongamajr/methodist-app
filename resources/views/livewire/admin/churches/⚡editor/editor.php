@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new
@@ -23,6 +24,10 @@ new
 class extends Component
 {
     public ChurchForm $form;
+
+    /** Active tab when editing — bookmarkable via ?tab=. */
+    #[Url(as: 'tab')]
+    public string $tab = 'details';
 
     public function mount(?int $churchId = null): void
     {
