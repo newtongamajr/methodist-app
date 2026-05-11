@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
-            {{ $campaign ? __('Edit campaign') : __('New campaign') }}
+            {{ $form->campaign ? __('Edit campaign') : __('New campaign') }}
         </flux:heading>
         <flux:button :href="route('admin.prayer-campaigns.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
     </div>
@@ -14,28 +14,28 @@
 
     <form wire:submit="save" class="space-y-5">
         <div class="grid gap-4 sm:grid-cols-2">
-            <flux:input wire:model="name" :label="__('Name')" required />
-            <flux:input wire:model="slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
+            <flux:input wire:model="form.name" :label="__('Name')" required />
+            <flux:input wire:model="form.slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
         </div>
 
-        <flux:textarea wire:model="description" :label="__('Description')" rows="2" />
+        <flux:textarea wire:model="form.description" :label="__('Description')" rows="2" />
 
         <flux:textarea
-            wire:model="objectives"
+            wire:model="form.objectives"
             :label="__('Objectives')"
             :placeholder="__('What is this campaign hoping to accomplish?')"
             rows="5"
         />
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:input wire:model="start_date" :label="__('Start date')" type="date" required />
-            <flux:input wire:model="end_date" :label="__('End date')" type="date" required />
-            <flux:checkbox wire:model="is_active" :label="__('Active')" />
+            <flux:input wire:model="form.start_date" :label="__('Start date')" type="date" required />
+            <flux:input wire:model="form.end_date" :label="__('End date')" type="date" required />
+            <flux:checkbox wire:model="form.is_active" :label="__('Active')" />
         </div>
 
         <div class="flex justify-end gap-2">
             <flux:button :href="route('admin.prayer-campaigns.index')" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>
-            <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="save">{{ __('Save') }}</flux:button>
         </div>
     </form>
 </div>

@@ -21,7 +21,7 @@
                 <flux:modal.close>
                     <flux:button variant="ghost">{{ __('Cancel') }}</flux:button>
                 </flux:modal.close>
-                <flux:button type="submit" variant="danger">{{ __('Delete Account') }}</flux:button>
+                <flux:button type="submit" variant="danger" wire:loading.attr="disabled" wire:target="deleteUser">{{ __('Delete Account') }}</flux:button>
             </div>
         </form>
     </flux:modal>

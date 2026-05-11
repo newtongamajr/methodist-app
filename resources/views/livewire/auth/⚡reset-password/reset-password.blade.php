@@ -7,7 +7,7 @@
         <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required autocomplete="new-password" />
 
         <div class="flex justify-end pt-2">
-            <flux:button type="submit" variant="primary">
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="resetPassword">
                 {{ __('Reset password') }}
             </flux:button>
         </div>

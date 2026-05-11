@@ -27,10 +27,10 @@ it('saves a new post and attaches a cover to the cover collection', function () 
     actAsGlobalManager();
 
     Livewire::test('admin.posts.editor')
-        ->set('title', 'Hello world')
-        ->set('body', '<p>Body</p>')
-        ->set('scope', 'shared')
-        ->set('status', 'draft')
+        ->set('form.title', 'Hello world')
+        ->set('form.body', '<p>Body</p>')
+        ->set('form.scope', 'shared')
+        ->set('form.status', 'draft')
         ->set('newCover', UploadedFile::fake()->image('cover.png', 1200, 800))
         ->call('save')
         ->assertHasNoErrors();
@@ -45,10 +45,10 @@ it('attaches multiple images to the images collection', function () {
     actAsGlobalManager();
 
     Livewire::test('admin.posts.editor')
-        ->set('title', 'With images')
-        ->set('body', '<p>x</p>')
-        ->set('scope', 'shared')
-        ->set('status', 'draft')
+        ->set('form.title', 'With images')
+        ->set('form.body', '<p>x</p>')
+        ->set('form.scope', 'shared')
+        ->set('form.status', 'draft')
         ->set('newImages', [
             UploadedFile::fake()->image('a.png', 800, 600),
             UploadedFile::fake()->image('b.jpg', 800, 600),
@@ -65,10 +65,10 @@ it('attaches PDF documents to the documents collection', function () {
     actAsGlobalManager();
 
     Livewire::test('admin.posts.editor')
-        ->set('title', 'With PDFs')
-        ->set('body', '<p>x</p>')
-        ->set('scope', 'shared')
-        ->set('status', 'draft')
+        ->set('form.title', 'With PDFs')
+        ->set('form.body', '<p>x</p>')
+        ->set('form.scope', 'shared')
+        ->set('form.status', 'draft')
         ->set('newDocuments', [
             UploadedFile::fake()->createWithContent('a.pdf', "%PDF-1.4\n%fake pdf body\n%%EOF\n"),
         ])

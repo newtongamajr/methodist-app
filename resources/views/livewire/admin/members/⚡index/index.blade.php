@@ -54,7 +54,7 @@
                         <td class="px-4 py-3">
                             <div class="flex flex-wrap gap-1">
                                 @forelse ($user->churches as $c)
-                                    <flux:badge :color="$user->church_id === $c->id ? 'emerald' : 'zinc'">
+                                    <flux:badge wire:key="member-{{ $user->id }}-church-{{ $c->id }}" :color="$user->church_id === $c->id ? 'emerald' : 'zinc'">
                                         {{ $c->name }}
                                     </flux:badge>
                                 @empty

@@ -30,7 +30,7 @@
         @endif
 
         <div class="flex items-center gap-4 pt-2">
-            <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="updateMembership">{{ __('Save') }}</flux:button>
             <x-action-message class="text-sm text-emerald-600 dark:text-emerald-400" on="profile-updated">
                 {{ __('Saved.') }}
             </x-action-message>

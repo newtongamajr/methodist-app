@@ -8,7 +8,7 @@
         <flux:input wire:model="password" :label="__('Password')" type="password" required autofocus autocomplete="current-password" />
 
         <div class="flex justify-end pt-2">
-            <flux:button type="submit" variant="primary">{{ __('Confirm') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="confirmPassword">{{ __('Confirm') }}</flux:button>
         </div>
     </form>
 </div>

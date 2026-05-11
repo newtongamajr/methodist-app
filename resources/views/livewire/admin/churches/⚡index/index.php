@@ -3,6 +3,7 @@
 use App\Models\Church;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,6 +13,7 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'q')]
     public string $search = '';
 
     public function mount(): void
@@ -30,8 +32,11 @@ class extends Component
         return Church::query()
             ->with(['region'])
             ->withCount('primaryUsers')
-            ->when($this->search, fn ($q) => $q->where('name', 'like', '%'.$this->search.'%')
-                ->orWhere('city', 'like', '%'.$this->search.'%'))
+            ->when($this->search, function ($q) {
+                $term = '%'.addcslashes($this->search, '%_\\').'%';
+                $q->where(fn ($qq) => $qq->where('name', 'like', $term)
+                    ->orWhere('city', 'like', $term));
+            })
             ->orderBy('name')
             ->paginate(20);
     }

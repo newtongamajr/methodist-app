@@ -42,13 +42,13 @@ it('creates a church and a master user in the same flow', function () {
     $this->actingAs(makeSuper());
 
     Livewire::test('admin.churches.editor')
-        ->set('ecclesiastical_region_id', $region->id)
-        ->set('name', 'Igreja Demo')
-        ->set('city', 'São Paulo')
-        ->set('state', 'SP')
-        ->set('master_name', 'Pastor Demo')
-        ->set('master_email', 'pastor@demo.test')
-        ->set('master_password', 'secret-password')
+        ->set('form.ecclesiastical_region_id', $region->id)
+        ->set('form.name', 'Igreja Demo')
+        ->set('form.city', 'São Paulo')
+        ->set('form.state', 'SP')
+        ->set('form.master_name', 'Pastor Demo')
+        ->set('form.master_email', 'pastor@demo.test')
+        ->set('form.master_password', 'secret-password')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -72,13 +72,13 @@ it('lets a master user create another admin only for their own church', function
     // Even if a master submits a foreign church id, the editor strips it back
     // to the master's own church set (and forces local_manager role).
     Livewire::test('admin.users.editor')
-        ->set('name', 'Helper')
-        ->set('email', 'helper@demo.test')
-        ->set('password', 'secret-password')
-        ->set('church_ids', [$otherChurch->id])
-        ->set('primary_church_id', $otherChurch->id)
-        ->set('role', 'local_manager')
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'Helper')
+        ->set('form.email', 'helper@demo.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.church_ids', [$otherChurch->id])
+        ->set('form.primary_church_id', $otherChurch->id)
+        ->set('form.role', 'local_manager')
+        ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -96,13 +96,13 @@ it('rejects a master user trying to assign global_manager role', function () {
     $this->actingAs($master);
 
     Livewire::test('admin.users.editor')
-        ->set('name', 'Escalator')
-        ->set('email', 'escalator@demo.test')
-        ->set('password', 'secret-password')
-        ->set('role', 'global_manager')
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'Escalator')
+        ->set('form.email', 'escalator@demo.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.role', 'global_manager')
+        ->set('form.locale', 'pt_BR')
         ->call('save')
-        ->assertHasErrors('role');
+        ->assertHasErrors('form.role');
 
     expect(User::where('email', 'escalator@demo.test')->exists())->toBeFalse();
 });

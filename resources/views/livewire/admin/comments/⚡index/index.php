@@ -2,7 +2,10 @@
 
 use App\Enums\CommentStatus;
 use App\Models\PostComment;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -12,6 +15,7 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'status')]
     public string $statusFilter = 'pending';
 
     public function updatingStatusFilter(): void
@@ -19,7 +23,8 @@ class extends Component
         $this->resetPage();
     }
 
-    public function getCommentsProperty()
+    #[Computed]
+    public function comments(): LengthAwarePaginator
     {
         $user = auth()->user();
 

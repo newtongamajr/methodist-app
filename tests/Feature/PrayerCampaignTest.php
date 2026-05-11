@@ -17,12 +17,12 @@ it('lets a global manager create a prayer campaign', function () {
     $this->actingAs($super);
 
     Livewire::test('admin.prayer-campaigns.editor')
-        ->set('name', 'Mai 2026 Oração')
-        ->set('description', 'Three weeks of intercession')
-        ->set('objectives', "Cover every hour with prayer.\nRevival across the regions.")
-        ->set('start_date', '2026-05-04')
-        ->set('end_date', '2026-05-24')
-        ->set('is_active', true)
+        ->set('form.name', 'Mai 2026 Oração')
+        ->set('form.description', 'Three weeks of intercession')
+        ->set('form.objectives', "Cover every hour with prayer.\nRevival across the regions.")
+        ->set('form.start_date', '2026-05-04')
+        ->set('form.end_date', '2026-05-24')
+        ->set('form.is_active', true)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -38,11 +38,11 @@ it('rejects a campaign with end before start', function () {
     $this->actingAs($super);
 
     Livewire::test('admin.prayer-campaigns.editor')
-        ->set('name', 'Backwards')
-        ->set('start_date', '2026-05-10')
-        ->set('end_date', '2026-05-01')
+        ->set('form.name', 'Backwards')
+        ->set('form.start_date', '2026-05-10')
+        ->set('form.end_date', '2026-05-01')
         ->call('save')
-        ->assertHasErrors('end_date');
+        ->assertHasErrors('form.end_date');
 });
 
 it('blocks regular users from prayer campaign CRUD', function () {
@@ -62,16 +62,16 @@ it('refuses a schedule whose date is outside the campaign window', function () {
     $campaign = PrayerCampaign::factory()->range('2026-05-04', '2026-05-24')->create();
 
     Livewire::test('admin.prayer-schedules.editor')
-        ->set('church_id', $church->id)
-        ->set('prayer_campaign_id', $campaign->id)
-        ->set('date', '2026-04-15') // outside window
-        ->set('start_time', '06:00')
-        ->set('end_time', '07:00')
-        ->set('slot_minutes', 60)
-        ->set('capacity_per_slot', 5)
-        ->set('mode', 'presential')
+        ->set('form.church_id', $church->id)
+        ->set('form.prayer_campaign_id', $campaign->id)
+        ->set('form.date', '2026-04-15') // outside window
+        ->set('form.start_time', '06:00')
+        ->set('form.end_time', '07:00')
+        ->set('form.slot_minutes', 60)
+        ->set('form.capacity_per_slot', 5)
+        ->set('form.mode', 'presential')
         ->call('save')
-        ->assertHasErrors('date');
+        ->assertHasErrors('form.date');
 
     expect(PrayerSchedule::query()->count())->toBe(0);
 });

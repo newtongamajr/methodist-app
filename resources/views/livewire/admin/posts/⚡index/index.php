@@ -3,7 +3,10 @@
 use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use App\Models\Post;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -13,8 +16,13 @@ class extends Component
 {
     use WithPagination;
 
+    #[Url(as: 'q')]
     public string $search = '';
+
+    #[Url(as: 'status')]
     public string $statusFilter = '';
+
+    #[Url(as: 'scope')]
     public string $scopeFilter = '';
 
     public function updatingSearch(): void
@@ -32,11 +40,15 @@ class extends Component
         $this->resetPage();
     }
 
-    public function getPostsProperty()
+    #[Computed]
+    public function posts(): LengthAwarePaginator
     {
         $user = auth()->user();
 
-        $q = Post::query()->with(['author', 'church'])->latest('updated_at');
+        $q = Post::query()
+            ->select(['id', 'title', 'slug', 'scope', 'status', 'author_id', 'church_id', 'updated_at', 'published_at', 'created_at', 'deleted_at'])
+            ->with(['author:id,name', 'church:id,name'])
+            ->latest('updated_at');
 
         if (! $user->can('posts.update.any')) {
             $manageable = $user->manageableChurchIds();
@@ -52,7 +64,7 @@ class extends Component
         }
 
         if ($this->search !== '') {
-            $q->where('title', 'like', '%'.$this->search.'%');
+            $q->where('title', 'like', '%'.addcslashes($this->search, '%_\\').'%');
         }
         if ($this->statusFilter !== '') {
             $q->where('status', $this->statusFilter);

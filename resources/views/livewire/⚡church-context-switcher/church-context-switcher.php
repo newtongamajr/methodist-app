@@ -19,7 +19,22 @@ new class extends Component
 
         session(['admin_church_id' => $churchId]);
 
-        $this->redirect(request()->header('Referer') ?: route('posts.index'), navigate: false);
+        $this->redirect($this->safeReturnUrl(), navigate: false);
+    }
+
+    protected function safeReturnUrl(): string
+    {
+        $fallback = route('posts.index');
+        $referer = request()->header('Referer');
+
+        if (! $referer) {
+            return $fallback;
+        }
+
+        $refererHost = parse_url($referer, PHP_URL_HOST);
+        $appHost = parse_url(config('app.url'), PHP_URL_HOST);
+
+        return $refererHost === $appHost ? $referer : $fallback;
     }
 
     #[Computed]

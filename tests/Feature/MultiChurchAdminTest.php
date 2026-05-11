@@ -71,13 +71,13 @@ it('master attaching new admin can pick from their pool but not foreign churches
     $this->actingAs($manager);
 
     Livewire::test('admin.users.editor')
-        ->set('name', 'New Helper')
-        ->set('email', 'helper@m.test')
-        ->set('password', 'secret-password')
-        ->set('church_ids', [$a->id, $b->id, $foreign->id])
-        ->set('primary_church_id', $a->id)
-        ->set('role', 'local_manager')
-        ->set('locale', 'pt_BR')
+        ->set('form.name', 'New Helper')
+        ->set('form.email', 'helper@m.test')
+        ->set('form.password', 'secret-password')
+        ->set('form.church_ids', [$a->id, $b->id, $foreign->id])
+        ->set('form.primary_church_id', $a->id)
+        ->set('form.role', 'local_manager')
+        ->set('form.locale', 'pt_BR')
         ->call('save')
         ->assertHasNoErrors();
 
@@ -99,7 +99,7 @@ it('post editor list of available churches respects manager scope', function () 
     $this->actingAs($manager);
 
     Livewire::test('admin.posts.editor')
-        ->assertSet('scope', 'local')
+        ->assertSet('form.scope', 'local')
         ->assertDontSee('Foreign Church');
 });
 
@@ -119,14 +119,14 @@ it('local schedule editor scopes the church dropdown to manageable churches', fu
     $this->actingAs($manager);
 
     Livewire::test('admin.prayer-schedules.editor')
-        ->set('church_id', $b->id)
-        ->set('prayer_campaign_id', $campaign->id)
-        ->set('date', now()->addDay()->toDateString())
-        ->set('start_time', '06:00')
-        ->set('end_time', '07:00')
-        ->set('slot_minutes', 60)
-        ->set('capacity_per_slot', 5)
-        ->set('mode', 'presential')
+        ->set('form.church_id', $b->id)
+        ->set('form.prayer_campaign_id', $campaign->id)
+        ->set('form.date', now()->addDay()->toDateString())
+        ->set('form.start_time', '06:00')
+        ->set('form.end_time', '07:00')
+        ->set('form.slot_minutes', 60)
+        ->set('form.capacity_per_slot', 5)
+        ->set('form.mode', 'presential')
         ->call('save')
         ->assertHasNoErrors();
 

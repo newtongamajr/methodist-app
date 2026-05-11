@@ -74,15 +74,17 @@ class User extends Authenticatable implements HasMedia
      */
     public function manageableChurches(): Collection
     {
-        if ($this->hasRole('global_manager')) {
-            return Church::query()->orderBy('name')->get();
-        }
+        return once(function () {
+            if ($this->hasRole('global_manager')) {
+                return Church::query()->orderBy('name')->get();
+            }
 
-        if ($this->hasRole('local_manager')) {
-            return $this->churches()->orderBy('churches.name')->get();
-        }
+            if ($this->hasRole('local_manager')) {
+                return $this->churches()->orderBy('churches.name')->get();
+            }
 
-        return collect();
+            return collect();
+        });
     }
 
     /** @return array<int> */

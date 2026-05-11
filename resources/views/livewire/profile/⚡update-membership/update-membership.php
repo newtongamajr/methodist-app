@@ -3,7 +3,9 @@
 use App\Enums\MemberType;
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -32,12 +34,14 @@ new class extends Component
         }
     }
 
-    public function getRegionsProperty()
+    #[Computed]
+    public function regions(): Collection
     {
         return EcclesiasticalRegion::query()->orderBy('display_order')->get(['id', 'code', 'name']);
     }
 
-    public function getChurchesProperty()
+    #[Computed]
+    public function churches(): Collection
     {
         if (! $this->region_id) {
             return collect();

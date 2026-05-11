@@ -197,7 +197,7 @@
                 @error('newComment') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
 
                 <div class="flex justify-end">
-                    <flux:button type="submit" variant="primary">{{ __('Send comment') }}</flux:button>
+                    <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="submitComment">{{ __('Send comment') }}</flux:button>
                 </div>
             </form>
         @else

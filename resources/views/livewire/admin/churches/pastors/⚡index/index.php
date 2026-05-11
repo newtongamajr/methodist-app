@@ -4,6 +4,7 @@ use App\Models\Church;
 use App\Models\PastorAssignment;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new
@@ -12,6 +13,7 @@ class extends Component
 {
     public Church $church;
 
+    #[Url(as: 'f')]
     public string $filter = 'current';
 
     public function mount(int $churchId): void

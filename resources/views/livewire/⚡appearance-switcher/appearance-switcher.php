@@ -2,6 +2,7 @@
 
 use App\Enums\AppAppearance;
 use Illuminate\Support\Facades\App;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -22,7 +23,8 @@ new class extends Component
         // server just persists the choice for the next page load.
     }
 
-    public function getOptionsProperty(): array
+    #[Computed]
+    public function options(): array
     {
         return collect(AppAppearance::cases())
             ->map(fn (AppAppearance $c) => [
@@ -33,7 +35,8 @@ new class extends Component
             ->all();
     }
 
-    public function getCurrentProperty(): string
+    #[Computed]
+    public function current(): string
     {
         return session('appearance', AppAppearance::System->value);
     }

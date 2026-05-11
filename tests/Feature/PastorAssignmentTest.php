@@ -93,11 +93,11 @@ it('admin editor creates a brand-new pastor and a current assignment', function 
     $this->actingAs($super);
 
     Livewire::test('admin.churches.pastors.editor', ['churchId' => $church->id])
-        ->set('pastorMode', 'new')
-        ->set('pastor_name', 'Pr. Novo')
-        ->set('pastor_email', 'novo@pastores.test')
-        ->set('role', 'seminarist')
-        ->set('start_date', now()->toDateString())
+        ->set('form.pastorMode', 'new')
+        ->set('form.pastor_name', 'Pr. Novo')
+        ->set('form.pastor_email', 'novo@pastores.test')
+        ->set('form.role', 'seminarist')
+        ->set('form.start_date', now()->toDateString())
         ->call('save')
         ->assertHasNoErrors();
 

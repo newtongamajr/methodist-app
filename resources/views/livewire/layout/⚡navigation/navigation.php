@@ -5,6 +5,7 @@ use App\Enums\AppLocale;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\App;
+use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
@@ -45,12 +46,14 @@ new class extends Component
         $this->redirect(request()->header('Referer') ?: '/', navigate: false);
     }
 
-    public function getAppearanceProperty(): string
+    #[Computed]
+    public function appearance(): string
     {
         return session('appearance', AppAppearance::System->value);
     }
 
-    public function getAppearanceOptionsProperty(): array
+    #[Computed]
+    public function appearanceOptions(): array
     {
         return collect(AppAppearance::cases())
             ->map(fn (AppAppearance $c) => [
@@ -61,12 +64,14 @@ new class extends Component
             ->all();
     }
 
-    public function getLocaleProperty(): string
+    #[Computed]
+    public function locale(): string
     {
         return App::getLocale();
     }
 
-    public function getLocaleOptionsProperty(): array
+    #[Computed]
+    public function localeOptions(): array
     {
         return collect(AppLocale::cases())
             ->map(fn (AppLocale $c) => [

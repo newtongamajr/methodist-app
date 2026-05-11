@@ -5,13 +5,20 @@ use App\Models\PrayerCampaign;
 use App\Models\PrayerSchedule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use WithPagination;
+
+    #[Url(as: 'church')]
     public ?int $churchFilter = null;
+
+    #[Url(as: 'campaign')]
     public ?int $campaignFilter = null;
 
     public function mount(?int $church = null): void
@@ -20,6 +27,16 @@ class extends Component
         $this->churchFilter = $church ?: $user->currentChurchId();
         $current = PrayerCampaign::current()->orderByDesc('start_date')->first();
         $this->campaignFilter = $current?->id;
+    }
+
+    public function updatingChurchFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingCampaignFilter(): void
+    {
+        $this->resetPage();
     }
 
     #[Computed]

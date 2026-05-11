@@ -10,7 +10,7 @@
         <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" autocomplete="new-password" />
 
         <div class="flex items-center gap-4 pt-2">
-            <flux:button type="submit" variant="primary">{{ __('Save') }}</flux:button>
+            <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="updatePassword">{{ __('Save') }}</flux:button>
             <x-action-message class="text-sm text-emerald-600 dark:text-emerald-400" on="password-updated">
                 {{ __('Saved.') }}
             </x-action-message>

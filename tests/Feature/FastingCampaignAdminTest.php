@@ -15,13 +15,13 @@ it('lets a global manager create a campaign', function () {
     $this->actingAs($super);
 
     Livewire::test('admin.fasting-campaigns.editor')
-        ->set('name', 'Test Campaign')
-        ->set('description', 'Three weeks of fasting')
-        ->set('start_date', '2026-05-04')
-        ->set('end_date', '2026-05-24')
-        ->set('types', ['h24', 'h12', 'partial'])
-        ->set('restrictions', ['meat', 'sweets'])
-        ->set('is_active', true)
+        ->set('form.name', 'Test Campaign')
+        ->set('form.description', 'Three weeks of fasting')
+        ->set('form.start_date', '2026-05-04')
+        ->set('form.end_date', '2026-05-24')
+        ->set('form.types', ['h24', 'h12', 'partial'])
+        ->set('form.restrictions', ['meat', 'sweets'])
+        ->set('form.is_active', true)
         ->call('save')
         ->assertHasNoErrors();
 
@@ -38,13 +38,13 @@ it('rejects a campaign with end before start', function () {
     $this->actingAs($super);
 
     Livewire::test('admin.fasting-campaigns.editor')
-        ->set('name', 'Backwards')
-        ->set('start_date', '2026-05-10')
-        ->set('end_date', '2026-05-01')
-        ->set('types', ['h12'])
-        ->set('restrictions', [])
+        ->set('form.name', 'Backwards')
+        ->set('form.start_date', '2026-05-10')
+        ->set('form.end_date', '2026-05-01')
+        ->set('form.types', ['h12'])
+        ->set('form.restrictions', [])
         ->call('save')
-        ->assertHasErrors('end_date');
+        ->assertHasErrors('form.end_date');
 });
 
 it('blocks regular users from the campaign CRUD', function () {
