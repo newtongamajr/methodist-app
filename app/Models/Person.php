@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MaritalStatus;
 use App\Enums\PersonNature;
 use App\Enums\PersonRelationshipType;
 use App\Enums\PersonType;
@@ -42,6 +43,7 @@ class Person extends Model
         return [
             'person_type' => PersonType::class,
             'birthdate' => 'date',
+            'marital_status' => MaritalStatus::class,
             'natures' => 'array',
             'additional_data' => 'array',
         ];

@@ -9,6 +9,7 @@ enum PersonNature: string
     case Pastor = 'pastor';
     case Visitor = 'visitor';
     case Interested = 'interested';
+    case Youth = 'youth';
     case Teenager = 'teenager';
     case Child = 'child';
 
@@ -27,6 +28,7 @@ enum PersonNature: string
             self::Pastor => __('Pastor'),
             self::Visitor => __('Visitor'),
             self::Interested => __('Interested'),
+            self::Youth => __('Youth'),
             self::Teenager => __('Teenager'),
             self::Child => __('Child'),
             self::NationalHeadquarters => __('National headquarters'),
@@ -59,12 +61,31 @@ enum PersonNature: string
             ->all();
     }
 
-    /** Just the individual natures, for the People index filter. */
+    /** Just the individual natures, for the People index filter and individual editor. */
     public static function individualOptions(): array
     {
         return collect(self::cases())
             ->reject(fn (self $case) => $case->isOrganizational())
             ->mapWithKeys(fn (self $case) => [$case->value => $case->label()])
             ->all();
+    }
+
+    /** Just the organizational natures, for the org-Person editor. */
+    public static function organizationalOptions(): array
+    {
+        return collect(self::cases())
+            ->filter(fn (self $case) => $case->isOrganizational())
+            ->mapWithKeys(fn (self $case) => [$case->value => $case->label()])
+            ->all();
+    }
+
+    /** Natures valid for a given person_type ('individual' or 'organization'). */
+    public static function optionsForPersonType(PersonType|string $type): array
+    {
+        $value = $type instanceof PersonType ? $type->value : $type;
+
+        return $value === PersonType::Organization->value
+            ? self::organizationalOptions()
+            : self::individualOptions();
     }
 }
