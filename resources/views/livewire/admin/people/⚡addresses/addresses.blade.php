@@ -44,8 +44,15 @@
                                     <flux:button wire:click="openEdit({{ $address->id }})" size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $address->id }})" wire:confirm="{{ __('Delete this address?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-address-'.$address->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-address-'.$address->id"
+                                    :heading="__('Delete this address?')"
+                                    action="delete({{ $address->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>
@@ -74,16 +81,52 @@
                 </div>
             </div>
 
-            <div class="grid gap-4 sm:grid-cols-4">
-                <div class="sm:col-span-3">
-                    <flux:input wire:model="form.city" :label="__('City')" />
+            <div
+                x-data="{
+                    zipMasks: @js(collect(\App\Enums\Country::cases())->mapWithKeys(fn ($c) => [$c->value => $c->zipMask()])->all()),
+                    isForeign() { return $wire.form.state === '{{ \App\Enums\BrazilianState::Foreign->value }}'; },
+                    zipMask() { return this.zipMasks[$wire.form.country] ?? ''; },
+                }"
+            >
+                <div class="grid gap-4 sm:grid-cols-4">
+                    <div class="sm:col-span-3">
+                        <flux:input wire:model="form.city" :label="__('City')" />
+                    </div>
+                    <flux:select wire:model.live="form.state" :label="__('State')">
+                        <option value="">{{ __('— None —') }}</option>
+                        @foreach (\App\Enums\BrazilianState::options() as $uf => $name)
+                            <option value="{{ $uf }}">{{ $uf }} — {{ $name }}</option>
+                        @endforeach
+                    </flux:select>
                 </div>
-                <flux:input wire:model="form.state" :label="__('State (UF)')" maxlength="2" />
-            </div>
 
-            <div class="grid gap-4 sm:grid-cols-2">
-                <flux:input wire:model="form.zip" :label="__('ZIP')" />
-                <flux:input wire:model="form.country" :label="__('Country')" maxlength="2" required />
+                <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                    <flux:input
+                        wire:model="form.zip"
+                        :label="__('ZIP')"
+                        x-mask:dynamic="zipMask()"
+                        x-bind:placeholder="zipMask()"
+                    />
+                    <div x-show="isForeign()" x-cloak>
+                        <flux:select
+                            wire:model.live="form.country"
+                            variant="listbox"
+                            searchable
+                            :label="__('Country')"
+                            :placeholder="__('Pick a country…')"
+                        >
+                            {{-- Keep every country including BR so the listbox can always
+                                 resolve its current value. The state↔country coupling is
+                                 enforced server-side in PersonAddressForm::save(). --}}
+                            @foreach (\App\Enums\Country::options() as $iso => $name)
+                                <flux:select.option :value="$iso">{{ $name }}</flux:select.option>
+                            @endforeach
+                        </flux:select>
+                    </div>
+                    <div x-show="!isForeign()" x-cloak>
+                        <flux:input :value="__('Brazil')" :label="__('Country')" disabled />
+                    </div>
+                </div>
             </div>
             <flux:checkbox wire:model="form.is_primary" :label="__('Primary address')" />
 

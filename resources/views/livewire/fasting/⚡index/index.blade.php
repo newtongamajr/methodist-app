@@ -133,9 +133,15 @@
 
                     <div class="flex items-center justify-between gap-2 pt-2">
                         @if (isset($entries[$editingDate]))
-                            <flux:button type="button" wire:click="delete('{{ $editingDate }}')" wire:confirm="{{ __('Remove this entry?') }}" variant="ghost">
-                                {{ __('Remove') }}
-                            </flux:button>
+                            <flux:modal.trigger name="remove-fasting-entry">
+                                <flux:button type="button" variant="ghost">{{ __('Remove') }}</flux:button>
+                            </flux:modal.trigger>
+                            <x-confirm-delete
+                                name="remove-fasting-entry"
+                                :heading="__('Remove this entry?')"
+                                :confirmLabel="__('Remove')"
+                                action="delete('{{ $editingDate }}')"
+                            />
                         @else
                             <span></span>
                         @endif

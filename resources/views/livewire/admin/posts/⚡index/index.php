@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\PostScope;
 use App\Enums\PostStatus;
 use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Post;
@@ -26,11 +25,9 @@ class extends Component
     #[Url(as: 'status')]
     public string $statusFilter = '';
 
-    #[Url(as: 'scope')]
-    public string $scopeFilter = '';
-
-    #[Url(as: 'church')]
-    public ?int $churchFilter = null;
+    /** Bucket filter on the audience shape: national / regional / district / local. */
+    #[Url(as: 'audience')]
+    public string $audienceFilter = '';
 
     #[Url(as: 'author')]
     public ?int $authorFilter = null;
@@ -45,12 +42,7 @@ class extends Component
         $this->resetPage();
     }
 
-    public function updatingScopeFilter(): void
-    {
-        $this->resetPage();
-    }
-
-    public function updatingChurchFilter(): void
+    public function updatingAudienceFilter(): void
     {
         $this->resetPage();
     }
@@ -71,15 +63,6 @@ class extends Component
     }
 
     #[Computed]
-    public function availableChurches(): Collection
-    {
-        return auth()->user()
-            ->manageableChurches()
-            ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name])
-            ->values();
-    }
-
-    #[Computed]
     public function availableAuthors(): Collection
     {
         return User::query()
@@ -94,18 +77,42 @@ class extends Component
         $user = auth()->user();
 
         $q = Post::query()
-            ->select(['id', 'title', 'slug', 'scope', 'status', 'author_id', 'church_id', 'updated_at', 'published_at', 'created_at', 'deleted_at'])
-            ->with(['author:id,name', 'church:id,name']);
+            ->select(['id', 'title', 'slug', 'status', 'author_id', 'updated_at', 'published_at', 'created_at', 'deleted_at'])
+            ->with([
+                'author:id,name',
+                'scopes.region:id,name',
+                'scopes.district:id,name',
+                'scopes.church:id,name',
+                // Eager-load only the cover collection so the per-row
+                // thumbnail render doesn't trigger N+1 queries against the
+                // media table.
+                'media' => fn ($q) => $q->where('collection_name', 'cover'),
+            ]);
 
+        // Authors always see their own posts. Admins additionally see any
+        // post that targets a scope they manage.
         if (! $user->can('posts.update.any')) {
-            $manageable = $user->manageableChurchIds();
-            $q->where(function ($qq) use ($user, $manageable) {
+            $regions = $user->manageableRegionIds();
+            $districts = $user->manageableDistrictIds();
+            $churches = $user->manageableChurchIds();
+
+            $q->where(function ($qq) use ($user, $regions, $districts, $churches) {
                 $qq->where('author_id', $user->id);
 
-                if ($user->can('posts.create.local') && $manageable) {
-                    $qq->orWhere(fn ($q3) => $q3
-                        ->where('scope', PostScope::Local)
-                        ->whereIn('church_id', $manageable));
+                if ($regions || $districts || $churches) {
+                    $qq->orWhereHas('scopes', function ($q3) use ($regions, $districts, $churches) {
+                        $q3->where(function ($q4) use ($regions, $districts, $churches) {
+                            if ($regions) {
+                                $q4->orWhereIn('region_id', $regions);
+                            }
+                            if ($districts) {
+                                $q4->orWhereIn('district_id', $districts);
+                            }
+                            if ($churches) {
+                                $q4->orWhereIn('church_id', $churches);
+                            }
+                        });
+                    });
                 }
             });
         }
@@ -116,11 +123,16 @@ class extends Component
         if ($this->statusFilter !== '') {
             $q->where('status', $this->statusFilter);
         }
-        if ($this->scopeFilter !== '') {
-            $q->where('scope', $this->scopeFilter);
-        }
-        if ($this->churchFilter) {
-            $q->where('church_id', $this->churchFilter);
+        if ($this->audienceFilter !== '') {
+            $q->whereHas('scopes', function ($q3) {
+                match ($this->audienceFilter) {
+                    'national' => $q3->where('national_post', true),
+                    'regional' => $q3->whereNotNull('region_id')->whereNull('district_id')->whereNull('church_id'),
+                    'district' => $q3->whereNotNull('district_id')->whereNull('church_id'),
+                    'local' => $q3->whereNotNull('church_id'),
+                    default => null,
+                };
+            });
         }
         if ($this->authorFilter) {
             $q->where('author_id', $this->authorFilter);
@@ -149,7 +161,13 @@ class extends Component
     {
         return view('livewire.admin.posts.⚡index.index', [
             'statuses' => PostStatus::cases(),
-            'scopes' => PostScope::cases(),
+            // Audience buckets shown in the filter dropdown.
+            'audiences' => [
+                'national' => __('National'),
+                'regional' => __('Regional'),
+                'district' => __('District'),
+                'local' => __('Local'),
+            ],
         ]);
     }
 };

@@ -1,18 +1,40 @@
-<div class="mx-auto max-w-3xl space-y-8 px-4 py-10 sm:px-6">
+<div class="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
+    <flux:button
+        :href="route('posts.index')"
+        wire:navigate
+        variant="ghost"
+        icon="arrow-left"
+        size="sm"
+    >
+        {{ __('Back to posts') }}
+    </flux:button>
+
     <article class="space-y-6">
         @if ($coverUrl = $post->coverUrl('hero'))
-            <img src="{{ $coverUrl }}" alt="" class="h-64 w-full rounded-lg object-cover">
+            {{-- Display the cover at the same 16:9 ratio it was cropped at
+                 in the editor — using a fixed height + object-cover crops
+                 the already-cropped image again and cuts faces. --}}
+            <img src="{{ $coverUrl }}" alt="" class="aspect-video w-full rounded-lg object-cover">
         @endif
 
         <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
             <span>{{ $post->published_at?->isoFormat('LL') }}</span>
             <span aria-hidden="true">·</span>
             <span>{{ $post->author?->name }}</span>
-            @if ($post->scope->value === 'local' && $post->church)
-                <span aria-hidden="true">·</span>
-                <flux:badge color="zinc">{{ $post->church->name }}</flux:badge>
+            @php
+                $shapes = $post->scopes->map(fn ($s) => $s->shape())->unique();
+                $audience = $shapes->contains('national') ? 'national'
+                    : ($shapes->contains('regional') ? 'regional'
+                        : ($shapes->contains('district') ? 'district' : 'local'));
+            @endphp
+            @if ($audience === 'national')
+                <flux:badge color="sky">{{ __('National') }}</flux:badge>
+            @elseif ($audience === 'regional')
+                <flux:badge color="indigo">{{ __('Regional') }}</flux:badge>
+            @elseif ($audience === 'district')
+                <flux:badge color="amber">{{ __('District') }}</flux:badge>
             @else
-                <flux:badge color="sky">{{ __('Shared') }}</flux:badge>
+                <flux:badge color="zinc">{{ __('Local') }}</flux:badge>
             @endif
         </div>
 
@@ -183,9 +205,29 @@
 
         <div class="space-y-4 pt-4">
             @forelse ($this->approvedComments as $comment)
+                @php
+                    // When the recording user differs from the participant
+                    // Person (a parent commenting on behalf of a child), show
+                    // BOTH names so the audience sees the act-as attribution.
+                    $authorName = $comment->author?->name;
+                    $personName = $comment->person?->name;
+                    $isProxied = $personName && $authorName && $comment->person_id !== $comment->author?->person_id;
+                @endphp
                 <div wire:key="comment-{{ $comment->id }}" class="rounded-md bg-zinc-50 p-4 dark:bg-zinc-800/60">
-                    <div class="flex items-center justify-between text-sm">
-                        <span class="font-medium">{{ $comment->author?->name }}</span>
+                    <div class="flex flex-wrap items-center justify-between gap-2 text-sm">
+                        @if ($isProxied)
+                            {{-- Proxy attribution: actor → participant. The
+                                 small arrow keeps "<actor> in the name of
+                                 <participant>" readable without the verbose
+                                 sentence. --}}
+                            <span class="inline-flex items-center gap-1.5 font-medium">
+                                <span>{{ $authorName }}</span>
+                                <flux:icon.arrow-right variant="micro" class="size-3.5 text-zinc-400" />
+                                <span>{{ $personName }}</span>
+                            </span>
+                        @else
+                            <span class="font-medium">{{ $personName ?? $authorName }}</span>
+                        @endif
                         <span class="text-zinc-500">{{ $comment->created_at->diffForHumans() }}</span>
                     </div>
                     <p class="mt-2 whitespace-pre-line text-zinc-700 dark:text-zinc-200">{{ $comment->body }}</p>

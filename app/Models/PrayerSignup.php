@@ -11,6 +11,7 @@ class PrayerSignup extends Model
     protected $fillable = [
         'prayer_slot_id',
         'user_id',
+        'person_id',
         'status',
     ];
 
@@ -29,5 +30,10 @@ class PrayerSignup extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
     }
 }

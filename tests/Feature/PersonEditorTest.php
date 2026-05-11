@@ -110,16 +110,20 @@ it('rejects an Identity save with an invalid CPF (observer guard)', function () 
 it('adds a contact, demotes other primaries of the same type', function () {
     actingAsSuperPerson();
     $person = Person::factory()->create();
+    // The pre-existing primary is stored with the country prefix already
+    // baked in — that's the canonical shape of a phone contact value now.
     PersonContact::create([
         'person_id' => $person->id,
         'type' => 'phone',
-        'value' => '(11) 11111-1111',
+        'value' => '+55 (11) 11111-1111',
+        'country' => 'BR',
         'is_primary' => true,
     ]);
 
     Livewire::test('admin.people.contacts', ['personId' => $person->id])
         ->call('openCreate')
         ->set('form.type', 'phone')
+        ->set('form.country', 'BR')
         ->set('form.value', '(22) 22222-2222')
         ->set('form.is_primary', true)
         ->call('save')
@@ -127,8 +131,8 @@ it('adds a contact, demotes other primaries of the same type', function () {
 
     $contacts = $person->contacts()->orderBy('value')->get();
     expect($contacts)->toHaveCount(2);
-    expect($contacts->where('value', '(11) 11111-1111')->first()->is_primary)->toBeFalse();
-    expect($contacts->where('value', '(22) 22222-2222')->first()->is_primary)->toBeTrue();
+    expect($contacts->where('value', '+55 (11) 11111-1111')->first()->is_primary)->toBeFalse();
+    expect($contacts->where('value', '+55 (22) 22222-2222')->first()->is_primary)->toBeTrue();
 });
 
 it('adds an address and enforces single primary', function () {

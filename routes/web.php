@@ -68,6 +68,7 @@ Route::middleware(['auth', EnsureCanManageUsers::class])->prefix('admin')->name(
     Route::livewire('users', 'admin.users.index')->name('users.index');
     Route::livewire('users/create', 'admin.users.editor')->name('users.create');
     Route::livewire('users/{userId}/edit', 'admin.users.editor')->name('users.edit');
+    Route::livewire('users/{userId}/churches', 'admin.users.churches')->name('users.churches');
 
     Route::livewire('members', 'admin.members.index')->name('members.index');
     Route::livewire('members/create', 'admin.members.editor')->name('members.create');

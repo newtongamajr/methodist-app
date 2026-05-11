@@ -81,8 +81,15 @@
                                     <flux:button :href="route('admin.people.edit', $person)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="deletePerson({{ $person->id }})" wire:confirm="{{ __('Delete this person?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-person-'.$person->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-person-'.$person->id"
+                                    :heading="__('Delete this person?')"
+                                    action="deletePerson({{ $person->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

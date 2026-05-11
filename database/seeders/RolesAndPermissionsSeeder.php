@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
+use App\Models\Role;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Artisan;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -30,33 +30,38 @@ class RolesAndPermissionsSeeder extends Seeder
             Permission::findOrCreate($name, 'web');
         }
 
-        $national = Role::findOrCreate('national_admin', 'web');
-        $national->syncPermissions($permissions);
+        // Roles + descriptions. Descriptions are surfaced as badges on the
+        // /admin/users index so a non-technical admin can read the role
+        // without having to remember what 'regional_admin' implies.
+        $roles = [
+            ['national_admin', __('National administrator (full access across every region, district, and church)'), $permissions],
+            ['regional_admin', __('Regional administrator (everything within one region)'), $permissions],
+            ['district_admin', __('District administrator (everything within one district)'), [
+                'posts.create.shared',
+                'posts.create.local',
+                'posts.update.any',
+                'posts.delete.any',
+                'comments.moderate',
+                'prayer.schedule.manage',
+                'fasting.calendar.manage',
+                'users.manage.local',
+            ]],
+            ['local_admin', __('Local administrator (everything within one church)'), [
+                'posts.create.local',
+                'comments.moderate',
+                'prayer.schedule.manage',
+                'fasting.calendar.manage',
+                'users.manage.local',
+            ]],
+            ['user', __('Regular member (no admin powers)'), []],
+        ];
 
-        $regional = Role::findOrCreate('regional_admin', 'web');
-        $regional->syncPermissions($permissions);
-
-        $district = Role::findOrCreate('district_admin', 'web');
-        $district->syncPermissions([
-            'posts.create.shared',
-            'posts.create.local',
-            'posts.update.any',
-            'posts.delete.any',
-            'comments.moderate',
-            'prayer.schedule.manage',
-            'fasting.calendar.manage',
-            'users.manage.local',
-        ]);
-
-        $local = Role::findOrCreate('local_admin', 'web');
-        $local->syncPermissions([
-            'posts.create.local',
-            'comments.moderate',
-            'prayer.schedule.manage',
-            'fasting.calendar.manage',
-            'users.manage.local',
-        ]);
-
-        Role::findOrCreate('user', 'web');
+        foreach ($roles as [$name, $description, $perms]) {
+            $role = Role::findOrCreate($name, 'web');
+            $role->forceFill(['description' => $description])->save();
+            if (! empty($perms)) {
+                $role->syncPermissions($perms);
+            }
+        }
     }
 }

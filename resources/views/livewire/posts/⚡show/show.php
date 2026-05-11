@@ -21,7 +21,7 @@ class extends Component
     public function mount(string $slug): void
     {
         $this->post = Post::where('slug', $slug)
-            ->with(['media', 'embeds'])
+            ->with(['media', 'embeds', 'scopes'])
             ->published()
             ->firstOrFail();
 
@@ -37,7 +37,14 @@ class extends Component
             return false;
         }
 
-        return $this->post->likes()->where('user_id', auth()->id())->exists();
+        // Liked-by is per-Person now, so an act-as parent toggling on behalf
+        // of their child sees the heart filled iff the CHILD has liked.
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return false;
+        }
+
+        return $this->post->likes()->where('person_id', $person->id)->exists();
     }
 
     #[Computed]
@@ -49,18 +56,30 @@ class extends Component
     #[Computed]
     public function approvedComments(): Collection
     {
-        return $this->post->approvedComments()->with('author')->latest()->get();
+        // Eager-load both the recording user (`author`) and the participant
+        // (`person`) so the Blade can render "Parent in the name of Child"
+        // when they differ — and just the participant otherwise.
+        return $this->post->approvedComments()
+            ->with(['author:id,name', 'person:id,name'])
+            ->latest()
+            ->get();
     }
 
     public function toggleLike(): void
     {
-        if (! auth()->check()) {
+        $user = auth()->user();
+        if (! $user) {
             $this->redirectRoute('login', navigate: true);
+
+            return;
+        }
+        $person = $user->effectivePerson();
+        if (! $person) {
             return;
         }
 
         $like = PostLike::where('post_id', $this->post->id)
-            ->where('user_id', auth()->id())
+            ->where('person_id', $person->id)
             ->first();
 
         if ($like) {
@@ -68,7 +87,8 @@ class extends Component
         } else {
             PostLike::create([
                 'post_id' => $this->post->id,
-                'user_id' => auth()->id(),
+                'user_id' => $user->id,
+                'person_id' => $person->id,
             ]);
         }
 
@@ -80,6 +100,7 @@ class extends Component
         $user = auth()->user();
         if (! $user) {
             $this->redirectRoute('login', navigate: true);
+
             return;
         }
 
@@ -94,6 +115,10 @@ class extends Component
         PostComment::create([
             'post_id' => $this->post->id,
             'user_id' => $user->id,
+            // person_id captures whose voice the comment is in. When acting-
+            // as a child, that's the child; otherwise it's the user's own
+            // Person and the UI just shows one name.
+            'person_id' => $user->effectivePerson()?->id,
             'body' => $this->newComment,
             'status' => $isAdmin ? CommentStatus::Approved : CommentStatus::Pending,
             'approved_by' => $isAdmin ? $user->id : null,

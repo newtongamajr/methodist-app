@@ -13,7 +13,7 @@
 
     @if (! $churchId)
         <flux:text class="text-zinc-500">
-            {{ __('Pick a church in your profile to see prayer slots.') }}
+            {{ __('Pick a church in your profile to see prayer schedules.') }}
             <a href="{{ route('profile') }}" class="font-medium text-accent hover:underline" wire:navigate>{{ __('Open profile') }}</a>
         </flux:text>
     @elseif (! $this->campaign)
@@ -38,14 +38,33 @@
             @endif
         </div>
 
+        {{-- Bulk-signup nudge: callout sits right under the campaign card so
+             a returning user sees the shortcut after reading the objectives. --}}
+        <flux:callout
+            variant="secondary"
+            icon="calendar-days"
+            :heading="__('Do you want to pray every day at the same schedule?')"
+        >
+            <x-slot name="actions">
+                <flux:button
+                    wire:click="openBulkModal"
+                    variant="primary"
+                    icon="calendar-days"
+                    size="sm"
+                >
+                    {{ __('Sign up for a date range') }}
+                </flux:button>
+            </x-slot>
+        </flux:callout>
+
         {{-- Suggestions --}}
         @if ($this->suggestions->isNotEmpty())
             <section class="rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-900/20">
                 <flux:heading size="lg" class="text-amber-800! dark:text-amber-200!">
-                    {{ __('Slots needing more prayers') }}
+                    {{ __('Schedules needing more people of praying') }}
                 </flux:heading>
                 <flux:text class="mt-1 text-sm">
-                    {{ __('These upcoming slots are below 30% coverage. Consider joining one of them.') }}
+                    {{ __('These upcoming schedules are below 30% coverage. Consider joining one of them.') }}
                 </flux:text>
                 <div class="mt-3 flex flex-wrap gap-2">
                     @foreach ($this->suggestions as $slot)
@@ -66,7 +85,7 @@
                         <flux:button wire:click="previousDay" size="sm" variant="ghost" icon="chevron-left" />
                     </flux:tooltip>
                     <flux:heading size="lg">
-                        {{ $selectedDate ? \Illuminate\Support\Carbon::parse($selectedDate)->isoFormat('dddd, LL') : __('No prayer slots scheduled') }}
+                        {{ $selectedDate ? \Illuminate\Support\Carbon::parse($selectedDate)->isoFormat('dddd, LL') : __('No prayer schedules available') }}
                     </flux:heading>
                     <flux:tooltip :content="__('Next day')">
                         <flux:button wire:click="nextDay" size="sm" variant="ghost" icon="chevron-right" />
@@ -91,14 +110,14 @@
                         size="sm"
                         :variant="$coverageFilter === 'all' ? 'primary' : 'ghost'"
                     >
-                        {{ __('All slots') }}
+                        {{ __('All schedules') }}
                     </flux:button>
                     <flux:button
                         wire:click="$set('coverageFilter', 'mine')"
                         size="sm"
                         :variant="$coverageFilter === 'mine' ? 'primary' : 'ghost'"
                     >
-                        {{ __('My slots') }}
+                        {{ __('My schedules') }}
                     </flux:button>
                     <flux:button
                         wire:click="$set('coverageFilter', 'user')"
@@ -109,6 +128,37 @@
                     </flux:button>
                 </flux:button.group>
 
+                {{-- Mode sub-filter: hides schedules whose mode doesn't
+                     match (vs the coverage filter above which only dims
+                     non-matching rows). --}}
+                <span class="ml-2 text-sm font-medium text-zinc-500">{{ __('Mode') }}:</span>
+                <flux:button.group>
+                    <flux:button
+                        wire:click="$set('modeFilter', 'any')"
+                        size="sm"
+                        :variant="$modeFilter === 'any' ? 'primary' : 'ghost'"
+                    >
+                        {{ __('Any') }}
+                    </flux:button>
+                    <flux:button
+                        wire:click="$set('modeFilter', 'presential')"
+                        size="sm"
+                        :variant="$modeFilter === 'presential' ? 'primary' : 'ghost'"
+                    >
+                        {{ __('At the church') }}
+                    </flux:button>
+                    <flux:button
+                        wire:click="$set('modeFilter', 'home')"
+                        size="sm"
+                        :variant="$modeFilter === 'home' ? 'primary' : 'ghost'"
+                    >
+                        {{ __('From home') }}
+                    </flux:button>
+                </flux:button.group>
+
+                {{-- The "Specific member" picker is the widest control on
+                     this row, so it lives at the end where it can wrap on a
+                     fresh line without elbowing the mode buttons. --}}
                 @if ($coverageFilter === 'user')
                     <flux:select wire:model.live="userFilterId" :placeholder="__('Pick a user…')" class="min-w-48">
                         <option value="">{{ __('— Select —') }}</option>
@@ -128,18 +178,30 @@
             {{-- Slot list --}}
             @php
                 $slots = $this->daySlots;
+                // Apply the mode filter BEFORE rendering. Skipping rows
+                // mid-loop with @continue shrinks a keyed @foreach and
+                // crashes Livewire's morph (`Cannot read properties of null
+                // (reading 'before')` on the next interaction). Filtering
+                // up-front keeps the keyed list stable.
+                if ($modeFilter !== 'any') {
+                    $slots = $slots->where('mode.value', $modeFilter)->values();
+                }
                 $mine = $this->mySignups;
                 $myId = auth()->id();
+                $myPersonId = auth()->user()?->effectivePerson()?->id;
             @endphp
 
             @if ($slots->isEmpty())
-                <flux:text class="text-zinc-500">{{ __('No prayer slots scheduled for this day.') }}</flux:text>
+                <flux:text class="text-zinc-500">{{ __('No prayer schedules available for this day.') }}</flux:text>
             @else
                 <div class="divide-y divide-zinc-100 dark:divide-zinc-800">
                     @foreach ($slots as $slot)
                         @php
+                            // Coverage filter is a SOFT filter — non-matching
+                            // rows still render but at half opacity so the
+                            // user keeps day context.
                             $userIds = $slot->confirmedSignups->pluck('user_id')->all();
-                            $matchesFilter = match ($coverageFilter) {
+                            $matchesCoverage = match ($coverageFilter) {
                                 'mine' => in_array($slot->id, $mine, true),
                                 'user' => $userFilterId && in_array((int) $userFilterId, $userIds, true),
                                 default => true,
@@ -154,7 +216,7 @@
                             wire:key="day-slot-{{ $slot->id }}"
                             @class([
                                 'flex flex-wrap items-start gap-3 py-3',
-                                'opacity-50' => ! $matchesFilter,
+                                'opacity-50' => ! $matchesCoverage,
                             ])
                         >
                             {{-- Time column --}}
@@ -188,26 +250,50 @@
                                 @else
                                     <div class="flex flex-wrap gap-1">
                                         @foreach ($slot->confirmedSignups as $signup)
+                                            @php
+                                                $personName = $signup->person?->name;
+                                                $userName = $signup->user?->name;
+                                                $isProxied = $personName && $userName && $signup->person_id !== $signup->user?->person_id;
+                                                // For confirmation prompts and aria-labels we still need a
+                                                // plain string — fall back to "author → person" assembled
+                                                // by hand so the modal heading reads naturally.
+                                                $plainName = $isProxied
+                                                    ? $userName.' → '.$personName
+                                                    : ($personName ?? $userName ?? '—');
+                                                $isOwn = $signup->person_id && $signup->person_id === $myPersonId;
+                                            @endphp
                                             <span
                                                 wire:key="signup-{{ $signup->id }}"
                                                 @class([
                                                     'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
-                                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $signup->user_id === $myId,
-                                                    'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200' => $coverageFilter === 'user' && $signup->user_id === (int) $userFilterId && $signup->user_id !== $myId,
-                                                    'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => $signup->user_id !== $myId && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
+                                                    'bg-accent/10 text-accent dark:bg-rose-500/15 dark:text-rose-300' => $isOwn,
+                                                    'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200' => $coverageFilter === 'user' && $signup->user_id === (int) $userFilterId && ! $isOwn,
+                                                    'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200' => ! $isOwn && ! ($coverageFilter === 'user' && $signup->user_id === (int) $userFilterId),
                                                 ])
                                             >
-                                                {{ $signup->user?->name ?? '—' }}
-                                                @if ($this->isAdminHere && $signup->user_id !== $myId && ! $isPast)
-                                                    <button
-                                                        type="button"
-                                                        wire:click="removeSignup({{ $signup->id }})"
-                                                        wire:confirm="{{ __('Remove :name from this slot?', ['name' => $signup->user?->name ?? '—']) }}"
-                                                        class="ml-0.5 -mr-1 size-4 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
-                                                        title="{{ __('Remove from slot') }}"
-                                                    >
-                                                        ×
-                                                    </button>
+                                                @if ($isProxied)
+                                                    <span>{{ $userName }}</span>
+                                                    <flux:icon.arrow-right variant="micro" class="size-3 opacity-70" />
+                                                    <span>{{ $personName }}</span>
+                                                @else
+                                                    {{ $personName ?? $userName ?? '—' }}
+                                                @endif
+                                                @if ($this->isAdminHere && ! $isOwn && ! $isPast)
+                                                    <flux:modal.trigger :name="'remove-signup-'.$signup->id">
+                                                        <button
+                                                            type="button"
+                                                            class="ml-0.5 -mr-1 size-4 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
+                                                            title="{{ __('Remove from schedule') }}"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </flux:modal.trigger>
+                                                    <x-confirm-delete
+                                                        :name="'remove-signup-'.$signup->id"
+                                                        :heading="__('Remove :name from this schedule?', ['name' => $plainName])"
+                                                        :confirmLabel="__('Remove')"
+                                                        action="removeSignup({{ $signup->id }})"
+                                                    />
                                                 @endif
                                             </span>
                                         @endforeach
@@ -221,7 +307,7 @@
                                             class="min-w-40"
                                             size="sm"
                                         >
-                                            <option value="">{{ __('Add a member to this slot…') }}</option>
+                                            <option value="">{{ __('Add a member to this schedule…') }}</option>
                                             @foreach ($this->attachableUsers as $u)
                                                 @if (! in_array($u->id, $userIds, true))
                                                     <option value="{{ $u->id }}">{{ $u->name }}</option>
@@ -250,7 +336,7 @@
                                     <flux:badge color="zinc">{{ __('Full') }}</flux:badge>
                                 @else
                                     <flux:button size="sm" variant="primary" wire:click="join({{ $slot->id }})">
-                                        {{ __('Take this slot') }}
+                                        {{ __('Take this schedule') }}
                                     </flux:button>
                                 @endif
                             </div>
@@ -260,4 +346,107 @@
             @endif
         </section>
     @endif
+
+    {{-- ─── Bulk-signup modal ──────────────────────────────────────────── --}}
+    <flux:modal wire:model.self="showBulkModal" class="md:max-w-lg">
+        <form wire:submit="applyBulk" class="space-y-4">
+            <flux:heading size="lg">{{ __('Sign up for a date range') }}</flux:heading>
+            <flux:text class="text-sm text-zinc-500">
+                {{ __('Pick a mode and a start time, and we\'ll sign you up for every matching schedule between the two dates. Existing or full schedules are skipped — you\'ll see a report afterwards.') }}
+            </flux:text>
+
+            <flux:select wire:model="bulkMode" :label="__('Mode')" required>
+                @foreach (\App\Enums\LocationMode::cases() as $m)
+                    <option value="{{ $m->value }}">{{ $m->label() }}</option>
+                @endforeach
+            </flux:select>
+
+            <flux:time-picker wire:model="bulkStartTime" :label="__('Start time')" required />
+
+            <div class="grid gap-4 sm:grid-cols-2">
+                <flux:date-picker
+                    wire:model="bulkFromDate"
+                    :label="__('From')"
+                    type="input"
+                    selectable-header
+                    required
+                    :min="$this->campaign?->start_date?->format('Y-m-d')"
+                    :max="$this->campaign?->end_date?->format('Y-m-d')"
+                />
+                <flux:date-picker
+                    wire:model="bulkToDate"
+                    :label="__('To')"
+                    type="input"
+                    selectable-header
+                    required
+                    :min="$this->campaign?->start_date?->format('Y-m-d')"
+                    :max="$this->campaign?->end_date?->format('Y-m-d')"
+                />
+            </div>
+
+            @error('bulk')
+                <flux:text class="text-sm text-red-600 dark:text-red-400">{{ $message }}</flux:text>
+            @enderror
+
+            <div class="flex justify-end gap-2 pt-2">
+                <flux:button type="button" variant="ghost" x-on:click="$wire.showBulkModal = false">
+                    {{ __('Cancel') }}
+                </flux:button>
+                <flux:button
+                    type="submit"
+                    variant="primary"
+                    icon="check"
+                    wire:loading.attr="disabled"
+                    wire:target="applyBulk"
+                >
+                    {{ __('Sign me up') }}
+                </flux:button>
+            </div>
+        </form>
+    </flux:modal>
+
+    {{-- ─── Report modal ───────────────────────────────────────────────── --}}
+    <flux:modal wire:model.self="showReportModal" class="md:max-w-lg">
+        <div class="space-y-4">
+            <flux:heading size="lg">{{ __('Bulk sign-up report') }}</flux:heading>
+
+            <div class="rounded-md bg-emerald-50 px-3 py-2 text-sm text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200">
+                {{ trans_choice('{0} No new sign-ups created.|{1} 1 sign-up created.|[2,*] :count sign-ups created.', $bulkReport['created'], ['count' => $bulkReport['created']]) }}
+            </div>
+
+            @if (! empty($bulkReport['skipped']))
+                <div>
+                    <flux:heading size="sm">{{ __('Skipped dates') }}</flux:heading>
+                    <ul class="mt-2 max-h-72 space-y-1 overflow-y-auto rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
+                        @foreach ($bulkReport['skipped'] as $row)
+                            @php
+                                $reason = match ($row['reason']) {
+                                    'not_found' => __('No schedule for this date and mode'),
+                                    'full' => __('Schedule is full'),
+                                    'already' => __('Already signed up'),
+                                    'past' => __('Date is in the past'),
+                                    'out_of_window' => __('Outside the campaign window'),
+                                    default => __('Skipped'),
+                                };
+                            @endphp
+                            <li class="flex items-center justify-between gap-2 px-1 py-1">
+                                <span class="font-medium">{{ \Illuminate\Support\Carbon::parse($row['date'])->isoFormat('ddd, LL') }}</span>
+                                <flux:badge color="zinc" size="sm">{{ $reason }}</flux:badge>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="flex justify-end pt-2">
+                <flux:button
+                    type="button"
+                    variant="primary"
+                    x-on:click="$wire.showReportModal = false"
+                >
+                    {{ __('Close') }}
+                </flux:button>
+            </div>
+        </div>
+    </flux:modal>
 </div>

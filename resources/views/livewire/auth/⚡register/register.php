@@ -1,6 +1,9 @@
 <?php
 
 use App\Enums\AppLocale;
+use App\Enums\Country;
+use App\Enums\Gender;
+use App\Enums\MaritalStatus;
 use App\Enums\PersonContactType;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
@@ -9,6 +12,7 @@ use App\Models\District;
 use App\Models\EcclesiasticalRegion;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\TaxIdValidator;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -21,7 +25,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new
-#[Layout('layouts.guest')]
+#[Layout('layouts.guest', ['maxWidth' => 'max-w-2xl'])]
 class extends Component
 {
     public string $name = '';
@@ -44,7 +48,16 @@ class extends Component
 
     public string $phone = '';
 
+    public string $phone_country = 'BR';
+
     public string $birthdate = '';
+
+    public string $gender = '';
+
+    public string $marital_status = '';
+
+    /** Always treated as a CPF on this form — the type isn't shown to the user. */
+    public string $tax_id = '';
 
     public function mount(): void
     {
@@ -132,19 +145,36 @@ class extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'nature' => ['required', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, PersonNature::cases()))],
+            'nature' => ['required', 'string', 'in:'.implode(',', array_keys(PersonNature::individualOptions()))],
             'region_id' => ['nullable', 'integer', 'exists:ecclesiastical_regions,id'],
             'district_id' => ['nullable', 'integer', 'exists:districts,id'],
             'church_id' => ['nullable', 'integer', 'exists:churches,id'],
             'locale' => ['required', 'string', 'in:'.implode(',', AppLocale::values())],
             'phone' => ['nullable', 'string', 'max:32'],
+            'phone_country' => ['required', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, Country::cases()))],
             'birthdate' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, Gender::cases()))],
+            'marital_status' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, MaritalStatus::cases()))],
+            'tax_id' => ['nullable', 'string', 'max:32'],
         ]);
 
-        foreach (['phone', 'birthdate', 'church_id'] as $nullable) {
+        foreach (['phone', 'birthdate', 'church_id', 'gender', 'marital_status', 'tax_id'] as $nullable) {
             if (($validated[$nullable] ?? null) === '') {
                 $validated[$nullable] = null;
             }
+        }
+
+        // Tax ID is always a CPF on the public register form. Strip the mask
+        // (dots/hyphens) to the 11 raw digits and reject invalid checksums up
+        // front so the user fixes the typo here, not after their account exists.
+        if (! empty($validated['tax_id'])) {
+            $digits = TaxIdValidator::normalize($validated['tax_id']);
+            if (! TaxIdValidator::validateCpf($digits)) {
+                $this->addError('tax_id', __('The :type number is invalid.', ['type' => 'CPF']));
+
+                return;
+            }
+            $validated['tax_id'] = $digits;
         }
 
         $user = DB::transaction(function () use ($validated) {
@@ -152,14 +182,20 @@ class extends Component
                 'person_type' => PersonType::Individual->value,
                 'name' => $validated['name'],
                 'birthdate' => $validated['birthdate'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'marital_status' => $validated['marital_status'] ?? null,
+                'tax_id' => $validated['tax_id'] ?? null,
+                'tax_id_type' => ! empty($validated['tax_id']) ? 'cpf' : null,
                 'natures' => [$validated['nature']],
                 'managing_church_id' => $validated['church_id'] ?? null,
             ]);
 
             if (! empty($validated['phone'])) {
+                $country = Country::from($validated['phone_country']);
                 $person->contacts()->create([
-                    'type' => PersonContactType::Phone->value,
-                    'value' => $validated['phone'],
+                    'type' => PersonContactType::Mobile->value,
+                    'value' => '+'.$country->phoneCode().' '.$validated['phone'],
+                    'country' => $country->value,
                     'is_primary' => true,
                 ]);
             }

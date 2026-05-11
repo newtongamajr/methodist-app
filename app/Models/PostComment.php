@@ -17,6 +17,7 @@ class PostComment extends Model
     protected $fillable = [
         'post_id',
         'user_id',
+        'person_id',
         'body',
         'status',
         'approved_by',
@@ -39,6 +40,11 @@ class PostComment extends Model
     public function author(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
     }
 
     public function approver(): BelongsTo

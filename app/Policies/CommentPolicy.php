@@ -24,11 +24,28 @@ class CommentPolicy
             return false;
         }
 
-        $post = $comment->post;
+        $post = $comment->post->loadMissing('scopes');
 
-        if ($post->church_id) {
-            return $user->person?->managing_church_id === $post->church_id
-                || $user->canManageChurch($post->church_id);
+        // National posts can only be moderated by global moderators (above).
+        // For scoped posts: a moderator can act if EVERY scope row falls
+        // inside their manageable region/district/church set.
+        $regions = $user->manageableRegionIds();
+        $districts = $user->manageableDistrictIds();
+        $churches = $user->manageableChurchIds();
+
+        foreach ($post->scopes as $s) {
+            if ($s->national_post) {
+                return false;
+            }
+            if ($s->church_id && ! in_array($s->church_id, $churches, true)) {
+                return false;
+            }
+            if (! $s->church_id && $s->district_id && ! in_array($s->district_id, $districts, true)) {
+                return false;
+            }
+            if (! $s->church_id && ! $s->district_id && $s->region_id && ! in_array($s->region_id, $regions, true)) {
+                return false;
+            }
         }
 
         return true;

@@ -13,8 +13,8 @@
         </div>
 
         <flux:select wire:model="nature" :label="__('I am a')">
-            @foreach (\App\Enums\PersonNature::cases() as $type)
-                <option value="{{ $type->value }}">{{ $type->label() }}</option>
+            @foreach (\App\Enums\PersonNature::individualOptions() as $value => $label)
+                <option value="{{ $value }}">{{ $label }}</option>
             @endforeach
         </flux:select>
 
@@ -62,9 +62,69 @@
             @endforeach
         </flux:select>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-            <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
-            <flux:date-picker wire:model="birthdate" :label="__('Birthdate')" />
+        <div
+            class="grid gap-4 sm:grid-cols-6"
+            x-data="{
+                masks: @js(collect(\App\Enums\Country::cases())->mapWithKeys(fn ($c) => [$c->value => $c->mobileMask()])->all()),
+                phoneMask() { return this.masks[$wire.phone_country] ?? ''; },
+            }"
+        >
+            <div class="sm:col-span-2">
+                <flux:select
+                    wire:model.live="phone_country"
+                    variant="listbox"
+                    searchable
+                    :label="__('Country')"
+                    :placeholder="__('Pick a country…')"
+                >
+                    @foreach (\App\Enums\Country::options() as $iso => $name)
+                        <flux:select.option :value="$iso">{{ $name }} (+{{ \App\Enums\Country::from($iso)->phoneCode() }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+            <div class="sm:col-span-2">
+                <flux:input
+                    wire:model="phone"
+                    :label="__('Mobile')"
+                    type="tel"
+                    autocomplete="tel"
+                    x-mask:dynamic="phoneMask()"
+                    x-bind:placeholder="phoneMask()"
+                />
+            </div>
+            <div class="sm:col-span-2">
+                <flux:date-picker
+                    wire:model="birthdate"
+                    :label="__('Birthdate')"
+                    type="input"
+                    selectable-header
+                    :min="now()->subYears(120)->toDateString()"
+                    :max="now()->toDateString()"
+                />
+            </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+            <flux:select wire:model="gender" :label="__('Gender')">
+                <option value="">{{ __('— None —') }}</option>
+                @foreach (\App\Enums\Gender::cases() as $g)
+                    <option value="{{ $g->value }}">{{ $g->label() }}</option>
+                @endforeach
+            </flux:select>
+            <flux:select wire:model="marital_status" :label="__('Marital status')">
+                <option value="">{{ __('— None —') }}</option>
+                @foreach (\App\Enums\MaritalStatus::cases() as $ms)
+                    <option value="{{ $ms->value }}">{{ $ms->label() }}</option>
+                @endforeach
+            </flux:select>
+            <flux:input
+                wire:model="tax_id"
+                :label="__('CPF')"
+                inputmode="numeric"
+                maxlength="14"
+                x-mask="999.999.999-99"
+                placeholder="000.000.000-00"
+            />
         </div>
 
         <flux:select wire:model="locale" :label="__('Language')">

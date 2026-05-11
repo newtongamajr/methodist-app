@@ -15,7 +15,9 @@ new class extends Component
 
     public function mount(int $personId): void
     {
-        abort_unless(auth()->user()?->can('users.manage') || auth()->user()?->can('users.manage.local'), 403);
+        $authUser = auth()->user();
+        $isOwner = $authUser && $personId && $authUser->person_id === $personId;
+        abort_unless($isOwner || $authUser?->can('users.manage') || $authUser?->can('users.manage.local'), 403);
         $this->person = Person::findOrFail($personId);
     }
 

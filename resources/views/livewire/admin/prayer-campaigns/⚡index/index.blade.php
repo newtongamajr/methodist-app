@@ -41,9 +41,19 @@
                                 <flux:tooltip :content="__('Edit')">
                                     <flux:button :href="route('admin.prayer-campaigns.edit', $campaign)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
-                                <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $campaign->id }})" wire:confirm="{{ __('Delete this campaign?') }}" size="sm" variant="ghost" icon="trash" />
+                                <flux:tooltip :content="__('Schedules for this campaign')">
+                                    <flux:button :href="route('admin.prayer-schedules.index', ['campaign' => $campaign->id])" wire:navigate size="sm" variant="ghost" icon="clock" />
                                 </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:modal.trigger :name="'delete-prayer-campaign-'.$campaign->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
+                                </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-prayer-campaign-'.$campaign->id"
+                                    :heading="__('Delete this campaign?')"
+                                    action="delete({{ $campaign->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

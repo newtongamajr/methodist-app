@@ -6,10 +6,14 @@ use App\Models\District;
 use App\Models\EcclesiasticalRegion;
 use App\Models\Person;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 new class extends Component
 {
+    use WithFileUploads;
+
     public PersonForm $form;
 
     public ?int $personId = null;
@@ -18,9 +22,15 @@ new class extends Component
 
     public ?int $district_id = null;
 
+    /** Newly-picked photo waiting to be persisted to the spatie media-library. */
+    #[Validate(['nullable', 'image', 'mimes:jpg,jpeg,png,webp,gif', 'max:10240'])]
+    public $newPhoto = null;
+
     public function mount(?int $personId = null, ?string $natureSeed = null): void
     {
-        abort_unless(auth()->user()?->can('users.manage') || auth()->user()?->can('users.manage.local'), 403);
+        $authUser = auth()->user();
+        $isOwner = $authUser && $personId && $authUser->person_id === $personId;
+        abort_unless($isOwner || $authUser?->can('users.manage') || $authUser?->can('users.manage.local'), 403);
 
         $this->personId = $personId;
 
@@ -144,5 +154,46 @@ new class extends Component
         if ($isCreating) {
             $this->redirect(route('admin.people.edit', $person), navigate: true);
         }
+    }
+
+    /**
+     * Persist the newly-uploaded photo to the Person's `photo` media collection
+     * (singleFile — replaces any existing one). The model's registered
+     * conversions (thumb / sm / md / lg) run automatically.
+     */
+    public function savePhoto(): void
+    {
+        $this->validateOnly('newPhoto');
+
+        if (! $this->newPhoto || ! $this->form->person) {
+            return;
+        }
+
+        $person = $this->form->person;
+        $person->clearMediaCollection('photo');
+        $person->addMedia($this->newPhoto->getRealPath())
+            ->usingFileName('photo.'.$this->newPhoto->getClientOriginalExtension())
+            ->usingName('photo')
+            ->toMediaCollection('photo');
+
+        $this->newPhoto = null;
+        $this->form->person->refresh();
+        $this->dispatch('person-photo-updated');
+    }
+
+    public function removePhoto(): void
+    {
+        if (! $this->form->person) {
+            return;
+        }
+        $this->form->person->clearMediaCollection('photo');
+        $this->form->person->refresh();
+        $this->dispatch('person-photo-updated');
+    }
+
+    #[Computed]
+    public function photoUrl(): ?string
+    {
+        return $this->form->person?->photoUrl('md');
     }
 };

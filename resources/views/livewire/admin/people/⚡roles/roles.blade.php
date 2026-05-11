@@ -62,12 +62,27 @@
                                 </flux:tooltip>
                                 @if (! $a->ended_at)
                                     <flux:tooltip :content="__('End today')">
-                                        <flux:button wire:click="endAssignment({{ $a->id }})" wire:confirm="{{ __('End this role today?') }}" size="sm" variant="ghost" icon="x-circle" />
+                                        <flux:modal.trigger :name="'end-role-'.$a->id">
+                                            <flux:button size="sm" variant="ghost" icon="x-circle" />
+                                        </flux:modal.trigger>
                                     </flux:tooltip>
+                                    <x-confirm-delete
+                                        :name="'end-role-'.$a->id"
+                                        :heading="__('End this role today?')"
+                                        :confirmLabel="__('End')"
+                                        action="endAssignment({{ $a->id }})"
+                                    />
                                 @endif
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $a->id }})" wire:confirm="{{ __('Delete this role?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-role-'.$a->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-role-'.$a->id"
+                                    :heading="__('Delete this role?')"
+                                    action="delete({{ $a->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

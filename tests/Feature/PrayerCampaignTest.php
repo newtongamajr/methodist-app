@@ -53,7 +53,7 @@ it('blocks regular users from prayer campaign CRUD', function () {
         ->assertForbidden();
 });
 
-it('refuses a schedule whose date is outside the campaign window', function () {
+it('refuses a schedule whose dates are outside the campaign window', function () {
     $church = Church::factory()->create();
     $manager = User::factory()->create();
     $manager->assignRole('national_admin');
@@ -61,17 +61,20 @@ it('refuses a schedule whose date is outside the campaign window', function () {
 
     $campaign = PrayerCampaign::factory()->range('2026-05-04', '2026-05-24')->create();
 
+    // Create-mode uses the multi-date pillbox (`form.dates`); a date outside
+    // the campaign window is filtered out before persisting and the form
+    // errors on form.dates because the picked set ends up empty.
     Livewire::test('admin.prayer-schedules.editor')
         ->set('form.church_id', $church->id)
         ->set('form.prayer_campaign_id', $campaign->id)
-        ->set('form.date', '2026-04-15') // outside window
+        ->set('form.dates', ['2026-04-15']) // outside window
         ->set('form.start_time', '06:00')
         ->set('form.end_time', '07:00')
         ->set('form.slot_minutes', 60)
         ->set('form.capacity_per_slot', 5)
         ->set('form.mode', 'presential')
         ->call('save')
-        ->assertHasErrors('form.date');
+        ->assertHasErrors('form.dates');
 
     expect(PrayerSchedule::query()->count())->toBe(0);
 });

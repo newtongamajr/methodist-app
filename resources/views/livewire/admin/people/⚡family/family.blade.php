@@ -20,8 +20,13 @@
 
             <flux:table.rows>
                 @foreach ($this->relationships as $r)
-                    <flux:table.row :key="'rel-'.$r['id'].'-'.($r['editable'] ? 'f' : 'r')">
-                        <flux:table.cell variant="strong">{{ $r['type']?->label() ?? '—' }}</flux:table.cell>
+                    <flux:table.row :key="'rel-'.$r['id']">
+                        <flux:table.cell variant="strong">
+                            {{ $r['type_label'] }}
+                            @if ($r['derived'])
+                                <flux:badge color="zinc" size="sm" class="ml-1">{{ __('Derived') }}</flux:badge>
+                            @endif
+                        </flux:table.cell>
                         <flux:table.cell>
                             @if ($r['other'])
                                 <a href="{{ route('admin.people.edit', $r['other']->id) }}" wire:navigate class="text-accent hover:underline">
@@ -31,9 +36,17 @@
                                 —
                             @endif
                         </flux:table.cell>
-                        <flux:table.cell>{{ $r['started_at']?->isoFormat('LL') ?? '—' }}</flux:table.cell>
                         <flux:table.cell>
-                            @if ($r['ended_at'])
+                            @if ($r['derived'])
+                                —
+                            @else
+                                {{ $r['started_at']?->isoFormat('LL') ?? '—' }}
+                            @endif
+                        </flux:table.cell>
+                        <flux:table.cell>
+                            @if ($r['derived'])
+                                —
+                            @elseif ($r['ended_at'])
                                 {{ $r['ended_at']->isoFormat('LL') }}
                             @else
                                 <flux:badge color="emerald">{{ __('Active') }}</flux:badge>
@@ -41,12 +54,35 @@
                         </flux:table.cell>
                         <flux:table.cell align="end">
                             <div class="inline-flex items-center gap-1">
+                                @if ($r['can_act_as'] ?? false)
+                                    <flux:tooltip :content="__('Act as :name', ['name' => $r['other']->name])">
+                                        <flux:button
+                                            wire:click="actAs({{ $r['other']->id }})"
+                                            size="sm"
+                                            variant="primary"
+                                            icon="user"
+                                        >
+                                            {{ __('Act as') }}
+                                        </flux:button>
+                                    </flux:tooltip>
+                                @endif
                                 @if ($r['editable'])
                                     <flux:tooltip :content="__('Edit')">
-                                        <flux:button wire:click="openEdit({{ $r['id'] }})" size="sm" variant="ghost" icon="pencil-square" />
+                                        <flux:button wire:click="openEdit({{ $r['db_id'] }})" size="sm" variant="ghost" icon="pencil-square" />
                                     </flux:tooltip>
                                     <flux:tooltip :content="__('Delete')">
-                                        <flux:button wire:click="delete({{ $r['id'] }})" wire:confirm="{{ __('Delete this relationship?') }}" size="sm" variant="ghost" icon="trash" />
+                                        <flux:modal.trigger :name="'delete-relationship-'.$r['db_id']">
+                                            <flux:button size="sm" variant="ghost" icon="trash" />
+                                        </flux:modal.trigger>
+                                    </flux:tooltip>
+                                    <x-confirm-delete
+                                        :name="'delete-relationship-'.$r['db_id']"
+                                        :heading="__('Delete this relationship?')"
+                                        action="delete({{ $r['db_id'] }})"
+                                    />
+                                @elseif ($r['derived'])
+                                    <flux:tooltip :content="__('Inferred from family graph — not directly editable')">
+                                        <flux:icon.information-circle class="size-4 text-zinc-400" />
                                     </flux:tooltip>
                                 @else
                                     <flux:tooltip :content="__('Defined from the other person — edit there')">
@@ -84,8 +120,18 @@
             @endif
 
             <div class="grid gap-4 sm:grid-cols-2">
-                <flux:date-picker wire:model="form.started_at" :label="__('Started at')" />
-                <flux:date-picker wire:model="form.ended_at" :label="__('Ended at')" />
+                <flux:date-picker
+                    wire:model="form.started_at"
+                    :label="__('Started at')"
+                    type="input"
+                    selectable-header
+                />
+                <flux:date-picker
+                    wire:model="form.ended_at"
+                    :label="__('Ended at')"
+                    type="input"
+                    selectable-header
+                />
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
