@@ -7,7 +7,7 @@ namespace App\Livewire\Forms;
 use App\Enums\FastingRestriction;
 use App\Enums\FastingType;
 use App\Models\FastingCampaign;
-use Illuminate\Support\Str;
+use App\Support\GenerateUniqueSlug;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -65,13 +65,10 @@ class FastingCampaignForm extends Form
         $data = $this->validate();
 
         if (empty($data['slug'])) {
-            $base = Str::slug($data['name']) ?: 'campaign-'.Str::lower(Str::random(6));
-            $slug = $base;
-            $i = 1;
-            while (FastingCampaign::query()->where('slug', $slug)->where('id', '!=', $this->campaign?->id ?? 0)->exists()) {
-                $slug = $base.'-'.(++$i);
-            }
-            $data['slug'] = $slug;
+            $data['slug'] = (new GenerateUniqueSlug)(
+                $data['name'],
+                FastingCampaign::query()->whereKeyNot($this->campaign?->id ?? 0),
+            );
         }
 
         if ($this->campaign) {

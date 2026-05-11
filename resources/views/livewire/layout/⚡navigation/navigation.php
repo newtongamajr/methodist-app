@@ -4,12 +4,17 @@ use App\Enums\AppAppearance;
 use App\Enums\AppLocale;
 use App\Http\Middleware\SetLocale;
 use App\Livewire\Actions\Logout;
+use App\Models\Church;
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Support\Facades\App;
 use Livewire\Attributes\Computed;
 use Livewire\Component;
 
 new class extends Component
 {
+    public string $commandSearch = '';
+
     public function logout(Logout $logout): void
     {
         $logout();
@@ -26,7 +31,7 @@ new class extends Component
         session(['appearance' => $appearance]);
 
         if ($user = auth()->user()) {
-            $user->forceFill(['appearance' => $appearance])->save();
+            $user->update(['appearance' => $appearance]);
         }
     }
 
@@ -40,7 +45,7 @@ new class extends Component
         App::setLocale($locale);
 
         if ($user = auth()->user()) {
-            $user->forceFill(['locale' => $locale])->save();
+            $user->update(['locale' => $locale]);
         }
 
         $this->redirect(request()->header('Referer') ?: '/', navigate: false);
@@ -84,5 +89,84 @@ new class extends Component
                 },
             ])
             ->all();
+    }
+
+    /**
+     * Server-side command palette search results, grouped by entity. Permission-
+     * gated and scoped to the actor's manageable churches for non-supers. Each
+     * row carries an `edit_url` so the Blade can navigate without further logic.
+     *
+     * @return array{posts: \Illuminate\Support\Collection, churches: \Illuminate\Support\Collection, people: \Illuminate\Support\Collection}
+     */
+    #[Computed]
+    public function commandResults(): array
+    {
+        $empty = ['posts' => collect(), 'churches' => collect(), 'people' => collect()];
+        $user = auth()->user();
+        $needle = trim($this->commandSearch);
+
+        if (! $user || mb_strlen($needle) < 2) {
+            return $empty;
+        }
+
+        $term = '%'.addcslashes($needle, '%_\\').'%';
+
+        $posts = $user->can('posts.create.local')
+            ? Post::query()
+                ->where('title', 'like', $term)
+                ->orderByDesc('updated_at')
+                ->limit(5)
+                ->get(['id', 'title'])
+                ->map(fn (Post $p) => [
+                    'id' => $p->id,
+                    'label' => $p->title,
+                    'edit_url' => route('admin.posts.edit', $p),
+                ])
+            : collect();
+
+        $churches = $user->can('church.manage')
+            ? Church::query()
+                ->where('name', 'like', $term)
+                ->orderBy('name')
+                ->limit(5)
+                ->get(['id', 'name'])
+                ->map(fn (Church $c) => [
+                    'id' => $c->id,
+                    'label' => $c->name,
+                    'edit_url' => route('admin.churches.edit', $c),
+                ])
+            : collect();
+
+        $people = collect();
+        if ($user->can('users.manage') || $user->can('users.manage.local')) {
+            $isSuper = $user->can('users.manage');
+            $allowed = $user->manageableChurchIds();
+
+            $query = User::query()
+                ->with('roles:id,name')
+                ->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('email', 'like', $term))
+                ->orderBy('name')
+                ->limit(8);
+
+            if (! $isSuper) {
+                $query->whereHas('churches', fn ($q) => $q->whereIn('churches.id', $allowed));
+            }
+
+            $people = $query->get(['id', 'name', 'email'])->map(function (User $u) {
+                $isAdmin = $u->roles->whereIn('name', ['global_manager', 'local_manager'])->isNotEmpty();
+
+                return [
+                    'id' => $u->id,
+                    'label' => $u->name,
+                    'sublabel' => $u->email,
+                    'is_admin' => $isAdmin,
+                    'edit_url' => $isAdmin
+                        ? route('admin.users.edit', $u)
+                        : route('admin.members.edit', $u),
+                ];
+            });
+        }
+
+        return ['posts' => $posts, 'churches' => $churches, 'people' => $people];
     }
 };

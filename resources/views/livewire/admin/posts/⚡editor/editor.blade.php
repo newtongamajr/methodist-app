@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.posts.index')" wire:navigate>{{ __('Posts') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->post ? __('Edit post') : __('New post') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->post ? __('Edit post') : __('New post') }}
@@ -7,9 +12,7 @@
     </div>
 
     @if (session('status'))
-        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline :heading="session('status')" />
     @endif
 
     <form wire:submit="save" class="space-y-6">
@@ -21,7 +24,7 @@
             <flux:error name="form.excerpt" />
         </flux:field>
 
-        <div>
+        <flux:field>
             <flux:label>{{ __('Body') }}</flux:label>
             <div wire:ignore>
                 <textarea
@@ -31,8 +34,8 @@
                     class="mt-2"
                 >{!! $form->body !!}</textarea>
             </div>
-            @error('form.body') <flux:text class="mt-1 text-rose-600">{{ $message }}</flux:text> @enderror
-        </div>
+            <flux:error name="form.body" />
+        </flux:field>
 
         <div class="grid gap-4 sm:grid-cols-3">
             <flux:select wire:model.live="form.scope" :label="__('Scope')">
@@ -82,7 +85,7 @@
                     :text="__('JPG, PNG or WebP up to 10 MB')"
                 />
             </flux:file-upload>
-            @error('newCover') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newCover" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -92,14 +95,16 @@
                     @foreach ($images as $media)
                         <div wire:key="img-{{ $media->id }}" class="group relative">
                             <img src="{{ $media->getUrl('thumb') ?: $media->getUrl() }}" alt="" class="h-28 w-full rounded-md object-cover">
-                            <flux:button
-                                type="button"
-                                variant="danger"
-                                icon="trash"
-                                size="sm"
-                                class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
-                                wire:click="removeMedia({{ $media->id }})"
-                            />
+                            <flux:tooltip :content="__('Remove image')">
+                                <flux:button
+                                    type="button"
+                                    variant="danger"
+                                    icon="trash"
+                                    size="sm"
+                                    class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
+                                    wire:click="removeMedia({{ $media->id }})"
+                                />
+                            </flux:tooltip>
                         </div>
                     @endforeach
                 </div>
@@ -112,7 +117,7 @@
                     :text="__('Multiple JPG, PNG, WebP or GIF, up to 10 MB each')"
                 />
             </flux:file-upload>
-            @error('newImages.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newImages.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -126,7 +131,9 @@
                                 <span>{{ $media->file_name }}</span>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove video')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -139,7 +146,7 @@
                     :text="__('MP4, WebM, OGG or MOV, up to 100 MB each')"
                 />
             </flux:file-upload>
-            @error('newVideos.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newVideos.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -153,7 +160,9 @@
                                 <span>{{ $media->file_name }}</span>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove audio')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -166,7 +175,7 @@
                     :text="__('MP3, M4A, OGG, WAV or WebM, up to 50 MB each')"
                 />
             </flux:file-upload>
-            @error('newAudios.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newAudios.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -180,7 +189,9 @@
                                 <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" class="hover:underline">{{ $media->file_name }}</a>
                                 <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            <flux:tooltip :content="__('Remove document')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -193,7 +204,7 @@
                     :text="__('PDF only, up to 20 MB each')"
                 />
             </flux:file-upload>
-            @error('newDocuments.*') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newDocuments.*" />
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -201,9 +212,7 @@
             <flux:text class="text-sm text-zinc-500">{{ __('Paste a YouTube, Spotify or Vimeo link. Title and thumbnail are fetched automatically.') }}</flux:text>
 
             @if (session('embed-status'))
-                <div class="rounded-md bg-amber-50 p-2 text-sm text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                    {{ session('embed-status') }}
-                </div>
+                <flux:callout variant="warning" icon="information-circle" inline :heading="session('embed-status')" />
             @endif
 
             @if ($embeds->isNotEmpty())
@@ -221,7 +230,9 @@
                                 <div class="truncate font-medium">{{ $embed->title ?? $embed->url }}</div>
                                 <div class="truncate text-xs text-zinc-500">{{ $embed->provider->label() }} — {{ $embed->url }}</div>
                             </div>
-                            <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeEmbed({{ $embed->id }})" />
+                            <flux:tooltip :content="__('Remove embed')">
+                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeEmbed({{ $embed->id }})" />
+                            </flux:tooltip>
                         </li>
                     @endforeach
                 </ul>
@@ -239,7 +250,7 @@
                 </flux:button>
             </div>
             <div wire:loading wire:target="addEmbed" class="text-xs text-zinc-500">{{ __('Fetching link metadata…') }}</div>
-            @error('newEmbedUrl') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            <flux:error name="newEmbedUrl" />
         </div>
 
         <div class="flex justify-end gap-2">

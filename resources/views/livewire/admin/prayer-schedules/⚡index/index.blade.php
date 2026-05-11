@@ -29,10 +29,10 @@
     @else
         <flux:table :paginate="$this->schedules">
             <flux:table.columns>
-                <flux:table.column>{{ __('Date') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'date'" :direction="$sortDir" wire:click="sort('date')">{{ __('Date') }}</flux:table.column>
                 <flux:table.column>{{ __('Window') }}</flux:table.column>
-                <flux:table.column>{{ __('Mode') }}</flux:table.column>
-                <flux:table.column>{{ __('Slots') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'mode'" :direction="$sortDir" wire:click="sort('mode')">{{ __('Mode') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'slots_count'" :direction="$sortDir" wire:click="sort('slots_count')">{{ __('Slots') }}</flux:table.column>
                 <flux:table.column>{{ __('Campaign') }}</flux:table.column>
                 <flux:table.column>{{ __('Church') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
@@ -41,11 +41,7 @@
             <flux:table.rows>
                 @foreach ($this->schedules as $schedule)
                     <flux:table.row :key="'sch-'.$schedule->id">
-                        <flux:table.cell variant="strong">
-                            <a href="{{ route('admin.prayer-schedules.edit', $schedule) }}" class="hover:underline" wire:navigate>
-                                {{ $schedule->date->isoFormat('LL') }}
-                            </a>
-                        </flux:table.cell>
+                        <flux:table.cell variant="strong">{{ $schedule->date->isoFormat('LL') }}</flux:table.cell>
                         <flux:table.cell>{{ \Illuminate\Support\Str::of($schedule->start_time)->limit(5, '') }} – {{ \Illuminate\Support\Str::of($schedule->end_time)->limit(5, '') }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge :color="$schedule->mode->value === 'presential' ? 'sky' : 'zinc'">
@@ -62,9 +58,14 @@
                         </flux:table.cell>
                         <flux:table.cell>{{ $schedule->church?->name }}</flux:table.cell>
                         <flux:table.cell align="end">
-                            <flux:tooltip :content="__('Delete')">
-                                <flux:button wire:click="delete({{ $schedule->id }})" wire:confirm="{{ __('Delete this schedule?') }}" size="sm" variant="ghost" icon="trash" />
-                            </flux:tooltip>
+                            <div class="inline-flex items-center gap-1">
+                                <flux:tooltip :content="__('Edit')">
+                                    <flux:button :href="route('admin.prayer-schedules.edit', $schedule)" wire:navigate size="sm" variant="ghost" icon="pencil-square" />
+                                </flux:tooltip>
+                                <flux:tooltip :content="__('Delete')">
+                                    <flux:button wire:click="delete({{ $schedule->id }})" wire:confirm="{{ __('Delete this schedule?') }}" size="sm" variant="ghost" icon="trash" />
+                                </flux:tooltip>
+                            </div>
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach

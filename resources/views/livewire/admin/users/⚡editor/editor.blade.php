@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.users.index')" wire:navigate>{{ __('Administrators') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->user ? __('Edit administrator') : __('New administrator') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->user ? __('Edit administrator') : __('New administrator') }}
@@ -7,9 +12,7 @@
     </div>
 
     @if (session('status'))
-        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline :heading="session('status')" />
     @endif
 
     <form wire:submit="save" class="space-y-5">
@@ -28,11 +31,11 @@
             />
         </div>
 
-        <section class="space-y-3">
+        <flux:field>
             <flux:label>{{ __('Churches this user can administer') }}</flux:label>
-            <flux:text class="text-sm text-zinc-500">
+            <flux:description>
                 {{ __('Tick every church the user should manage. The primary one becomes their default context after sign-in.') }}
-            </flux:text>
+            </flux:description>
             <div class="grid gap-2 sm:grid-cols-2">
                 @foreach ($this->selectableChurches as $church)
                     <label wire:key="user-edit-church-{{ $church['id'] }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
@@ -40,7 +43,7 @@
                             type="checkbox"
                             value="{{ $church['id'] }}"
                             wire:model.live="form.church_ids"
-                            class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]"
+                            class="rounded-sm text-accent focus:ring-accent"
                         >
                         <span class="flex-1">{{ $church['name'] }}</span>
                         <input
@@ -49,14 +52,14 @@
                             value="{{ $church['id'] }}"
                             wire:model="form.primary_church_id"
                             @disabled(! in_array($church['id'], $form->church_ids, true))
-                            class="text-[#c8202f]"
+                            class="text-accent"
                             title="{{ __('Mark as primary') }}"
                         >
                     </label>
                 @endforeach
             </div>
-            @error('form.church_ids') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
-        </section>
+            <flux:error name="form.church_ids" />
+        </flux:field>
 
         @if ($this->isSuper)
             <flux:select wire:model="form.role" :label="__('Role')" required>

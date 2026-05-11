@@ -1,6 +1,8 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
+use App\Models\Pastor;
 use App\Models\PastorAssignment;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -11,6 +13,8 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
+
     public Church $church;
 
     #[Url(as: 'f')]
@@ -20,6 +24,16 @@ class extends Component
     {
         abort_unless(auth()->user()?->can('church.manage'), 403);
         $this->church = Church::findOrFail($churchId);
+    }
+
+    protected function sortableColumns(): array
+    {
+        return ['pastor', 'role', 'start_date', 'end_date'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'start_date';
     }
 
     #[Computed]
@@ -39,10 +53,13 @@ class extends Component
             $q->whereNotNull('start_date')->where('start_date', '>', $today);
         }
 
-        return $q
-            ->orderByDesc('start_date')
-            ->orderBy('display_order')
-            ->get();
+        $orderColumn = match ($this->sortBy) {
+            'pastor' => Pastor::query()->select('name')->whereColumn('pastors.id', 'pastor_assignments.pastor_id'),
+            default => $this->sortBy,
+        };
+        $q->orderBy($orderColumn, $this->sortDir)->orderBy('display_order');
+
+        return $q->get();
     }
 
     public function endAssignment(int $id): void

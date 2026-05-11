@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use App\Models\User;
 use Livewire\Attributes\Computed;
@@ -12,6 +13,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'q')]
@@ -35,6 +37,16 @@ class extends Component
     public function updatingChurchFilter(): void { $this->resetPage(); }
     public function updatingMemberTypeFilter(): void { $this->resetPage(); }
 
+    protected function sortableColumns(): array
+    {
+        return ['name', 'email', 'member_type'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'name';
+    }
+
     #[Computed]
     public function isSuper(): bool
     {
@@ -54,7 +66,7 @@ class extends Component
     {
         $q = User::query()
             ->with(['primaryChurch', 'churches'])
-            ->orderBy('name')
+            ->orderBy($this->sortBy, $this->sortDir)
             // Members = anyone WITHOUT an admin role.
             ->whereDoesntHave('roles', fn ($qq) => $qq->whereIn('name', ['global_manager', 'local_manager']));
 

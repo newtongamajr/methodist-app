@@ -30,18 +30,14 @@
         @endphp
 
         @if ($images->isNotEmpty())
-            <section
-                x-data="{ open: false, src: '' }"
-                @keydown.escape.window="open = false"
-                class="space-y-3"
-            >
+            <section x-data="{ src: '' }" class="space-y-3">
                 <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     @foreach ($images as $image)
                         <button
                             type="button"
                             wire:key="img-{{ $image->id }}"
-                            @click.prevent="open = true; src = '{{ $image->getUrl() }}'"
-                            class="block overflow-hidden rounded-md focus:outline-hidden focus:ring-2 focus:ring-[#c8202f]"
+                            @click.prevent="src = '{{ $image->getUrl() }}'; $dispatch('modal-show', { name: 'lightbox' })"
+                            class="block overflow-hidden rounded-md focus:outline-hidden focus:ring-2 focus:ring-accent"
                         >
                             <img
                                 src="{{ $image->getUrl('card') ?: $image->getUrl() }}"
@@ -53,23 +49,9 @@
                     @endforeach
                 </div>
 
-                <div
-                    x-cloak
-                    x-show="open"
-                    x-transition.opacity
-                    class="fixed inset-0 z-50 flex items-center justify-center bg-zinc-900/85 p-4"
-                    @click.self="open = false"
-                >
-                    <button
-                        type="button"
-                        class="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-                        @click="open = false"
-                        aria-label="{{ __('Close') }}"
-                    >
-                        <flux:icon.x-mark class="size-5" />
-                    </button>
+                <flux:modal name="lightbox" variant="bare">
                     <img :src="src" alt="" class="max-h-[90vh] max-w-full rounded-lg shadow-2xl">
-                </div>
+                </flux:modal>
             </section>
         @endif
 
@@ -131,12 +113,12 @@
         @endif
 
         @if ($documents->isNotEmpty())
-            <section class="space-y-2" x-data="{ open: false, src: '' }" @keydown.escape.window="open = false">
+            <section class="space-y-2" x-data="{ src: '' }">
                 @foreach ($documents as $doc)
                     <button
                         type="button"
                         wire:key="doc-{{ $doc->id }}"
-                        @click.prevent="open = true; src = '{{ $doc->getUrl() }}'"
+                        @click.prevent="src = '{{ $doc->getUrl() }}'; $dispatch('modal-show', { name: 'doc-viewer' })"
                         class="flex w-full items-center gap-3 rounded-lg border border-zinc-200 p-3 text-left hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
                     >
                         <flux:icon.document-text class="size-6 text-zinc-500" />
@@ -145,25 +127,17 @@
                     </button>
                 @endforeach
 
-                <div
-                    x-cloak
-                    x-show="open"
-                    x-transition.opacity
-                    class="fixed inset-0 z-50 flex flex-col bg-zinc-900/95"
-                >
-                    <div class="flex items-center justify-between p-3">
-                        <span class="text-sm text-zinc-200">{{ __('Document viewer') }}</span>
-                        <button
-                            type="button"
-                            class="rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
-                            @click="open = false; src = ''"
-                            aria-label="{{ __('Close') }}"
-                        >
-                            <flux:icon.x-mark class="size-5" />
-                        </button>
+                <flux:modal name="doc-viewer" class="md:max-w-5xl">
+                    <div class="space-y-3">
+                        <flux:heading size="md">{{ __('Document viewer') }}</flux:heading>
+                        <iframe
+                            :src="src"
+                            class="h-[80vh] w-full rounded-md bg-white"
+                            loading="lazy"
+                            title="{{ __('Document viewer') }}"
+                        ></iframe>
                     </div>
-                    <iframe :src="src" class="flex-1 bg-white" loading="lazy" title="{{ __('Document viewer') }}"></iframe>
-                </div>
+                </flux:modal>
             </section>
         @endif
 
@@ -187,14 +161,14 @@
 
         @auth
             @if (session('comment-status'))
-                <div class="rounded-md bg-emerald-50 p-3 text-sm text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                    {{ session('comment-status') }}
-                </div>
+                <flux:callout variant="success" icon="check-circle" inline :heading="session('comment-status')" />
             @endif
 
             <form wire:submit="submitComment" class="space-y-3">
-                <flux:textarea wire:model="newComment" rows="3" :placeholder="__('Share an encouraging word…')" />
-                @error('newComment') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+                <flux:field>
+                    <flux:textarea wire:model="newComment" rows="3" :placeholder="__('Share an encouraging word…')" />
+                    <flux:error name="newComment" />
+                </flux:field>
 
                 <div class="flex justify-end">
                     <flux:button type="submit" variant="primary" wire:loading.attr="disabled" wire:target="submitComment">{{ __('Send comment') }}</flux:button>
@@ -202,7 +176,7 @@
             </form>
         @else
             <flux:text>
-                <a href="{{ route('login') }}" class="font-medium text-[#c8202f] hover:underline" wire:navigate>{{ __('Sign in') }}</a>
+                <a href="{{ route('login') }}" class="font-medium text-accent hover:underline" wire:navigate>{{ __('Sign in') }}</a>
                 {{ __('to like and comment.') }}
             </flux:text>
         @endauth

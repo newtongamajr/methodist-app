@@ -38,12 +38,11 @@ class Pastor extends Model
             ->withTimestamps();
     }
 
-    public function activeChurches()
+    public function activeChurches(): BelongsToMany
     {
         $today = now();
 
         return $this->churches()
-            ->wherePivot(fn ($q) => null)
             ->where(fn ($q) => $q->whereNull('pastor_assignments.start_date')->orWhere('pastor_assignments.start_date', '<=', $today))
             ->where(fn ($q) => $q->whereNull('pastor_assignments.end_date')->orWhere('pastor_assignments.end_date', '>=', $today));
     }

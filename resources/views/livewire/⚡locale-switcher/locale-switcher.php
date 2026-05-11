@@ -18,7 +18,7 @@ new class extends Component
         App::setLocale($locale);
 
         if ($user = auth()->user()) {
-            $user->forceFill(['locale' => $locale])->save();
+            $user->update(['locale' => $locale]);
         }
 
         $this->redirect(request()->header('Referer') ?: '/', navigate: false);

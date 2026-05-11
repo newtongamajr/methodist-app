@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use App\Models\PrayerCampaign;
 use App\Models\PrayerSchedule;
@@ -13,6 +14,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'church')]
@@ -37,6 +39,16 @@ class extends Component
     public function updatingCampaignFilter(): void
     {
         $this->resetPage();
+    }
+
+    protected function sortableColumns(): array
+    {
+        return ['date', 'mode', 'slots_count'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'date';
     }
 
     #[Computed]
@@ -66,7 +78,7 @@ class extends Component
         $q = PrayerSchedule::query()
             ->with(['church', 'campaign'])
             ->withCount('slots')
-            ->orderByDesc('date')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->orderBy('start_time');
 
         if (! $user->hasRole('global_manager')) {

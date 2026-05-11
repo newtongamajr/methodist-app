@@ -214,7 +214,7 @@ class extends Component
         }
 
         $this->assignToSlot($slotId, $userId);
-        $this->assignChoice[$slotId] = null;
+        unset($this->assignChoice[$slotId]);
     }
 
     public function removeSignup(int $signupId): void

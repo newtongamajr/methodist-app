@@ -27,3 +27,21 @@ function applyAppearance(appearance) {
 }
 
 window.applyAppearance = applyAppearance;
+
+/**
+ * The SetAppearance middleware writes the resolved appearance into a
+ * <meta name="x-appearance"> tag on every request. Livewire's wire:navigate
+ * doesn't re-execute inline <head> scripts, so without this hook the
+ * <html class="dark"> state would drift across SPA transitions whenever
+ * localStorage or Flux Pro's runtime got out of sync with the server.
+ * Re-reading the meta on every livewire:navigated keeps the server
+ * authoritative.
+ */
+function applyFromMeta() {
+    const meta = document.querySelector('meta[name="x-appearance"]');
+    if (meta && meta.content) {
+        applyAppearance(meta.content);
+    }
+}
+
+document.addEventListener('livewire:navigated', applyFromMeta);

@@ -1,4 +1,10 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item :href="route('admin.churches.edit', $church)" wire:navigate>{{ $church->name }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ __('Pastors') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
             <flux:heading size="xl">{{ __('Pastors') }}</flux:heading>
@@ -28,10 +34,10 @@
     @else
         <flux:table>
             <flux:table.columns>
-                <flux:table.column>{{ __('Pastor') }}</flux:table.column>
-                <flux:table.column>{{ __('Role') }}</flux:table.column>
-                <flux:table.column>{{ __('Start') }}</flux:table.column>
-                <flux:table.column>{{ __('End') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'pastor'" :direction="$sortDir" wire:click="sort('pastor')">{{ __('Pastor') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'role'" :direction="$sortDir" wire:click="sort('role')">{{ __('Role') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'start_date'" :direction="$sortDir" wire:click="sort('start_date')">{{ __('Start') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'end_date'" :direction="$sortDir" wire:click="sort('end_date')">{{ __('End') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
 

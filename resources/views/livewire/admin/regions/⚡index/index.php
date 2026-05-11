@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\EcclesiasticalRegion;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -9,9 +10,21 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('church.manage'), 403);
+    }
+
+    protected function sortableColumns(): array
+    {
+        return ['display_order', 'code', 'name', 'kind', 'churches_count'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'display_order';
     }
 
     #[Computed]
@@ -19,7 +32,7 @@ class extends Component
     {
         return EcclesiasticalRegion::query()
             ->withCount('churches')
-            ->orderBy('display_order')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->orderBy('name')
             ->get();
     }

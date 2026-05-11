@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\PrayerCampaign;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -9,9 +10,21 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
+
     public function mount(): void
     {
         abort_unless(auth()->user()?->can('prayer.schedule.manage'), 403);
+    }
+
+    protected function sortableColumns(): array
+    {
+        return ['name', 'start_date', 'schedules_count', 'is_active'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'start_date';
     }
 
     #[Computed]
@@ -19,7 +32,7 @@ class extends Component
     {
         return PrayerCampaign::query()
             ->withCount('schedules')
-            ->orderByDesc('start_date')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->get();
     }
 

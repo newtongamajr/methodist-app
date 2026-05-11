@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -11,6 +12,7 @@ new
 #[Layout('layouts.app')]
 class extends Component
 {
+    use HasSortableColumns;
     use WithPagination;
 
     #[Url(as: 'q')]
@@ -26,6 +28,16 @@ class extends Component
         $this->resetPage();
     }
 
+    protected function sortableColumns(): array
+    {
+        return ['name', 'type', 'city', 'is_active', 'primary_users_count'];
+    }
+
+    protected function defaultSortBy(): string
+    {
+        return 'name';
+    }
+
     #[Computed]
     public function churches()
     {
@@ -37,7 +49,7 @@ class extends Component
                 $q->where(fn ($qq) => $qq->where('name', 'like', $term)
                     ->orWhere('city', 'like', $term));
             })
-            ->orderBy('name')
+            ->orderBy($this->sortBy, $this->sortDir)
             ->paginate(20);
     }
 

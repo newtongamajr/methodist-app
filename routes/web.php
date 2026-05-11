@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\Route;
 
 // Marketing landing is the home page; the public posts feed lives at /posts.
 Route::livewire('/', 'landing')->name('home');
-Route::livewire('posts', 'posts.index')->name('posts.index');
-Route::livewire('posts/{slug}', 'posts.show')->name('posts.show');
+Route::livewire('posts', 'posts.index')->middleware('throttle:60,1')->name('posts.index');
+Route::livewire('posts/{slug}', 'posts.show')->middleware('throttle:60,1')->name('posts.show');
 
-Route::view('profile', 'profile')
+Route::livewire('profile', 'profile.show')
     ->middleware(['auth'])
     ->name('profile');
 

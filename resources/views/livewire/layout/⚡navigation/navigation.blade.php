@@ -101,6 +101,16 @@
         <flux:spacer />
 
         @auth
+            <flux:tooltip :content="__('Search').' (⌘K)'">
+                <flux:button
+                    size="sm"
+                    variant="ghost"
+                    icon="magnifying-glass"
+                    x-on:click="$dispatch('modal-show', { name: 'command-palette' })"
+                    aria-label="{{ __('Search') }}"
+                />
+            </flux:tooltip>
+
             <livewire:church-context-switcher />
 
             <flux:dropdown align="end">
@@ -241,4 +251,83 @@
             </flux:sidebar.nav>
         @endguest
     </flux:sidebar>
+
+    @auth
+        {{-- Command palette: ⌘K / Ctrl+K opens it from anywhere on the page. --}}
+        <div
+            x-data
+            x-on:keydown.window.k="if ($event.metaKey || $event.ctrlKey) { $event.preventDefault(); $dispatch('modal-show', { name: 'command-palette' }) }"
+        >
+            <flux:modal name="command-palette" class="md:max-w-xl! p-0!">
+                <flux:command>
+                    <flux:command.input wire:model.live.debounce.250ms="commandSearch" :placeholder="__('Search admin pages…')" closable />
+                    <flux:command.items>
+                        @php $results = $this->commandResults; @endphp
+
+                        @if ($results['posts']->isNotEmpty() || $results['churches']->isNotEmpty() || $results['people']->isNotEmpty())
+                            <div class="px-2 pt-1 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Search results') }}</div>
+
+                            @foreach ($results['posts'] as $post)
+                                <flux:command.item wire:key="cmd-post-{{ $post['id'] }}" icon="document-text" x-on:click="Livewire.navigate('{{ $post['edit_url'] }}')">
+                                    {{ $post['label'] }}
+                                </flux:command.item>
+                            @endforeach
+
+                            @foreach ($results['churches'] as $church)
+                                <flux:command.item wire:key="cmd-church-{{ $church['id'] }}" icon="building-library" x-on:click="Livewire.navigate('{{ $church['edit_url'] }}')">
+                                    {{ $church['label'] }}
+                                </flux:command.item>
+                            @endforeach
+
+                            @foreach ($results['people'] as $person)
+                                <flux:command.item wire:key="cmd-person-{{ $person['id'] }}" :icon="$person['is_admin'] ? 'user-group' : 'user'" x-on:click="Livewire.navigate('{{ $person['edit_url'] }}')">
+                                    <span class="flex flex-1 items-center justify-between">
+                                        <span>{{ $person['label'] }}</span>
+                                        <span class="ms-2 text-xs text-zinc-500">{{ $person['sublabel'] }}</span>
+                                    </span>
+                                </flux:command.item>
+                            @endforeach
+                        @endif
+
+                        <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Pages') }}</div>
+                        <flux:command.item icon="newspaper" x-on:click="Livewire.navigate('{{ route('posts.index') }}')">{{ __('Posts') }}</flux:command.item>
+                        <flux:command.item icon="hand-raised" x-on:click="Livewire.navigate('{{ route('prayer.index') }}')">{{ __('Prayer schedule') }}</flux:command.item>
+                        <flux:command.item icon="calendar" x-on:click="Livewire.navigate('{{ route('fasting.index') }}')">{{ __('Fasting calendar') }}</flux:command.item>
+                        <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('profile') }}')">{{ __('Profile') }}</flux:command.item>
+
+                        @if ($hasPostMgmt)
+                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Posts management') }}</div>
+                            @can('posts.create.local')
+                                <flux:command.item icon="document-text" x-on:click="Livewire.navigate('{{ route('admin.posts.index') }}')">{{ __('Posts manager') }}</flux:command.item>
+                            @endcan
+                            @can('comments.moderate')
+                                <flux:command.item icon="chat-bubble-left-right" x-on:click="Livewire.navigate('{{ route('admin.comments.index') }}')">{{ __('Moderate comments') }}</flux:command.item>
+                            @endcan
+                        @endif
+
+                        @if ($hasSettings)
+                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Settings') }}</div>
+                            @can('church.manage')
+                                <flux:command.item icon="building-library" x-on:click="Livewire.navigate('{{ route('admin.churches.index') }}')">{{ __('Churches') }}</flux:command.item>
+                            @endcan
+                            @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                                <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.users.index') }}')">{{ __('Administrators') }}</flux:command.item>
+                                <flux:command.item icon="users" x-on:click="Livewire.navigate('{{ route('admin.members.index') }}')">{{ __('Members') }}</flux:command.item>
+                            @endif
+                            @can('church.manage')
+                                <flux:command.item icon="globe-americas" x-on:click="Livewire.navigate('{{ route('admin.regions.index') }}')">{{ __('Ecclesiastical regions') }}</flux:command.item>
+                            @endcan
+                            @can('prayer.schedule.manage')
+                                <flux:command.item icon="clock" x-on:click="Livewire.navigate('{{ route('admin.prayer-schedules.index') }}')">{{ __('Prayer schedules') }}</flux:command.item>
+                                <flux:command.item icon="megaphone" x-on:click="Livewire.navigate('{{ route('admin.prayer-campaigns.index') }}')">{{ __('Prayer campaigns') }}</flux:command.item>
+                            @endcan
+                            @can('fasting.calendar.manage')
+                                <flux:command.item icon="calendar" x-on:click="Livewire.navigate('{{ route('admin.fasting-campaigns.index') }}')">{{ __('Fasting campaigns') }}</flux:command.item>
+                            @endcan
+                        @endif
+                    </flux:command.items>
+                </flux:command>
+            </flux:modal>
+        </div>
+    @endauth
 </div>

@@ -1,4 +1,9 @@
 <div class="space-y-6">
+    <flux:breadcrumbs>
+        <flux:breadcrumbs.item :href="route('admin.fasting-campaigns.index')" wire:navigate>{{ __('Fasting campaigns') }}</flux:breadcrumbs.item>
+        <flux:breadcrumbs.item>{{ $form->campaign ? __('Edit campaign') : __('New campaign') }}</flux:breadcrumbs.item>
+    </flux:breadcrumbs>
+
     <div class="flex items-center justify-between gap-4">
         <flux:heading size="xl">
             {{ $form->campaign ? __('Edit campaign') : __('New campaign') }}
@@ -7,9 +12,7 @@
     </div>
 
     @if (session('status'))
-        <div class="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-            {{ session('status') }}
-        </div>
+        <flux:callout variant="success" icon="check-circle" inline :heading="session('status')" />
     @endif
 
     <form wire:submit="save" class="space-y-5">
@@ -27,28 +30,20 @@
         </div>
 
         <section class="space-y-3">
-            <flux:label>{{ __('Allowed fasting types') }}</flux:label>
-            <div class="grid grid-cols-2 gap-2">
+            <flux:checkbox.group wire:model="form.types" :label="__('Allowed fasting types')" class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingType::cases() as $t)
-                    <label wire:key="fasting-type-{{ $t->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $t->value }}" wire:model="form.types" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
-                        {{ $t->label() }}
-                    </label>
+                    <flux:checkbox wire:key="fasting-type-{{ $t->value }}" value="{{ $t->value }}" :label="$t->label()" />
                 @endforeach
-            </div>
-            @error('form.types') <flux:text class="text-rose-600">{{ $message }}</flux:text> @enderror
+            </flux:checkbox.group>
+            <flux:error name="form.types" />
         </section>
 
         <section class="space-y-3">
-            <flux:label>{{ __('Allowed restrictions') }}</flux:label>
-            <div class="grid grid-cols-2 gap-2">
+            <flux:checkbox.group wire:model="form.restrictions" :label="__('Allowed restrictions')" class="grid grid-cols-2 gap-2">
                 @foreach (\App\Enums\FastingRestriction::cases() as $r)
-                    <label wire:key="fasting-restriction-{{ $r->value }}" class="flex items-center gap-2 rounded-md border border-zinc-200 p-2 text-sm dark:border-zinc-700">
-                        <input type="checkbox" value="{{ $r->value }}" wire:model="form.restrictions" class="rounded-sm text-[#c8202f] focus:ring-[#c8202f]">
-                        {{ $r->label() }}
-                    </label>
+                    <flux:checkbox wire:key="fasting-restriction-{{ $r->value }}" value="{{ $r->value }}" :label="$r->label()" />
                 @endforeach
-            </div>
+            </flux:checkbox.group>
         </section>
 
         <div class="flex justify-end gap-2">

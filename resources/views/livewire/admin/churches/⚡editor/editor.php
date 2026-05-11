@@ -6,9 +6,9 @@ use App\Livewire\Forms\ChurchForm;
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
 use App\Models\User;
+use App\Support\GenerateUniqueSlug;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -46,9 +46,10 @@ class extends Component
         ])->all();
 
         if (empty($churchData['slug'])) {
-            $churchData['slug'] = Church::query()->where('slug', Str::slug($churchData['name']))->exists()
-                ? Str::slug($churchData['name']).'-'.Str::lower(Str::random(5))
-                : Str::slug($churchData['name']);
+            $churchData['slug'] = (new GenerateUniqueSlug)(
+                $churchData['name'],
+                Church::query()->whereKeyNot($this->form->church?->id ?? 0),
+            );
         }
 
         if ($isCreating) {
