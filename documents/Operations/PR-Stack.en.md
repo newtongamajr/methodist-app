@@ -1,15 +1,17 @@
-# PR stack — code review through Posts audience model
+# PR stack — code review through Alpha-01 baseline
 
-Nineteen stacked PRs ship the entire trajectory from `main` up through
+Twenty stacked PRs ship the entire trajectory from `main` up through
 Phase 8 of the Person Architecture plus the Admin menu reorg, the Admin
 user polish, the Person/profile polish (act-as plumbing for shared
 records, profile parity, contact-aware data), the Pastor-asked prayer
 changes (terminology refresh, multi-date schedule create, /prayer bulk
-sign-up + report, mode filter), and the Posts audience model rewrite
+sign-up + report, mode filter), the Posts audience model rewrite
 (post_scopes table, cropper-backed cover, public list polish, arrow
-attribution) on top. They are stacked (each PR's base is the head of
-the next one down), not parallel, because each builds on its
-predecessor. Trying to merge them out of order will produce conflicts.
+attribution), and the Alpha-01 baseline (migration squash, Redis-pruned
+schema, spatie pivot rename, local Permission model) on top. They are
+stacked (each PR's base is the head of the next one down), not parallel,
+because each builds on its predecessor. Trying to merge them out of
+order will produce conflicts.
 
 ## Merge order (bottom up)
 
@@ -34,8 +36,9 @@ predecessor. Trying to merge them out of order will produce conflicts.
 | 17 | `persons-act-as-and-photos` | `persons-admin-user-polish` | Act-as plumbing for fasting / prayer / posts (`person_id` on the four shared tables, `:author in the name of :person` display); profile parity with People (Identity / Contacts / Addresses / Documents / Family delegate to admin components, gated for the owner); cropper-backed Person photo + avatar→Person mirror; new `Gender` / `BrazilianState` / `Country` enums driving the register form, contact masks, and address state↔country coupling; expanded family-graph derivations (siblings / grandparents / aunts/uncles / nieces/nephews / cousins / parents/children/siblings-in-law / stepparents/stepchildren) with gender-aware labels |
 | 18 | `pastor-asked-changes` | `persons-act-as-and-photos` | Prayer-feature pastor-asked polish: terminology refresh (`slot` → `schedule`; `prayers` → `people of praying` in count contexts) across source and translations; multi-date `PrayerSchedule` create via `<flux:pillbox multiple>` (one row per picked date, `DD/MM/YY` tags); `/prayer` bulk sign-up callout + modal that fan-out a single (mode, start time) across a date range with a localized skip-reason report (`not_found` / `full` / `already` / `past` / `out_of_window`); new Mode hard-filter (Any / At the church / From home) on the day calendar; suggestions list now excludes already-joined slots so clicks aren't idempotent no-ops |
 | 19 | `new-posts-features` | `pastor-asked-changes` | Posts audience model rewrite: drops `posts.scope` + `posts.church_id` for a many-to-one `post_scopes` table (national / region / district / church shapes, OR-visibility); `church_user` becomes the admin-scope source via nullable `region_id` / `district_id` columns (with `User::manageableRegions/Districts/Churches` reading from it); cropper-backed 16:9 cover image with the cropper factored into a generic `imageCropper(config)` Alpine component (also fixes the avatar / Person photo silent-no-op race); admin posts index gets a 16:9 cover thumb in the title cell + pencil-square edit icon; public `/posts` cards lift on hover with rose-accent border, colored like/comment pills, and a "Read the whole story →" CTA; `Back to posts` button on the show page; arrow attribution (`<author> → <participant>`) replaces the verbose ":author in the name of :person" sentence on comments + prayer signups; shared `<x-galileosoft-footer>` in the app layout |
+| 20 | `alpha-01` | `new-posts-features` | v1.00 starting baseline. Squashes the 52-migration history into 33 per-table `0001_01_01_*` files (each is a thin `DB::statement` over the table's final `CREATE TABLE` DDL, framed by `Schema::disable / enableForeignKeyConstraints()` so the circular FK cluster doesn't force a topological order). Drops the six framework tables Redis already covers (`cache` / `cache_locks` / `sessions` / `jobs` / `job_batches` / `failed_jobs`); keeps `password_reset_tokens` because it's the auth-flow store. Renames spatie pivots: `model_has_permissions → user_permissions`, `model_has_roles → user_roles`, `role_has_permissions → role_permissions` (FK + index names renamed in lockstep, `config/permission.php` updated to match). Adds local `App\Models\Permission` (mirrors `App\Models\Role` pattern) so future Permission extensions live in-project without forking the vendor package |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19.**
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19 → #20.**
 As each PR merges, GitHub will auto-retarget the next one in the chain to
 `main` (or to whatever the new base is). Do not squash-merge — preserve the
 commit history so the layered intent stays legible in `git log`.
@@ -61,6 +64,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/17
 - https://github.com/newtongamajr/methodist-app/pull/18
 - https://github.com/newtongamajr/methodist-app/pull/19
+- https://github.com/newtongamajr/methodist-app/pull/20
 
 ## Why stacked, not one big PR
 
@@ -97,9 +101,9 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 
 ## Verification before merging the chain
 
-- [ ] All nineteen PRs are open, in the right order, against the right base
+- [ ] All twenty PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#19) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #19 (276 tests / 644 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #19
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 749 keys at HEAD of #19
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#20) — proves the whole chain composes; after #20 the migration count drops from 52 individual files to 33 consolidated per-table baselines
+- [ ] `php artisan test --compact` is green at HEAD of #20 (276 tests / 644 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #20
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 749 keys at HEAD of #20
