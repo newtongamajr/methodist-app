@@ -8,7 +8,16 @@
         <flux:heading size="xl">
             {{ $form->church ? __('Edit church') : __('New church') }}
         </flux:heading>
-        <flux:button :href="route('admin.churches.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
+        <div class="flex gap-2">
+            @if ($form->church?->person_id)
+                <flux:tooltip :content="__('Edit identity, contacts, addresses, documents on the linked Person record')">
+                    <flux:button :href="route('admin.people.edit', $form->church->person_id)" wire:navigate icon="identification">
+                        {{ __('Open as Person') }}
+                    </flux:button>
+                </flux:tooltip>
+            @endif
+            <flux:button :href="route('admin.churches.index')" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
+        </div>
     </div>
 
     @if (session('status'))
@@ -60,7 +69,10 @@
 
             <flux:input wire:model="form.name" :label="__('Name')" required />
 
-            <flux:input wire:model="form.slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <flux:input wire:model="form.code" :label="__('Code')" maxlength="32" />
+                <flux:input wire:model="form.slug" :label="__('Slug')" :placeholder="__('Leave blank to auto-generate')" />
+            </div>
 
             <flux:input wire:model="form.address" :label="__('Address')" />
 

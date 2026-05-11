@@ -2,8 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Models\District;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -23,6 +26,11 @@ class DistrictFactory extends Factory
             'code' => null,
             'display_order' => 0,
             'is_active' => true,
+            'person_id' => fn () => Person::create([
+                'person_type' => PersonType::Organization->value,
+                'name' => $name,
+                'natures' => [PersonNature::District->value],
+            ])->id,
         ];
     }
 }

@@ -3,8 +3,11 @@
 namespace Database\Factories;
 
 use App\Enums\LocationMode;
+use App\Enums\PersonNature;
+use App\Enums\PersonType;
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -33,6 +36,11 @@ class ChurchFactory extends Factory
             'phone' => fake()->numerify('(##) ####-####'),
             'email' => fake()->unique()->companyEmail(),
             'is_active' => true,
+            'person_id' => fn (array $attrs) => Person::create([
+                'person_type' => PersonType::Organization->value,
+                'name' => $attrs['name'] ?? $name,
+                'natures' => [PersonNature::Church->value],
+            ])->id,
         ];
     }
 }

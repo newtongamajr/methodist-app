@@ -8,7 +8,16 @@
         <flux:heading size="xl">
             {{ $form->district ? __('Edit district') : __('New district') }}
         </flux:heading>
-        <flux:button :href="route('admin.districts.index', ['region' => $form->ecclesiastical_region_id])" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
+        <div class="flex gap-2">
+            @if ($form->district?->person_id)
+                <flux:tooltip :content="__('Edit identity, contacts, addresses, documents on the linked Person record')">
+                    <flux:button :href="route('admin.people.edit', $form->district->person_id)" wire:navigate icon="identification">
+                        {{ __('Open as Person') }}
+                    </flux:button>
+                </flux:tooltip>
+            @endif
+            <flux:button :href="route('admin.districts.index', ['region' => $form->ecclesiastical_region_id])" variant="ghost" wire:navigate>{{ __('Back to list') }}</flux:button>
+        </div>
     </div>
 
     @if (session('status'))

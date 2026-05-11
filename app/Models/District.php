@@ -14,6 +14,7 @@ class District extends Model
     use HasFactory;
 
     protected $fillable = [
+        'person_id',
         'ecclesiastical_region_id',
         'name',
         'slug',
@@ -28,6 +29,11 @@ class District extends Model
             'is_active' => 'boolean',
             'display_order' => 'integer',
         ];
+    }
+
+    public function person(): BelongsTo
+    {
+        return $this->belongsTo(Person::class);
     }
 
     public function region(): BelongsTo

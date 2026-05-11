@@ -25,6 +25,8 @@ class ChurchForm extends Form
 
     public string $slug = '';
 
+    public string $code = '';
+
     public string $address = '';
 
     public string $city = '';
@@ -79,6 +81,7 @@ class ChurchForm extends Form
             'type' => ['required', 'in:'.implode(',', ChurchType::values())],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('churches', 'slug')->ignore($this->church?->id)],
+            'code' => ['nullable', 'string', 'max:32'],
             'address' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
             'state' => ['nullable', 'string', 'max:2'],
@@ -111,6 +114,7 @@ class ChurchForm extends Form
         $this->type = $church->type?->value ?? ChurchType::Church->value;
         $this->name = $church->name;
         $this->slug = $church->slug;
+        $this->code = $church->code ?? '';
         $this->address = $church->address ?? '';
         $this->city = $church->city ?? '';
         $this->state = $church->state ?? '';

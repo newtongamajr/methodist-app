@@ -74,9 +74,16 @@ class extends Component
         $data = $this->form->validate();
 
         $churchData = collect($data)->only([
-            'ecclesiastical_region_id', 'district_id', 'type', 'name', 'slug', 'address', 'city', 'state', 'zip',
+            'ecclesiastical_region_id', 'district_id', 'type', 'name', 'slug', 'code',
+            'address', 'city', 'state', 'zip',
             'timezone', 'max_prayers_per_slot', 'default_mode', 'phone', 'email', 'is_active',
         ])->all();
+
+        foreach (['code', 'address', 'city', 'state', 'zip', 'phone', 'email'] as $nullable) {
+            if (($churchData[$nullable] ?? null) === '') {
+                $churchData[$nullable] = null;
+            }
+        }
 
         if (($churchData['district_id'] ?? null) === '') {
             $churchData['district_id'] = null;
@@ -90,7 +97,17 @@ class extends Component
         }
 
         if ($isCreating) {
-            $church = Church::create($churchData);
+            // Each Church row is backed by an Organization-type Person; create
+            // it first, then the Church row pointing to it.
+            $church = DB::transaction(function () use ($churchData) {
+                $orgPerson = Person::create([
+                    'person_type' => PersonType::Organization->value,
+                    'name' => $churchData['name'],
+                    'natures' => [PersonNature::Church->value],
+                ]);
+
+                return Church::create($churchData + ['person_id' => $orgPerson->id]);
+            });
 
             $master = DB::transaction(function () use ($data, $church) {
                 $person = Person::create([
@@ -124,6 +141,9 @@ class extends Component
             $this->form->church = $church;
         } else {
             $this->form->church->update($churchData);
+            // Keep the linked Org Person's name in sync with the cached
+            // Church.name (Person is canonical; this avoids drift).
+            $this->form->church->person?->update(['name' => $churchData['name']]);
         }
 
         session()->flash('status', $isCreating ? __('Church and master user created.') : __('Church updated.'));

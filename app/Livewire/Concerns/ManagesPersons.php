@@ -33,6 +33,14 @@ trait ManagesPersons
     public string $natureFilter = '';
 
     /**
+     * Whether to include organizational Persons (the rows backing each
+     * Region / District / Church) in the listing. Defaults to false so the
+     * People index stays focused on humans; toggleable via UI.
+     */
+    #[Url(as: 'orgs')]
+    public bool $includeOrganizations = false;
+
+    /**
      * Override per-consumer to scope a listing to one nature.
      * Return null for the all-persons view.
      */
@@ -62,9 +70,9 @@ trait ManagesPersons
     }
 
     /**
-     * Natures the filter dropdown should expose. Defaults to all of them on
-     * the all-persons view, hidden when the consumer locks itself to one
-     * nature via `getPersonNature()`.
+     * Natures the filter dropdown should expose. Defaults to the individual
+     * natures only on the all-persons view; org natures only show up when
+     * the user opts in via `includeOrganizations`.
      */
     #[Computed]
     public function availableNatures(): array
@@ -73,7 +81,9 @@ trait ManagesPersons
             return [];
         }
 
-        return PersonNature::options();
+        return $this->includeOrganizations
+            ? PersonNature::options()
+            : PersonNature::individualOptions();
     }
 
     #[Computed]
@@ -88,6 +98,14 @@ trait ManagesPersons
             $q->whereJsonContains('natures', $lockedNature);
         } elseif ($this->natureFilter !== '') {
             $q->whereJsonContains('natures', $this->natureFilter);
+        } elseif (! $this->includeOrganizations) {
+            // Default: hide org-Persons (regions, districts, churches, HQ) from
+            // the People listing. Toggle on to include them.
+            $q->where(function ($qq) {
+                foreach (PersonNature::organizational() as $org) {
+                    $qq->whereJsonDoesntContain('natures', $org);
+                }
+            });
         }
 
         if ($this->search !== '') {
