@@ -59,29 +59,58 @@ O usuário master, por sua vez, pode entrar e criar outros admins
 `local_manager` **para sua própria igreja** pela mesma página
 `/admin/users` (igreja + role são fixados no servidor).
 
+## Dependências de sistema
+
+Dois shell scripts em `scripts/` cuidam dos pedaços que precisam de `sudo`
+em um host novo. São idempotentes — rodar duas vezes é seguro.
+
+```bash
+# Limites de upload do PHP (100M / 100M), reload do php-fpm, permissões
+# de storage/ + bootstrap/cache para o user www-data do Docker.
+sudo bash scripts/setup-host.sh
+
+# Pipeline de mídia: php8.4-imagick + imagemagick + ghostscript + ffmpeg,
+# mais o patch na policy do ImageMagick que destrava a renderização de PDFs.
+# Depois disso, os image generators Pdf e Video da Spatie produzem thumbs
+# de primeira página / primeiro frame para cada upload de PDF e vídeo.
+sudo bash scripts/install-media-deps.sh
+```
+
+Os pacotes composer dos quais esses generators dependem
+(`spatie/pdf-to-image`, `php-ffmpeg/php-ffmpeg`) acompanham o projeto —
+`composer install` resolve o lado da aplicação.
+
 ## Sequência sugerida de deploy
 
 ```bash
 # 0. Configure o .env (credenciais do DB, APP_KEY, MAIL_*, TINYMCE_API_KEY)
 
-# 1. Dependências
+# 1. Dependências de sistema (sudo)
+sudo bash scripts/setup-host.sh
+sudo bash scripts/install-media-deps.sh
+
+# 2. Dependências do projeto
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
 
-# 2. Caches da aplicação
+# 3. Caches da aplicação
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 3. Banco
+# 4. Banco
 php artisan app:install
 
-# 4. Promova o primeiro super usuário
+# 5. Promova o primeiro super usuário
 php artisan app:make-super --email=admin@seudominio.com
 
-# 5. Symlink de storage (uma vez)
+# 6. Symlink de storage (uma vez)
 php artisan storage:link
+
+# 7. (Opcional) regere as conversões `thumb` de qualquer mídia já existente,
+#     útil quando o stack de mídia é adicionado a um host que já tinha uploads.
+php artisan media-library:regenerate
 ```
 
-Após o passo 4 o super usuário consegue entrar em `/login` e começar a
+Após o passo 5 o super usuário consegue entrar em `/login` e começar a
 configurar igrejas e usuários master pela área administrativa.

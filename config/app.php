@@ -65,7 +65,13 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    // Default to the Brazilian admin team's timezone so `datetime-local`
+    // inputs (which submit a naive wall-clock string) get interpreted in
+    // the editor's actual local time — otherwise a São-Paulo admin
+    // scheduling a post at 15:00 has it stored as 15:00 UTC and the
+    // public list publishes it three hours early. Override per-
+    // environment via APP_TIMEZONE in .env when deploying elsewhere.
+    'timezone' => env('APP_TIMEZONE', 'America/Sao_Paulo'),
 
     /*
     |--------------------------------------------------------------------------

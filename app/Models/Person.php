@@ -483,14 +483,18 @@ class Person extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        // quality(95) matches the User avatar conversions — Spatie's
+        // default ~75 makes a 256×256 portrait look noticeably soft.
         $this->addMediaConversion('thumb')
             ->performOnCollections('photo')
             ->fit(Fit::Crop, 64, 64)
+            ->quality(95)
             ->nonQueued();
 
         $this->addMediaConversion('sm')
             ->performOnCollections('photo')
             ->fit(Fit::Crop, 128, 128)
+            ->quality(95)
             ->nonQueued();
 
         // Match the User avatar conversions: keep `md` / `lg` synchronous
@@ -498,11 +502,13 @@ class Person extends Model implements HasMedia
         $this->addMediaConversion('md')
             ->performOnCollections('photo')
             ->fit(Fit::Crop, 256, 256)
+            ->quality(95)
             ->nonQueued();
 
         $this->addMediaConversion('lg')
             ->performOnCollections('photo')
             ->fit(Fit::Crop, 512, 512)
+            ->quality(95)
             ->nonQueued();
     }
 

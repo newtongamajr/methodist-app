@@ -16,6 +16,15 @@
 /public/build
 /public/hot
 /public/storage
+# vendor:publish artifacts we don't customize — Livewire serves its JS
+# via the framework route, not from /public/vendor/livewire, and the
+# Bootstrap/Tailwind pagination templates are vendor defaults we
+# haven't touched. `composer install` re-publishes them when needed.
+/public/vendor
+/resources/views/vendor
+# spatie/pdf-to-image scratch directory + any other transient media
+# files written outside the storage/app tree.
+/storage/media-library
 /storage/*.key
 /storage/pail
 /vendor

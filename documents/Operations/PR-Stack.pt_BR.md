@@ -122,3 +122,16 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 - [ ] `php artisan test --compact` verde no HEAD do #20 (276 tests / 644 assertions na última execução)
 - [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #20
 - [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 749 keys no HEAD do #20
+
+## Follow-ups pós-Alpha-01 (saíram da pilha)
+
+Depois que a stack do Alpha-01 acima for mergeada na `main`, os PRs
+seguintes ficam direto em cima de `main` de novo — a stack fecha.
+Convenção de tag: cada PR pós-baseline corta uma annotated tag
+`vX.YZ` no momento em que é aberto.
+
+| # | Branch | Tag | Base | Escopo |
+|---|---|---|---|---|
+| 21 | `posts-improvements` | `v1.01` | `main` | Previews de arquivos pendentes no editor; thumb conversions de PDF + vídeo via `spatie/pdf-to-image` + `php-ffmpeg/php-ffmpeg` (com `install-media-deps.sh` cuidando do lado de sistema — `imagick` / `imagemagick` / `ghostscript` / `ffmpeg` mais o patch na policy do ImageMagick que libera PDF); `quality(95)` em toda image conversion de User / Person / Post; cap do upload temporário do Livewire subiu do default de 12 MB para 100 MB para que uploads de vídeo parem de ser silenciosamente rejeitados; `APP_TIMEZONE` agora default `America/Sao_Paulo` para que `datetime-local` grave em `published_at` o horário que o admin de fato escolheu; viewer de documentos na page pública alargado para 95vw / 1400px com card-grid de thumbs; cover image trocado para o factory Alpine genérico `imageCropper` travado em 16:9 |
+
+URL do PR: https://github.com/newtongamajr/methodist-app/pull/21

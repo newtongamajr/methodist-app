@@ -263,9 +263,20 @@ class extends Component
                 if (! $file) {
                     continue;
                 }
-                $this->form->post->addMedia($file->getRealPath())
-                    ->usingFileName($file->getClientOriginalName())
-                    ->toMediaCollection($collection);
+                try {
+                    $this->form->post->addMedia($file->getRealPath())
+                        ->usingFileName($file->getClientOriginalName())
+                        ->toMediaCollection($collection);
+                } catch (\Throwable $e) {
+                    // A corrupt PDF or a media file imagick can't decode
+                    // would otherwise tank the entire save with an
+                    // unhandled ImagickException. The media row + file
+                    // are already on disk by the time the conversion
+                    // throws, so we swallow the conversion error here
+                    // and let the Blade fall back to the icon tile when
+                    // `hasGeneratedConversion('thumb')` returns false.
+                    report($e);
+                }
             }
         }
 
@@ -274,6 +285,24 @@ class extends Component
         $this->newVideos = [];
         $this->newAudios = [];
         $this->newDocuments = [];
+    }
+
+    /**
+     * Drop a pending file from one of the staging arrays before save.
+     * Lets the user undo a mis-pick from the freshly-uploaded preview
+     * list without reloading the editor.
+     */
+    public function removePending(string $bucket, int $index): void
+    {
+        $allowed = ['newImages', 'newVideos', 'newAudios', 'newDocuments'];
+        if (! in_array($bucket, $allowed, true)) {
+            return;
+        }
+        if (! array_key_exists($index, $this->{$bucket})) {
+            return;
+        }
+        unset($this->{$bucket}[$index]);
+        $this->{$bucket} = array_values($this->{$bucket});
     }
 
     public function removeMedia(int $mediaId): void
