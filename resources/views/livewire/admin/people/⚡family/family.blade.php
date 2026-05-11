@@ -46,8 +46,15 @@
                                         <flux:button wire:click="openEdit({{ $r['id'] }})" size="sm" variant="ghost" icon="pencil-square" />
                                     </flux:tooltip>
                                     <flux:tooltip :content="__('Delete')">
-                                        <flux:button wire:click="delete({{ $r['id'] }})" wire:confirm="{{ __('Delete this relationship?') }}" size="sm" variant="ghost" icon="trash" />
+                                        <flux:modal.trigger :name="'delete-relationship-'.$r['id']">
+                                            <flux:button size="sm" variant="ghost" icon="trash" />
+                                        </flux:modal.trigger>
                                     </flux:tooltip>
+                                    <x-confirm-delete
+                                        :name="'delete-relationship-'.$r['id']"
+                                        :heading="__('Delete this relationship?')"
+                                        action="delete({{ $r['id'] }})"
+                                    />
                                 @else
                                     <flux:tooltip :content="__('Defined from the other person — edit there')">
                                         <flux:icon.information-circle class="size-4 text-zinc-400" />

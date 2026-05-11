@@ -75,8 +75,15 @@
                                         <flux:button wire:click="openEdit({{ $document->id }})" size="sm" variant="ghost" icon="pencil-square" />
                                     </flux:tooltip>
                                     <flux:tooltip :content="__('Delete')">
-                                        <flux:button wire:click="delete({{ $document->id }})" wire:confirm="{{ __('Delete this document?') }}" size="sm" variant="ghost" icon="trash" />
+                                        <flux:modal.trigger :name="'delete-document-'.$document->id">
+                                            <flux:button size="sm" variant="ghost" icon="trash" />
+                                        </flux:modal.trigger>
                                     </flux:tooltip>
+                                    <x-confirm-delete
+                                        :name="'delete-document-'.$document->id"
+                                        :heading="__('Delete this document?')"
+                                        action="delete({{ $document->id }})"
+                                    />
                                 </div>
                             </flux:table.cell>
                         </flux:table.row>

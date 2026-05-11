@@ -92,8 +92,15 @@
                         </flux:table.cell>
                         <flux:table.cell align="end">
                             <flux:tooltip :content="__('Delete')">
-                                <flux:button wire:click="delete({{ $post->id }})" wire:confirm="{{ __('Delete this post?') }}" size="sm" variant="ghost" icon="trash" />
+                                <flux:modal.trigger :name="'delete-post-'.$post->id">
+                                    <flux:button size="sm" variant="ghost" icon="trash" />
+                                </flux:modal.trigger>
                             </flux:tooltip>
+                            <x-confirm-delete
+                                :name="'delete-post-'.$post->id"
+                                :heading="__('Delete this post?')"
+                                action="delete({{ $post->id }})"
+                            />
                         </flux:table.cell>
                     </flux:table.row>
                 @endforeach

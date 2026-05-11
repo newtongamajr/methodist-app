@@ -37,8 +37,15 @@
                                     <flux:button wire:click="openEdit({{ $contact->id }})" size="sm" variant="ghost" icon="pencil-square" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $contact->id }})" wire:confirm="{{ __('Delete this contact?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-contact-'.$contact->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-contact-'.$contact->id"
+                                    :heading="__('Delete this contact?')"
+                                    action="delete({{ $contact->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

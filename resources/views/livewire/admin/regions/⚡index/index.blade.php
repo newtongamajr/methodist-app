@@ -45,8 +45,15 @@
                                     <flux:button :href="route('admin.churches.index', ['region' => $region->id])" wire:navigate size="sm" variant="ghost" icon="building-library" />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $region->id }})" wire:confirm="{{ __('Delete this region?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-region-'.$region->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-region-'.$region->id"
+                                    :heading="__('Delete this region?')"
+                                    action="delete({{ $region->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

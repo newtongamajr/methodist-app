@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Pivots\ChurchUser;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -50,6 +51,7 @@ class User extends Authenticatable implements HasMedia
     public function churches(): BelongsToMany
     {
         return $this->belongsToMany(Church::class)
+            ->using(ChurchUser::class)
             ->withPivot('is_primary')
             ->withTimestamps();
     }

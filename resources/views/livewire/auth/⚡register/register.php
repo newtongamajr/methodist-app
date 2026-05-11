@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\AppLocale;
+use App\Enums\MaritalStatus;
 use App\Enums\PersonContactType;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
@@ -9,6 +10,7 @@ use App\Models\District;
 use App\Models\EcclesiasticalRegion;
 use App\Models\Person;
 use App\Models\User;
+use App\Support\TaxIdValidator;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\App;
@@ -45,6 +47,13 @@ class extends Component
     public string $phone = '';
 
     public string $birthdate = '';
+
+    public string $gender = '';
+
+    public string $marital_status = '';
+
+    /** Always treated as a CPF on this form — the type isn't shown to the user. */
+    public string $tax_id = '';
 
     public function mount(): void
     {
@@ -139,12 +148,28 @@ class extends Component
             'locale' => ['required', 'string', 'in:'.implode(',', AppLocale::values())],
             'phone' => ['nullable', 'string', 'max:32'],
             'birthdate' => ['nullable', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'in:female,male,other'],
+            'marital_status' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, MaritalStatus::cases()))],
+            'tax_id' => ['nullable', 'string', 'max:32'],
         ]);
 
-        foreach (['phone', 'birthdate', 'church_id'] as $nullable) {
+        foreach (['phone', 'birthdate', 'church_id', 'gender', 'marital_status', 'tax_id'] as $nullable) {
             if (($validated[$nullable] ?? null) === '') {
                 $validated[$nullable] = null;
             }
+        }
+
+        // Tax ID is always a CPF on the public register form. Strip the mask
+        // (dots/hyphens) to the 11 raw digits and reject invalid checksums up
+        // front so the user fixes the typo here, not after their account exists.
+        if (! empty($validated['tax_id'])) {
+            $digits = TaxIdValidator::normalize($validated['tax_id']);
+            if (! TaxIdValidator::validateCpf($digits)) {
+                $this->addError('tax_id', __('The :type number is invalid.', ['type' => 'CPF']));
+
+                return;
+            }
+            $validated['tax_id'] = $digits;
         }
 
         $user = DB::transaction(function () use ($validated) {
@@ -152,6 +177,10 @@ class extends Component
                 'person_type' => PersonType::Individual->value,
                 'name' => $validated['name'],
                 'birthdate' => $validated['birthdate'] ?? null,
+                'gender' => $validated['gender'] ?? null,
+                'marital_status' => $validated['marital_status'] ?? null,
+                'tax_id' => $validated['tax_id'] ?? null,
+                'tax_id_type' => ! empty($validated['tax_id']) ? 'cpf' : null,
                 'natures' => [$validated['nature']],
                 'managing_church_id' => $validated['church_id'] ?? null,
             ]);

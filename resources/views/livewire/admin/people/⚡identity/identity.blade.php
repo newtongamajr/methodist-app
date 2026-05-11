@@ -12,14 +12,43 @@
         <flux:input wire:model="form.preferred_name" :label="__('Preferred name')" />
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model="form.tax_id_type" :label="__('Tax ID type')">
+            <flux:select wire:model.live="form.tax_id_type" :label="__('Tax ID type')">
                 <option value="">{{ __('— None —') }}</option>
                 <option value="cpf">{{ __('CPF') }}</option>
                 <option value="cnpj">{{ __('CNPJ') }}</option>
                 <option value="passport">{{ __('Passport') }}</option>
                 <option value="other">{{ __('Other') }}</option>
             </flux:select>
-            <flux:input wire:model="form.tax_id" :label="__('Tax ID')" class="sm:col-span-2" />
+            @php
+                // Drive the live mask off the selected tax_id_type. Null entries are
+                // skipped by Blade's `:`-binding so the input has no x-mask /
+                // maxlength when the type is passport or other.
+                $taxIdMask = match ($form->tax_id_type) {
+                    'cpf' => '999.999.999-99',
+                    'cnpj' => '99.999.999/9999-99',
+                    default => null,
+                };
+                $taxIdPlaceholder = match ($form->tax_id_type) {
+                    'cpf' => '000.000.000-00',
+                    'cnpj' => '00.000.000/0000-00',
+                    default => null,
+                };
+                $taxIdMaxLength = match ($form->tax_id_type) {
+                    'cpf' => 14,
+                    'cnpj' => 18,
+                    default => null,
+                };
+            @endphp
+            <div class="sm:col-span-2">
+                <flux:input
+                    wire:model="form.tax_id"
+                    :label="__('Tax ID')"
+                    :inputmode="$taxIdMask ? 'numeric' : null"
+                    :maxlength="$taxIdMaxLength"
+                    :x-mask="$taxIdMask"
+                    :placeholder="$taxIdPlaceholder"
+                />
+            </div>
         </div>
 
         @if ($form->person_type === 'individual')
@@ -27,7 +56,7 @@
                 <flux:date-picker
                     wire:model="form.birthdate"
                     :label="__('Birthdate')"
-                    with-inputs
+                    type="input"
                     selectable-header
                     :min="now()->subYears(120)->toDateString()"
                     :max="now()->toDateString()"
@@ -49,7 +78,7 @@
             <flux:date-picker
                 wire:model="form.birthdate"
                 :label="__('Foundation date')"
-                with-inputs
+                type="input"
                 selectable-header
                 :max="now()->toDateString()"
             />

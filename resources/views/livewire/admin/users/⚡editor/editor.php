@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\PersonContactType;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
 use App\Livewire\Forms\UserForm;
@@ -34,14 +33,6 @@ class extends Component
             }
 
             $this->form->setUser($user);
-        } else {
-            $defaults = $actor->manageableChurchIds();
-            if (! $this->isSuper && $defaults) {
-                $this->form->church_ids = $defaults;
-                $this->form->primary_church_id = $actor->currentChurchId();
-            } elseif ($current = $actor->currentChurchId()) {
-                $this->form->primary_church_id = $current;
-            }
         }
     }
 
@@ -49,12 +40,6 @@ class extends Component
     public function isSuper(): bool
     {
         return auth()->user()->can('users.manage');
-    }
-
-    #[Computed]
-    public function selectableChurches()
-    {
-        return auth()->user()->manageableChurches()->map->only(['id', 'name']);
     }
 
     #[Computed]
@@ -67,41 +52,18 @@ class extends Component
 
     public function save(): void
     {
-        $actor = auth()->user();
         $isCreating = $this->form->user === null;
-        $allowedIds = $actor->manageableChurchIds();
 
         $data = $this->form->validate();
 
         $this->validate(['form.role' => ['required', Rule::in($this->availableRoles)]]);
 
-        $churchIds = collect($data['church_ids'] ?? [])
-            ->map(fn ($v) => (int) $v)
-            ->unique()
-            ->all();
+        $role = $this->isSuper ? $this->form->role : 'local_admin';
 
-        $role = $this->form->role;
-        if (! $this->isSuper) {
-            $churchIds = array_values(array_intersect($churchIds, $allowedIds));
-            if (empty($churchIds)) {
-                $churchIds = $allowedIds;
-            }
-            $role = 'local_admin';
-        }
-
-        $primaryId = $data['primary_church_id'] ?? null;
-        if ($primaryId && ! in_array((int) $primaryId, $churchIds, true)) {
-            $primaryId = null;
-        }
-        if (! $primaryId && $churchIds) {
-            $primaryId = $churchIds[0];
-        }
-
-        $user = DB::transaction(function () use ($isCreating, $data, $primaryId) {
+        $user = DB::transaction(function () use ($isCreating, $data) {
             $personPayload = [
                 'name' => $data['name'],
                 'natures' => [PersonNature::Member->value],
-                'managing_church_id' => $primaryId,
             ];
 
             if ($isCreating) {
@@ -115,6 +77,7 @@ class extends Component
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'locale' => $data['locale'],
+                'appearance' => $data['appearance'],
             ];
 
             if (! empty($data['password'])) {
@@ -124,7 +87,6 @@ class extends Component
             if ($isCreating) {
                 $user = User::create($userPayload + [
                     'person_id' => $person->id,
-                    'appearance' => 'system',
                     'email_verified_at' => now(),
                 ]);
             } else {
@@ -132,41 +94,11 @@ class extends Component
                 $user = $this->form->user;
             }
 
-            $phone = $data['phone'] ?: null;
-            $existing = $person->contacts()->where('type', PersonContactType::Phone->value)->first();
-            if ($phone) {
-                if ($existing) {
-                    $existing->update(['value' => $phone, 'is_primary' => true]);
-                } else {
-                    $person->contacts()->create([
-                        'type' => PersonContactType::Phone->value,
-                        'value' => $phone,
-                        'is_primary' => true,
-                    ]);
-                }
-            } elseif ($existing) {
-                $existing->delete();
-            }
-
             return $user;
         });
 
         $this->form->user = $user;
         $user->syncRoles([$role]);
-
-        $existing = $user->churches()->pluck('churches.id')->all();
-        if ($this->isSuper) {
-            $finalIds = $churchIds;
-        } else {
-            $untouched = array_values(array_diff($existing, $allowedIds));
-            $finalIds = array_values(array_unique(array_merge($untouched, $churchIds)));
-        }
-
-        $sync = [];
-        foreach ($finalIds as $id) {
-            $sync[$id] = ['is_primary' => $primaryId === $id];
-        }
-        $user->churches()->sync($sync);
 
         session()->flash('status', $isCreating ? __('Administrator created.') : __('Administrator updated.'));
 

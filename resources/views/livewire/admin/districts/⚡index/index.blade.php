@@ -65,8 +65,15 @@
                                     />
                                 </flux:tooltip>
                                 <flux:tooltip :content="__('Delete')">
-                                    <flux:button wire:click="delete({{ $district->id }})" wire:confirm="{{ __('Delete this district?') }}" size="sm" variant="ghost" icon="trash" />
+                                    <flux:modal.trigger :name="'delete-district-'.$district->id">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </flux:tooltip>
+                                <x-confirm-delete
+                                    :name="'delete-district-'.$district->id"
+                                    :heading="__('Delete this district?')"
+                                    action="delete({{ $district->id }})"
+                                />
                             </div>
                         </flux:table.cell>
                     </flux:table.row>

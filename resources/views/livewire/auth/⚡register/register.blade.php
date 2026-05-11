@@ -64,7 +64,37 @@
 
         <div class="grid gap-4 sm:grid-cols-2">
             <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />
-            <flux:date-picker wire:model="birthdate" :label="__('Birthdate')" />
+            <flux:date-picker
+                wire:model="birthdate"
+                :label="__('Birthdate')"
+                type="input"
+                selectable-header
+                :min="now()->subYears(120)->toDateString()"
+                :max="now()->toDateString()"
+            />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-3">
+            <flux:select wire:model="gender" :label="__('Gender')">
+                <option value="">{{ __('— None —') }}</option>
+                <option value="female">{{ __('Female') }}</option>
+                <option value="male">{{ __('Male') }}</option>
+                <option value="other">{{ __('Other') }}</option>
+            </flux:select>
+            <flux:select wire:model="marital_status" :label="__('Marital status')">
+                <option value="">{{ __('— None —') }}</option>
+                @foreach (\App\Enums\MaritalStatus::cases() as $ms)
+                    <option value="{{ $ms->value }}">{{ $ms->label() }}</option>
+                @endforeach
+            </flux:select>
+            <flux:input
+                wire:model="tax_id"
+                :label="__('CPF')"
+                inputmode="numeric"
+                maxlength="14"
+                x-mask="999.999.999-99"
+                placeholder="000.000.000-00"
+            />
         </div>
 
         <flux:select wire:model="locale" :label="__('Language')">
