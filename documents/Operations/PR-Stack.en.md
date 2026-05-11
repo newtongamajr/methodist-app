@@ -1,8 +1,8 @@
-# PR stack — code review through Person Architecture Phase 8
+# PR stack — code review through Admin reorg
 
-Fourteen stacked PRs ship the entire trajectory from `main` up through
-Phase 8 of the Person Architecture (the cleanup follow-up phase). They are
-stacked (each PR's base is the head of the next one down), not parallel,
+Fifteen stacked PRs ship the entire trajectory from `main` up through Phase
+8 of the Person Architecture plus the Admin menu reorg layered on top. They
+are stacked (each PR's base is the head of the next one down), not parallel,
 because each builds on its predecessor. Trying to merge them out of order
 will produce conflicts.
 
@@ -24,8 +24,9 @@ will produce conflicts.
 | 12 | `persons-identity-polish` | `persons-phase-6` | Identity tab polish (Youth nature, MaritalStatus enum, type-able dates, conditional Birthdate/Foundation date label, nature filter by person_type) |
 | 13 | `persons-phase-7` | `persons-identity-polish` | Person Architecture Phase 7 (age-based nature inference, parental act-as session toggle + banner, Profile Family tab, visitor quick-add) |
 | 14 | `persons-phase-8` | `persons-phase-7` | Person Architecture Phase 8 (inline Person tabs into org editors, Person→Org name sync observer, nightly age-promotion command) |
+| 15 | `persons-admin-reorg` | `persons-phase-8` | Admin menu reorg (Posts management / Structure / People / Miscellaneous submenus); drop persons.photo_path → MediaLibrary photo collection; User-account tab on Person editor; Schedules action on Prayer Campaign rows |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14.**
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15.**
 As each PR merges, GitHub will auto-retarget the next one in the chain to
 `main` (or to whatever the new base is). Do not squash-merge — preserve the
 commit history so the layered intent stays legible in `git log`.
@@ -46,6 +47,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/12
 - https://github.com/newtongamajr/methodist-app/pull/13
 - https://github.com/newtongamajr/methodist-app/pull/14
+- https://github.com/newtongamajr/methodist-app/pull/15
 
 ## Why stacked, not one big PR
 
@@ -81,9 +83,9 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 
 ## Verification before merging the chain
 
-- [ ] All fourteen PRs are open, in the right order, against the right base
+- [ ] All fifteen PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#14) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #14 (260 tests / 604 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #14
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 573 keys at HEAD of #14
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#15) — proves the whole chain composes
+- [ ] `php artisan test --compact` is green at HEAD of #15 (266 tests / 621 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #15
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 595 keys at HEAD of #15

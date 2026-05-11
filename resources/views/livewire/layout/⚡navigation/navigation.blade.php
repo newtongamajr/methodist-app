@@ -34,75 +34,50 @@
                     <flux:dropdown>
                         <flux:navbar.item icon="cog-6-tooth" icon:trailing="chevron-down">{{ __('Admin') }}</flux:navbar.item>
                         <flux:menu class="min-w-56">
+                            @can('church.manage')
+                                <flux:menu.submenu :heading="__('Structure')" icon="building-library">
+                                    <flux:menu.item :href="route('admin.regions.index')" wire:navigate>{{ __('Ecclesiastical regions') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:menu.item>
+                                </flux:menu.submenu>
+                            @endcan
+
+                            @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                                <flux:menu.submenu :heading="__('People')" icon="identification">
+                                    <flux:menu.item :href="route('admin.people.index')" wire:navigate>{{ __('People (generic)') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'pastor'])" wire:navigate>{{ __('Pastors') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.members.index')" wire:navigate>{{ __('Members') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'youth'])" wire:navigate>{{ __('Youth') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'teenager'])" wire:navigate>{{ __('Teenagers') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'child'])" wire:navigate>{{ __('Children') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'interested'])" wire:navigate>{{ __('Interested') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.people.index', ['nature' => 'visitor'])" wire:navigate>{{ __('Visitors') }}</flux:menu.item>
+                                    <flux:menu.separator />
+                                    <flux:menu.item :href="route('admin.users.index')" wire:navigate>{{ __('Administrators') }}</flux:menu.item>
+                                </flux:menu.submenu>
+                            @endif
+
                             @if ($hasPostMgmt)
-                                <flux:menu.group :heading="__('Posts management')">
+                                <flux:menu.submenu :heading="__('Posts management')" icon="document-text">
                                     @can('posts.create.local')
-                                        <flux:menu.item :href="route('admin.posts.index')" wire:navigate icon="document-text">
-                                            {{ __('Posts manager') }}
-                                        </flux:menu.item>
+                                        <flux:menu.item :href="route('admin.posts.index')" wire:navigate>{{ __('Posts manager') }}</flux:menu.item>
                                     @endcan
                                     @can('comments.moderate')
-                                        <flux:menu.item :href="route('admin.comments.index')" wire:navigate icon="chat-bubble-left-right">
-                                            {{ __('Moderate comments') }}
-                                        </flux:menu.item>
+                                        <flux:menu.item :href="route('admin.comments.index')" wire:navigate>{{ __('Moderate comments') }}</flux:menu.item>
                                     @endcan
-                                </flux:menu.group>
+                                </flux:menu.submenu>
                             @endif
 
-                            @if ($hasPostMgmt && $hasSettings)
-                                <flux:menu.separator />
-                            @endif
-
-                            @if ($hasSettings)
-                                <flux:menu.group :heading="__('Settings')">
-                                    @can('church.manage')
-                                        <flux:menu.item :href="route('admin.churches.index')" wire:navigate icon="building-library">
-                                            {{ __('Churches') }}
-                                        </flux:menu.item>
-                                    @endcan
-
-                                    @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
-                                        <flux:menu.item :href="route('admin.people.index')" wire:navigate icon="identification">
-                                            {{ __('People') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item :href="route('admin.users.index')" wire:navigate icon="user-group">
-                                            {{ __('Administrators') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item :href="route('admin.members.index')" wire:navigate icon="users">
-                                            {{ __('Members') }}
-                                        </flux:menu.item>
-                                    @endif
-
-                                    @can('church.manage')
-                                        <flux:menu.item :href="route('admin.regions.index')" wire:navigate icon="globe-americas">
-                                            {{ __('Ecclesiastical regions') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item :href="route('admin.districts.index')" wire:navigate icon="map">
-                                            {{ __('Districts') }}
-                                        </flux:menu.item>
-                                        <flux:menu.submenu :heading="__('Groups')" icon="user-group">
-                                            <flux:menu.item :href="route('admin.groups.index')" wire:navigate>{{ __('All groups') }}</flux:menu.item>
-                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'council'])" wire:navigate>{{ __('Councils') }}</flux:menu.item>
-                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'ministry'])" wire:navigate>{{ __('Ministries') }}</flux:menu.item>
-                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'commission'])" wire:navigate>{{ __('Commissions') }}</flux:menu.item>
-                                        </flux:menu.submenu>
-                                    @endcan
-
+                            @if (auth()->user()->can('prayer.schedule.manage') || auth()->user()->can('fasting.calendar.manage'))
+                                <flux:menu.submenu :heading="__('Miscellaneous')" icon="megaphone">
                                     @can('prayer.schedule.manage')
-                                        <flux:menu.item :href="route('admin.prayer-schedules.index')" wire:navigate icon="clock">
-                                            {{ __('Prayer schedules') }}
-                                        </flux:menu.item>
-                                        <flux:menu.item :href="route('admin.prayer-campaigns.index')" wire:navigate icon="megaphone">
-                                            {{ __('Prayer campaigns') }}
-                                        </flux:menu.item>
+                                        <flux:menu.item :href="route('admin.prayer-campaigns.index')" wire:navigate>{{ __('Prayer campaigns') }}</flux:menu.item>
                                     @endcan
-
                                     @can('fasting.calendar.manage')
-                                        <flux:menu.item :href="route('admin.fasting-campaigns.index')" wire:navigate icon="calendar">
-                                            {{ __('Fasting campaigns') }}
-                                        </flux:menu.item>
+                                        <flux:menu.item :href="route('admin.fasting-campaigns.index')" wire:navigate>{{ __('Fasting campaigns') }}</flux:menu.item>
                                     @endcan
-                                </flux:menu.group>
+                                </flux:menu.submenu>
                             @endif
                         </flux:menu>
                     </flux:dropdown>
@@ -219,6 +194,29 @@
                 <flux:sidebar.item :href="route('prayer.index')" wire:navigate icon="hand-raised">{{ __('Prayer schedule') }}</flux:sidebar.item>
                 <flux:sidebar.item :href="route('fasting.index')" wire:navigate icon="calendar">{{ __('Fasting calendar') }}</flux:sidebar.item>
 
+                @can('church.manage')
+                    <flux:sidebar.group expandable :heading="__('Structure')">
+                        <flux:sidebar.item :href="route('admin.regions.index')" wire:navigate>{{ __('Ecclesiastical regions') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endcan
+
+                @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                    <flux:sidebar.group expandable :heading="__('People')">
+                        <flux:sidebar.item :href="route('admin.people.index')" wire:navigate>{{ __('People (generic)') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'pastor'])" wire:navigate>{{ __('Pastors') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.members.index')" wire:navigate>{{ __('Members') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'youth'])" wire:navigate>{{ __('Youth') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'teenager'])" wire:navigate>{{ __('Teenagers') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'child'])" wire:navigate>{{ __('Children') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'interested'])" wire:navigate>{{ __('Interested') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.people.index', ['nature' => 'visitor'])" wire:navigate>{{ __('Visitors') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.users.index')" wire:navigate>{{ __('Administrators') }}</flux:sidebar.item>
+                    </flux:sidebar.group>
+                @endif
+
                 @if ($hasPostMgmt)
                     <flux:sidebar.group expandable :heading="__('Posts management')">
                         @can('posts.create.local')
@@ -230,23 +228,9 @@
                     </flux:sidebar.group>
                 @endif
 
-                @if ($hasSettings)
-                    <flux:sidebar.group expandable :heading="__('Settings')">
-                        @can('church.manage')
-                            <flux:sidebar.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:sidebar.item>
-                        @endcan
-                        @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
-                            <flux:sidebar.item :href="route('admin.people.index')" wire:navigate>{{ __('People') }}</flux:sidebar.item>
-                            <flux:sidebar.item :href="route('admin.users.index')" wire:navigate>{{ __('Administrators') }}</flux:sidebar.item>
-                            <flux:sidebar.item :href="route('admin.members.index')" wire:navigate>{{ __('Members') }}</flux:sidebar.item>
-                        @endif
-                        @can('church.manage')
-                            <flux:sidebar.item :href="route('admin.regions.index')" wire:navigate>{{ __('Ecclesiastical regions') }}</flux:sidebar.item>
-                            <flux:sidebar.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:sidebar.item>
-                            <flux:sidebar.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
-                        @endcan
+                @if (auth()->user()->can('prayer.schedule.manage') || auth()->user()->can('fasting.calendar.manage'))
+                    <flux:sidebar.group expandable :heading="__('Miscellaneous')">
                         @can('prayer.schedule.manage')
-                            <flux:sidebar.item :href="route('admin.prayer-schedules.index')" wire:navigate>{{ __('Prayer schedules') }}</flux:sidebar.item>
                             <flux:sidebar.item :href="route('admin.prayer-campaigns.index')" wire:navigate>{{ __('Prayer campaigns') }}</flux:sidebar.item>
                         @endcan
                         @can('fasting.calendar.manage')
@@ -310,6 +294,27 @@
                         <flux:command.item icon="calendar" x-on:click="Livewire.navigate('{{ route('fasting.index') }}')">{{ __('Fasting calendar') }}</flux:command.item>
                         <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('profile') }}')">{{ __('Profile') }}</flux:command.item>
 
+                        @can('church.manage')
+                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Structure') }}</div>
+                            <flux:command.item icon="globe-americas" x-on:click="Livewire.navigate('{{ route('admin.regions.index') }}')">{{ __('Ecclesiastical regions') }}</flux:command.item>
+                            <flux:command.item icon="map" x-on:click="Livewire.navigate('{{ route('admin.districts.index') }}')">{{ __('Districts') }}</flux:command.item>
+                            <flux:command.item icon="building-library" x-on:click="Livewire.navigate('{{ route('admin.churches.index') }}')">{{ __('Churches') }}</flux:command.item>
+                            <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.groups.index') }}')">{{ __('Groups') }}</flux:command.item>
+                        @endcan
+
+                        @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
+                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('People') }}</div>
+                            <flux:command.item icon="identification" x-on:click="Livewire.navigate('{{ route('admin.people.index') }}')">{{ __('People (generic)') }}</flux:command.item>
+                            <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'pastor']) }}')">{{ __('Pastors') }}</flux:command.item>
+                            <flux:command.item icon="users" x-on:click="Livewire.navigate('{{ route('admin.members.index') }}')">{{ __('Members') }}</flux:command.item>
+                            <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'youth']) }}')">{{ __('Youth') }}</flux:command.item>
+                            <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'teenager']) }}')">{{ __('Teenagers') }}</flux:command.item>
+                            <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'child']) }}')">{{ __('Children') }}</flux:command.item>
+                            <flux:command.item icon="user" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'interested']) }}')">{{ __('Interested') }}</flux:command.item>
+                            <flux:command.item icon="user-plus" x-on:click="Livewire.navigate('{{ route('admin.people.index', ['nature' => 'visitor']) }}')">{{ __('Visitors') }}</flux:command.item>
+                            <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.users.index') }}')">{{ __('Administrators') }}</flux:command.item>
+                        @endif
+
                         @if ($hasPostMgmt)
                             <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Posts management') }}</div>
                             @can('posts.create.local')
@@ -320,23 +325,9 @@
                             @endcan
                         @endif
 
-                        @if ($hasSettings)
-                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Settings') }}</div>
-                            @can('church.manage')
-                                <flux:command.item icon="building-library" x-on:click="Livewire.navigate('{{ route('admin.churches.index') }}')">{{ __('Churches') }}</flux:command.item>
-                            @endcan
-                            @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
-                                <flux:command.item icon="identification" x-on:click="Livewire.navigate('{{ route('admin.people.index') }}')">{{ __('People') }}</flux:command.item>
-                                <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.users.index') }}')">{{ __('Administrators') }}</flux:command.item>
-                                <flux:command.item icon="users" x-on:click="Livewire.navigate('{{ route('admin.members.index') }}')">{{ __('Members') }}</flux:command.item>
-                            @endif
-                            @can('church.manage')
-                                <flux:command.item icon="globe-americas" x-on:click="Livewire.navigate('{{ route('admin.regions.index') }}')">{{ __('Ecclesiastical regions') }}</flux:command.item>
-                                <flux:command.item icon="map" x-on:click="Livewire.navigate('{{ route('admin.districts.index') }}')">{{ __('Districts') }}</flux:command.item>
-                                <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.groups.index') }}')">{{ __('Groups') }}</flux:command.item>
-                            @endcan
+                        @if (auth()->user()->can('prayer.schedule.manage') || auth()->user()->can('fasting.calendar.manage'))
+                            <div class="px-2 pt-2 pb-1 text-xs font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">{{ __('Miscellaneous') }}</div>
                             @can('prayer.schedule.manage')
-                                <flux:command.item icon="clock" x-on:click="Livewire.navigate('{{ route('admin.prayer-schedules.index') }}')">{{ __('Prayer schedules') }}</flux:command.item>
                                 <flux:command.item icon="megaphone" x-on:click="Livewire.navigate('{{ route('admin.prayer-campaigns.index') }}')">{{ __('Prayer campaigns') }}</flux:command.item>
                             @endcan
                             @can('fasting.calendar.manage')

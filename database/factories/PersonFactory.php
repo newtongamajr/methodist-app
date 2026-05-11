@@ -23,7 +23,6 @@ class PersonFactory extends Factory
             'birthdate' => fake()->dateTimeBetween('-70 years', '-12 years')->format('Y-m-d'),
             'gender' => null,
             'marital_status' => null,
-            'photo_path' => null,
             'natures' => [PersonNature::Member->value],
             'additional_data' => [],
             'managing_church_id' => null,
