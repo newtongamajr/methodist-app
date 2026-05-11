@@ -1,15 +1,17 @@
-# Stack de PRs — code review até as mudanças pedidas pelo pastor
+# Stack de PRs — code review até o novo modelo de audiência de Posts
 
-Dezoito PRs empilhados entregam toda a trajetória entre `main` e a
+Dezenove PRs empilhados entregam toda a trajetória entre `main` e a
 Phase 8 da Person Architecture, mais o reorg do menu Admin, o polish do
 admin user, o polish de Person/profile (act-as nos registros
 compartilhados, paridade do profile com People, modelo de dados ciente
-de contato) e as mudanças pedidas pelo pastor no fluxo de oração
+de contato), as mudanças pedidas pelo pastor no fluxo de oração
 (refinamento de terminologia, criação de PrayerSchedule multi-data,
-inscrição em lote em /prayer + relatório, filtro de modo) no topo. Eles
-estão **empilhados** (a base de cada PR é o head do PR de baixo), não
-são paralelos, porque cada um depende do anterior. Tentar mergear fora
-de ordem vai gerar conflitos.
+inscrição em lote em /prayer + relatório, filtro de modo) e o
+rewrite do modelo de audiência de Posts (tabela post_scopes, cover via
+cropper, polish da listagem pública, atribuição com setinha) no topo.
+Eles estão **empilhados** (a base de cada PR é o head do PR de baixo),
+não são paralelos, porque cada um depende do anterior. Tentar mergear
+fora de ordem vai gerar conflitos.
 
 ## Ordem de merge (de baixo para cima)
 
@@ -33,8 +35,9 @@ de ordem vai gerar conflitos.
 | 16 | `persons-admin-user-polish` | `persons-admin-reorg` | Polish do editor admin de user: remove phone, confirm password + view toggle, `App\Models\Role` custom com coluna description, campo appearance; gestão de churches movida para a página `/admin/users/{id}/churches` com add por listbox searchable + toggle de primary por linha; pivot `ChurchUser` + observer garantem só uma primary |
 | 17 | `persons-act-as-and-photos` | `persons-admin-user-polish` | Plumbing de act-as para fasting / prayer / posts (`person_id` nas quatro tabelas compartilhadas, exibição `:author in the name of :person`); paridade do profile com People (Identity / Contacts / Addresses / Documents / Family delegam aos componentes admin, com gate para o owner); widget de foto da Person com cropper + espelhamento avatar→Person; novos enums `Gender` / `BrazilianState` / `Country` que dirigem o register, máscaras de contato e o coupling state↔country no Address; expansão das relações derivadas no grafo familiar (irmãos / avós / tios / sobrinhos / primos / sogros / cunhados / padrastos / enteados) com labels gender-aware |
 | 18 | `pastor-asked-changes` | `persons-act-as-and-photos` | Polish do fluxo de oração pedido pelo pastor: refinamento de terminologia (`slot` → `schedule`; `prayers` → `people of praying` em contextos de contagem) no source e nas traduções; criação de PrayerSchedule multi-data via `<flux:pillbox multiple>` (uma linha por data escolhida, tags `DD/MM/YY`); callout + modal de inscrição em lote em `/prayer` que aplica um par (modo, horário de início) a um intervalo de datas com relatório localizado das datas puladas (`not_found` / `full` / `already` / `past` / `out_of_window`); novo filtro de Modo (Any / At the church / From home) como filtro hard no calendário diário; lista de sugestões agora exclui horários nos quais a Person efetiva já está inscrita para que cliques não virem no-ops idempotentes |
+| 19 | `new-posts-features` | `pastor-asked-changes` | Rewrite do modelo de audiência de Posts: remove `posts.scope` + `posts.church_id` e introduz `post_scopes` (formas national / region / district / church, visibilidade OR); `church_user` vira a fonte de scope dos admins com `region_id` / `district_id` nullable (e `User::manageableRegions/Districts/Churches` lendo de lá); cover image com cropper 16:9 e factory Alpine genérica `imageCropper(config)` (que também conserta o silent-no-op do avatar / Person photo); índice admin de posts ganha thumbnail 16:9 na coluna do título e ícone pencil-square de editar; listagem pública `/posts` com cards que sobem no hover, borda rosa, pílulas coloridas de likes/comments e CTA "Read the whole story →"; botão "Back to posts" no detalhe; atribuição com setinha (`<autor> → <participante>`) substitui o "in the name of" em comentários + signups de oração; rodapé `<x-galileosoft-footer>` compartilhado no layout app |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18.**
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18 → #19.**
 À medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base
 do próximo da fila para `main` (ou para a nova base, se aplicável). Não use
 squash-merge — preserve o histórico de commits para que a intenção em
@@ -60,6 +63,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/16
 - https://github.com/newtongamajr/methodist-app/pull/17
 - https://github.com/newtongamajr/methodist-app/pull/18
+- https://github.com/newtongamajr/methodist-app/pull/19
 
 ## Por que empilhado, e não um PR único
 
@@ -108,9 +112,9 @@ Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os dezoito PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os dezenove PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#18) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #18 (276 tests / 641 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #18
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 741 keys no HEAD do #18
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#19) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #19 (276 tests / 644 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #19
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 749 keys no HEAD do #19
