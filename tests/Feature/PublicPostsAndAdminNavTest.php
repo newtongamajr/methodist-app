@@ -50,7 +50,7 @@ it('hides admin dropdown from regular users', function () {
 
 it('shows the full admin menu only to a global manager', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $super->locale = 'en';
     $super->save();
 
@@ -65,7 +65,7 @@ it('shows the full admin menu only to a global manager', function () {
 
 it('lets a super-user CRUD an ecclesiastical region', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $this->actingAs($super);
 
     Livewire::test('admin.regions.editor')

@@ -18,17 +18,17 @@ it('creates a brand-new super user when the email is unknown', function () {
 
     $user = User::firstWhere('email', 'super@new.test');
     expect($user)->not->toBeNull();
-    expect($user->hasRole('global_manager'))->toBeTrue();
+    expect($user->hasRole('national_admin'))->toBeTrue();
     expect(Hash::check('super-secret', $user->password))->toBeTrue();
 });
 
-it('promotes an existing user to global_manager', function () {
+it('promotes an existing user to national_admin', function () {
     $existing = User::factory()->create(['email' => 'pastor@church.test']);
 
     $this->artisan('app:make-super', ['--email' => 'pastor@church.test'])
         ->assertSuccessful();
 
-    expect($existing->fresh()->hasRole('global_manager'))->toBeTrue();
+    expect($existing->fresh()->hasRole('national_admin'))->toBeTrue();
 });
 
 it('resets the password when --password is provided on an existing user', function () {
@@ -42,10 +42,10 @@ it('resets the password when --password is provided on an existing user', functi
     expect(Hash::check('rotated-secret', $existing->fresh()->password))->toBeTrue();
 });
 
-it('fails gracefully when the global_manager role has not been seeded', function () {
+it('fails gracefully when the national_admin role has not been seeded', function () {
     Role::query()->delete();
 
     $this->artisan('app:make-super', ['--email' => 'super@new.test'])
-        ->expectsOutputToContain('Role global_manager does not exist')
+        ->expectsOutputToContain('Role national_admin does not exist')
         ->assertFailed();
 });

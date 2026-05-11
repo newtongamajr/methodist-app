@@ -11,12 +11,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             EcclesiasticalRegionSeeder::class,
             RolesAndPermissionsSeeder::class,
+            FunctionsSeeder::class,
             FastingCampaignSeeder::class,
             PrayerCampaignSeeder::class,
         ]);
 
         if (app()->environment('local', 'testing')) {
             $this->call([
+                DemoDistrictSeeder::class,
                 DemoChurchSeeder::class,
                 DemoUserSeeder::class,
             ]);

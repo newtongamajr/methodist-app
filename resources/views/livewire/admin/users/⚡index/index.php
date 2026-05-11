@@ -61,8 +61,8 @@ class extends Component
     public function users()
     {
         $q = User::query()
-            ->with(['primaryChurch', 'churches', 'roles'])
-            ->whereHas('roles', fn ($qq) => $qq->whereIn('name', ['global_manager', 'local_manager']))
+            ->with(['person.managingChurch', 'churches', 'roles'])
+            ->whereHas('roles', fn ($qq) => $qq->whereIn('name', ['national_admin', 'regional_admin', 'district_admin', 'local_admin']))
             ->orderBy($this->sortBy, $this->sortDir);
 
         if (! $this->isSuper) {

@@ -6,7 +6,36 @@
         </flux:button>
     </div>
 
-    <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or city…')" icon="magnifying-glass" />
+    <div class="grid gap-3 sm:grid-cols-3">
+        <flux:input wire:model.live.debounce.300ms="search" :placeholder="__('Search by name or city…')" icon="magnifying-glass" />
+
+        <flux:select
+            wire:model.live="regionFilter"
+            variant="listbox"
+            searchable
+            clearable
+            :placeholder="__('All regions')"
+        >
+            @foreach ($this->regions as $region)
+                <flux:select.option :value="$region->id">{{ $region->code }} — {{ $region->name }}</flux:select.option>
+            @endforeach
+        </flux:select>
+
+        @if ($regionFilter)
+            <flux:select
+                wire:model.live="districtFilter"
+                variant="listbox"
+                searchable
+                clearable
+                :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('All districts')"
+                :disabled="$this->districts->isEmpty()"
+            >
+                @foreach ($this->districts as $district)
+                    <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>
+                @endforeach
+            </flux:select>
+        @endif
+    </div>
 
     @if ($this->churches->isEmpty())
         <div class="rounded-lg border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900">
@@ -18,8 +47,9 @@
                 <flux:table.column sortable :sorted="$sortBy === 'name'" :direction="$sortDir" wire:click="sort('name')">{{ __('Name') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'type'" :direction="$sortDir" wire:click="sort('type')">{{ __('Type') }}</flux:table.column>
                 <flux:table.column>{{ __('Region') }}</flux:table.column>
+                <flux:table.column>{{ __('District') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'city'" :direction="$sortDir" wire:click="sort('city')">{{ __('City') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'primary_users_count'" :direction="$sortDir" wire:click="sort('primary_users_count')">{{ __('Members') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'members_count'" :direction="$sortDir" wire:click="sort('members_count')">{{ __('Members') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'is_active'" :direction="$sortDir" wire:click="sort('is_active')">{{ __('Active') }}</flux:table.column>
                 <flux:table.column align="end">{{ __('Actions') }}</flux:table.column>
             </flux:table.columns>
@@ -34,8 +64,9 @@
                             </flux:badge>
                         </flux:table.cell>
                         <flux:table.cell><flux:badge color="zinc">{{ $church->region?->code }}</flux:badge></flux:table.cell>
+                        <flux:table.cell>{{ $church->district?->name ?? '—' }}</flux:table.cell>
                         <flux:table.cell>{{ $church->city ? $church->city.'/'.$church->state : '—' }}</flux:table.cell>
-                        <flux:table.cell>{{ $church->primary_users_count }}</flux:table.cell>
+                        <flux:table.cell>{{ $church->members_count }}</flux:table.cell>
                         <flux:table.cell>
                             <flux:badge :color="$church->is_active ? 'emerald' : 'zinc'">
                                 {{ $church->is_active ? __('Active') : __('Inactive') }}

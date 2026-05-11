@@ -8,18 +8,18 @@ beforeEach(function () {
     $this->seed(RolesAndPermissionsSeeder::class);
 });
 
-it('creates the three application roles', function () {
+it('creates the five application roles', function () {
     expect(Role::pluck('name')->all())
-        ->toEqualCanonicalizing(['global_manager', 'local_manager', 'user']);
+        ->toEqualCanonicalizing(['national_admin', 'regional_admin', 'district_admin', 'local_admin', 'user']);
 });
 
-it('grants global_manager every permission', function () {
-    $role = Role::findByName('global_manager');
+it('grants national_admin every permission', function () {
+    $role = Role::findByName('national_admin');
     expect($role->permissions()->count())->toBeGreaterThanOrEqual(8);
 });
 
 it('limits local_manager to local + moderation permissions', function () {
-    $role = Role::findByName('local_manager');
+    $role = Role::findByName('local_admin');
     expect($role->permissions()->pluck('name')->all())->toEqualCanonicalizing([
         'posts.create.local',
         'comments.moderate',
@@ -31,9 +31,9 @@ it('limits local_manager to local + moderation permissions', function () {
 
 it('assigns roles to a user', function () {
     $user = User::factory()->create();
-    $user->assignRole('local_manager');
+    $user->assignRole('local_admin');
 
-    expect($user->hasRole('local_manager'))->toBeTrue();
+    expect($user->hasRole('local_admin'))->toBeTrue();
     expect($user->can('comments.moderate'))->toBeTrue();
     expect($user->can('posts.create.shared'))->toBeFalse();
 });

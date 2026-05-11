@@ -23,7 +23,7 @@ class extends Component
     public ?int $churchFilter = null;
 
     #[Url(as: 'type')]
-    public string $memberTypeFilter = '';
+    public string $natureFilter = '';
 
     public function mount(?int $church = null): void
     {
@@ -33,13 +33,24 @@ class extends Component
         $this->churchFilter = $church;
     }
 
-    public function updatingSearch(): void { $this->resetPage(); }
-    public function updatingChurchFilter(): void { $this->resetPage(); }
-    public function updatingMemberTypeFilter(): void { $this->resetPage(); }
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingChurchFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingNatureFilter(): void
+    {
+        $this->resetPage();
+    }
 
     protected function sortableColumns(): array
     {
-        return ['name', 'email', 'member_type'];
+        return ['name', 'email'];
     }
 
     protected function defaultSortBy(): string
@@ -65,10 +76,10 @@ class extends Component
     public function members()
     {
         $q = User::query()
-            ->with(['primaryChurch', 'churches'])
+            ->with(['churches', 'person.managingChurch'])
             ->orderBy($this->sortBy, $this->sortDir)
             // Members = anyone WITHOUT an admin role.
-            ->whereDoesntHave('roles', fn ($qq) => $qq->whereIn('name', ['global_manager', 'local_manager']));
+            ->whereDoesntHave('roles', fn ($qq) => $qq->whereIn('name', ['national_admin', 'regional_admin', 'district_admin', 'local_admin']));
 
         if (! $this->isSuper) {
             $allowedIds = auth()->user()->manageableChurchIds();
@@ -79,14 +90,15 @@ class extends Component
             $q->whereHas('churches', fn ($qq) => $qq->where('churches.id', $this->churchFilter));
         }
 
-        if ($this->memberTypeFilter !== '') {
-            $q->where('member_type', $this->memberTypeFilter);
+        if ($this->natureFilter !== '') {
+            $q->whereHas('person', fn ($qq) => $qq->whereJsonContains('natures', $this->natureFilter));
         }
 
         if ($this->search) {
             $term = '%'.addcslashes($this->search, '%_\\').'%';
-            $q->where(fn ($qq) => $qq->where('name', 'like', $term)
-                ->orWhere('email', 'like', $term));
+            $q->where(fn ($qq) => $qq->where('users.name', 'like', $term)
+                ->orWhere('email', 'like', $term)
+                ->orWhereHas('person', fn ($pq) => $pq->where('name', 'like', $term)));
         }
 
         return $q->paginate(20);

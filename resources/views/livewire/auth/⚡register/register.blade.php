@@ -12,29 +12,55 @@
             <flux:input wire:model="password_confirmation" :label="__('Confirm Password')" type="password" required autocomplete="new-password" />
         </div>
 
-        <flux:select wire:model="member_type" :label="__('I am a')">
-            @foreach (\App\Enums\MemberType::cases() as $type)
+        <flux:select wire:model="nature" :label="__('I am a')">
+            @foreach (\App\Enums\PersonNature::cases() as $type)
                 <option value="{{ $type->value }}">{{ $type->label() }}</option>
             @endforeach
         </flux:select>
 
-        <flux:select wire:model.live="region_id" :label="__('Ecclesiastical region')">
-            <option value="">{{ __('— None —') }}</option>
+        <flux:select
+            wire:model.live="region_id"
+            variant="listbox"
+            searchable
+            clearable
+            :label="__('Ecclesiastical region')"
+            :placeholder="__('Pick a region…')"
+        >
             @foreach ($this->regions as $region)
-                <option value="{{ $region->id }}">{{ $region->code }} — {{ $region->name }}</option>
+                <flux:select.option :value="$region->id">{{ $region->code }} — {{ $region->name }}</flux:select.option>
             @endforeach
         </flux:select>
 
-        @if ($this->churches->isNotEmpty())
-            <flux:select wire:model="church_id" :label="__('Church')">
-                <option value="">{{ __('— None —') }}</option>
-                @foreach ($this->churches as $church)
-                    <option value="{{ $church->id }}">
-                        {{ $church->name }}@if ($church->city) — {{ $church->city }}/{{ $church->state }}@endif
-                    </option>
+        @if ($region_id)
+            <flux:select
+                wire:model.live="district_id"
+                variant="listbox"
+                searchable
+                clearable
+                :label="__('District')"
+                :placeholder="$this->districts->isEmpty() ? __('No districts in this region yet.') : __('Pick a district…')"
+                :disabled="$this->districts->isEmpty()"
+            >
+                @foreach ($this->districts as $district)
+                    <flux:select.option :value="$district->id">{{ $district->name }}</flux:select.option>
                 @endforeach
             </flux:select>
         @endif
+
+        <flux:select
+            wire:model.live="church_id"
+            variant="listbox"
+            searchable
+            clearable
+            :label="__('Church')"
+            :placeholder="__('Search a church by name…')"
+        >
+            @foreach ($this->churches as $church)
+                <flux:select.option :value="$church->id">
+                    {{ $church->name }}@if ($church->city) — {{ $church->city }}/{{ $church->state }}@endif
+                </flux:select.option>
+            @endforeach
+        </flux:select>
 
         <div class="grid gap-4 sm:grid-cols-2">
             <flux:input wire:model="phone" :label="__('Phone')" type="tel" autocomplete="tel" />

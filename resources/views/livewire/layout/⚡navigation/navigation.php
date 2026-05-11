@@ -153,7 +153,7 @@ new class extends Component
             }
 
             $people = $query->get(['id', 'name', 'email'])->map(function (User $u) {
-                $isAdmin = $u->roles->whereIn('name', ['global_manager', 'local_manager'])->isNotEmpty();
+                $isAdmin = $u->roles->whereIn('name', ['national_admin', 'local_admin'])->isNotEmpty();
 
                 return [
                     'id' => $u->id,

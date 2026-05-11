@@ -2,9 +2,11 @@
 
 namespace App\Enums;
 
-enum MemberType: string
+enum PersonNature: string
 {
     case Member = 'member';
+    case Pastor = 'pastor';
+    case Visitor = 'visitor';
     case Interested = 'interested';
     case Teenager = 'teenager';
     case Child = 'child';
@@ -13,6 +15,8 @@ enum MemberType: string
     {
         return match ($this) {
             self::Member => __('Member'),
+            self::Pastor => __('Pastor'),
+            self::Visitor => __('Visitor'),
             self::Interested => __('Interested'),
             self::Teenager => __('Teenager'),
             self::Child => __('Child'),

@@ -42,7 +42,7 @@ class extends Component
     public function churches()
     {
         $user = auth()->user();
-        if ($user->hasRole('global_manager')) {
+        if ($user->hasRole('national_admin')) {
             return Church::orderBy('name')->get(['id', 'name']);
         }
 
@@ -69,7 +69,7 @@ class extends Component
         $data = $this->form->validate();
 
         $user = auth()->user();
-        if (! $user->hasRole('global_manager')) {
+        if (! $user->hasRole('national_admin')) {
             abort_unless($user->canManageChurch((int) $data['church_id']), 403);
         }
 

@@ -39,14 +39,14 @@
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-1">
                                 @foreach ($user->roles as $role)
-                                    <flux:badge wire:key="user-{{ $user->id }}-role-{{ $role->id }}" :color="$role->name === 'global_manager' ? 'rose' : 'sky'">{{ $role->name }}</flux:badge>
+                                    <flux:badge wire:key="user-{{ $user->id }}-role-{{ $role->id }}" :color="$role->name === 'national_admin' ? 'rose' : 'sky'">{{ $role->name }}</flux:badge>
                                 @endforeach
                             </div>
                         </flux:table.cell>
                         <flux:table.cell>
                             <div class="flex flex-wrap gap-1">
                                 @forelse ($user->churches as $c)
-                                    <flux:badge wire:key="user-{{ $user->id }}-church-{{ $c->id }}" :color="$user->church_id === $c->id ? 'emerald' : 'zinc'">
+                                    <flux:badge wire:key="user-{{ $user->id }}-church-{{ $c->id }}" :color="$user->person?->managing_church_id === $c->id ? 'emerald' : 'zinc'">
                                         {{ $c->name }}
                                     </flux:badge>
                                 @empty

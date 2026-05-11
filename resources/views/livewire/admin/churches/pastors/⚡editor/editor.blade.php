@@ -29,31 +29,29 @@
         </flux:radio.group>
 
         @if ($form->pastorMode === 'existing')
-            <flux:select wire:model="form.pastor_id" :label="__('Choose a pastor')" required>
+            <flux:select wire:model="form.person_id" :label="__('Choose a pastor')" required>
                 <option value="">{{ __('— Select —') }}</option>
                 @foreach ($this->pastors as $p)
-                    <option value="{{ $p->id }}">{{ $p->name }}@if ($p->email) — {{ $p->email }}@endif</option>
+                    <option value="{{ $p->id }}">{{ $p->name }}</option>
                 @endforeach
             </flux:select>
         @else
             <div class="grid gap-4 sm:grid-cols-3">
-                <flux:input wire:model="form.pastor_name" :label="__('Name')" required />
-                <flux:input wire:model="form.pastor_email" :label="__('Email')" type="email" />
-                <flux:input wire:model="form.pastor_phone" :label="__('Phone')" type="tel" />
+                <flux:input wire:model="form.person_name" :label="__('Name')" required />
+                <flux:input wire:model="form.person_email" :label="__('Email')" type="email" />
+                <flux:input wire:model="form.person_phone" :label="__('Phone')" type="tel" />
             </div>
         @endif
 
         <div class="grid gap-4 sm:grid-cols-3">
-            <flux:select wire:model="form.role" :label="__('Role')" required>
-                @foreach (\App\Enums\PastorRole::cases() as $r)
-                    <option value="{{ $r->value }}">{{ $r->label() }}</option>
+            <flux:select wire:model="form.function_id" :label="__('Function')" required>
+                @foreach ($this->pastorFunctions as $fn)
+                    <option value="{{ $fn->id }}">{{ $fn->name }}</option>
                 @endforeach
             </flux:select>
             <flux:date-picker wire:model="form.start_date" :label="__('Start date')" />
             <flux:date-picker wire:model="form.end_date" :label="__('End date')" :placeholder="__('Active')" />
         </div>
-
-        <flux:input wire:model="form.display_order" :label="__('Display order')" type="number" min="0" max="99" />
 
         <div class="flex justify-end gap-2">
             <flux:button :href="route('admin.churches.pastors.index', $church)" variant="ghost" wire:navigate>{{ __('Cancel') }}</flux:button>

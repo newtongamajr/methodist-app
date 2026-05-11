@@ -74,6 +74,9 @@
                                         <flux:menu.item :href="route('admin.regions.index')" wire:navigate icon="globe-americas">
                                             {{ __('Ecclesiastical regions') }}
                                         </flux:menu.item>
+                                        <flux:menu.item :href="route('admin.districts.index')" wire:navigate icon="map">
+                                            {{ __('Districts') }}
+                                        </flux:menu.item>
                                     @endcan
 
                                     @can('prayer.schedule.manage')
@@ -229,6 +232,7 @@
                         @endif
                         @can('church.manage')
                             <flux:sidebar.item :href="route('admin.regions.index')" wire:navigate>{{ __('Ecclesiastical regions') }}</flux:sidebar.item>
+                            <flux:sidebar.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:sidebar.item>
                         @endcan
                         @can('prayer.schedule.manage')
                             <flux:sidebar.item :href="route('admin.prayer-schedules.index')" wire:navigate>{{ __('Prayer schedules') }}</flux:sidebar.item>
@@ -316,6 +320,7 @@
                             @endif
                             @can('church.manage')
                                 <flux:command.item icon="globe-americas" x-on:click="Livewire.navigate('{{ route('admin.regions.index') }}')">{{ __('Ecclesiastical regions') }}</flux:command.item>
+                                <flux:command.item icon="map" x-on:click="Livewire.navigate('{{ route('admin.districts.index') }}')">{{ __('Districts') }}</flux:command.item>
                             @endcan
                             @can('prayer.schedule.manage')
                                 <flux:command.item icon="clock" x-on:click="Livewire.navigate('{{ route('admin.prayer-schedules.index') }}')">{{ __('Prayer schedules') }}</flux:command.item>

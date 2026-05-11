@@ -32,7 +32,7 @@ class RegistrationTest extends TestCase
             ->set('email', 'test@example.com')
             ->set('password', 'password')
             ->set('password_confirmation', 'password')
-            ->set('member_type', 'member')
+            ->set('nature', 'member')
             ->set('locale', 'pt_BR')
             ->call('register')
             ->assertRedirect(route('posts.index', absolute: false));
@@ -42,7 +42,7 @@ class RegistrationTest extends TestCase
         $user = User::where('email', 'test@example.com')->first();
         $this->assertNotNull($user);
         $this->assertTrue($user->hasRole('user'));
-        $this->assertSame('member', $user->member_type->value);
+        $this->assertSame(['member'], $user->person->natures);
         $this->assertSame('pt_BR', $user->locale);
     }
 
@@ -56,7 +56,7 @@ class RegistrationTest extends TestCase
             ->set('email', 'maria@example.com')
             ->set('password', 'password')
             ->set('password_confirmation', 'password')
-            ->set('member_type', 'interested')
+            ->set('nature', 'interested')
             ->set('region_id', $region->id)
             ->set('church_id', $church->id)
             ->set('locale', 'es')
@@ -66,9 +66,9 @@ class RegistrationTest extends TestCase
             ->assertRedirect(route('posts.index', absolute: false));
 
         $user = User::where('email', 'maria@example.com')->first();
-        $this->assertSame($church->id, $user->church_id);
+        $this->assertSame($church->id, $user->person->managing_church_id);
         $this->assertTrue($user->churches->contains($church));
-        $this->assertSame('interested', $user->member_type->value);
-        $this->assertSame('(11) 99999-0000', $user->phone);
+        $this->assertSame(['interested'], $user->person->natures);
+        $this->assertSame('(11) 99999-0000', $user->person->contacts()->where('type', 'phone')->value('value'));
     }
 }

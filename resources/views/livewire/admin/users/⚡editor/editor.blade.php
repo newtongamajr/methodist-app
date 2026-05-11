@@ -68,7 +68,7 @@
                 @endforeach
             </flux:select>
         @else
-            <flux:input value="local_manager" :label="__('Role')" disabled />
+            <flux:input value="local_admin" :label="__('Role')" disabled />
         @endif
 
         <flux:select wire:model="form.locale" :label="__('Language')">

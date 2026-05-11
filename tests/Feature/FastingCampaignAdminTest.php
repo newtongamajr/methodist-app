@@ -11,7 +11,7 @@ beforeEach(function () {
 
 it('lets a global manager create a campaign', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $this->actingAs($super);
 
     Livewire::test('admin.fasting-campaigns.editor')
@@ -34,7 +34,7 @@ it('lets a global manager create a campaign', function () {
 
 it('rejects a campaign with end before start', function () {
     $super = User::factory()->create();
-    $super->assignRole('global_manager');
+    $super->assignRole('national_admin');
     $this->actingAs($super);
 
     Livewire::test('admin.fasting-campaigns.editor')

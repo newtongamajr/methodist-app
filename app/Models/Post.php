@@ -116,13 +116,15 @@ class Post extends Model implements HasMedia
 
     public function scopeVisibleTo(Builder $query, ?User $user): Builder
     {
-        return $query->where(function (Builder $q) use ($user) {
+        $managingChurchId = $user?->person?->managing_church_id;
+
+        return $query->where(function (Builder $q) use ($managingChurchId) {
             $q->where('scope', PostScope::Shared);
 
-            if ($user?->church_id) {
+            if ($managingChurchId) {
                 $q->orWhere(fn ($qq) => $qq
                     ->where('scope', PostScope::Local)
-                    ->where('church_id', $user->church_id));
+                    ->where('church_id', $managingChurchId));
             }
         });
     }

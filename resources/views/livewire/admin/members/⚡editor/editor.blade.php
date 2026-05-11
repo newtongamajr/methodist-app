@@ -32,8 +32,8 @@
             />
         </div>
 
-        <flux:select wire:model="form.member_type" :label="__('I am a')">
-            @foreach (\App\Enums\MemberType::cases() as $type)
+        <flux:select wire:model="form.nature" :label="__('I am a')">
+            @foreach (\App\Enums\PersonNature::cases() as $type)
                 <option value="{{ $type->value }}">{{ $type->label() }}</option>
             @endforeach
         </flux:select>

@@ -25,7 +25,7 @@ class PostPolicy
 
         // A user can read a local post if they're a member of that church OR
         // an admin of it.
-        return $user->church_id === $post->church_id
+        return $user->person?->managing_church_id === $post->church_id
             || $user->canManageChurch($post->church_id ?? 0);
     }
 

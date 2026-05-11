@@ -2,8 +2,8 @@
 
 use App\Livewire\Concerns\HasSortableColumns;
 use App\Models\Church;
-use App\Models\Pastor;
-use App\Models\PastorAssignment;
+use App\Models\Person;
+use App\Models\PersonRoleAssignment;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Url;
@@ -28,12 +28,12 @@ class extends Component
 
     protected function sortableColumns(): array
     {
-        return ['pastor', 'role', 'start_date', 'end_date'];
+        return ['person', 'function', 'started_at', 'ended_at'];
     }
 
     protected function defaultSortBy(): string
     {
-        return 'start_date';
+        return 'started_at';
     }
 
     #[Computed]
@@ -41,37 +41,40 @@ class extends Component
     {
         $today = now()->toDateString();
 
-        $q = PastorAssignment::query()
-            ->with('pastor')
-            ->where('church_id', $this->church->id);
+        $q = PersonRoleAssignment::query()
+            ->with(['person', 'function'])
+            ->where('church_id', $this->church->id)
+            ->whereHas('function', fn ($qq) => $qq->whereJsonContains('applies_to', 'pastor'));
 
         if ($this->filter === 'current') {
-            $q->activeOn(now());
+            $q->where(fn ($qq) => $qq->whereNull('started_at')->orWhere('started_at', '<=', $today))
+                ->where(fn ($qq) => $qq->whereNull('ended_at')->orWhere('ended_at', '>=', $today));
         } elseif ($this->filter === 'past') {
-            $q->whereNotNull('end_date')->where('end_date', '<', $today);
+            $q->whereNotNull('ended_at')->where('ended_at', '<', $today);
         } elseif ($this->filter === 'future') {
-            $q->whereNotNull('start_date')->where('start_date', '>', $today);
+            $q->whereNotNull('started_at')->where('started_at', '>', $today);
         }
 
         $orderColumn = match ($this->sortBy) {
-            'pastor' => Pastor::query()->select('name')->whereColumn('pastors.id', 'pastor_assignments.pastor_id'),
+            'person' => Person::query()->select('name')->whereColumn('persons.id', 'person_role_assignments.person_id'),
+            'function' => \App\Models\FunctionRole::query()->select('name')->whereColumn('functions.id', 'person_role_assignments.function_id'),
             default => $this->sortBy,
         };
-        $q->orderBy($orderColumn, $this->sortDir)->orderBy('display_order');
+        $q->orderBy($orderColumn, $this->sortDir);
 
         return $q->get();
     }
 
     public function endAssignment(int $id): void
     {
-        $a = PastorAssignment::where('church_id', $this->church->id)->findOrFail($id);
-        $a->update(['end_date' => now()->toDateString()]);
+        $a = PersonRoleAssignment::where('church_id', $this->church->id)->findOrFail($id);
+        $a->update(['ended_at' => now()->toDateString()]);
         unset($this->assignments);
     }
 
     public function delete(int $id): void
     {
-        $a = PastorAssignment::where('church_id', $this->church->id)->findOrFail($id);
+        $a = PersonRoleAssignment::where('church_id', $this->church->id)->findOrFail($id);
         $a->delete();
         unset($this->assignments);
     }

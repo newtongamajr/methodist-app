@@ -69,7 +69,7 @@ it('auto-approves comments from global and local managers', function () {
     $post = Post::factory()->published()->create();
 
     $globalAdmin = User::factory()->create();
-    $globalAdmin->assignRole('global_manager');
+    $globalAdmin->assignRole('national_admin');
     $this->actingAs($globalAdmin);
 
     Livewire::test('posts.show', ['slug' => $post->slug])
@@ -82,7 +82,7 @@ it('auto-approves comments from global and local managers', function () {
     expect($globalComment->approved_at)->not->toBeNull();
 
     $localAdmin = User::factory()->create();
-    $localAdmin->assignRole('local_manager');
+    $localAdmin->assignRole('local_admin');
     $localAdmin->churches()->syncWithoutDetaching([$church->id => ['is_primary' => true]]);
     $this->actingAs($localAdmin);
 
@@ -112,7 +112,7 @@ it('lets a global manager approve a comment via the moderation queue', function 
     $comment = PostComment::factory()->for($post)->create();
 
     $admin = User::factory()->create();
-    $admin->assignRole('global_manager');
+    $admin->assignRole('national_admin');
     $this->actingAs($admin);
 
     Livewire::test('admin.comments.index')

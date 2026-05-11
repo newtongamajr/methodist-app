@@ -1,7 +1,11 @@
 <?php
 
+use App\Enums\PersonContactType;
+use App\Enums\PersonType;
 use App\Livewire\Forms\MemberForm;
+use App\Models\Person;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
@@ -19,11 +23,11 @@ class extends Component
         abort_unless($actor && ($actor->can('users.manage') || $actor->can('users.manage.local')), 403);
 
         if ($userId) {
-            $user = User::with(['roles', 'churches'])->findOrFail($userId);
+            $user = User::with(['roles', 'churches', 'person.contacts'])->findOrFail($userId);
 
             // Refuse to edit administrators from this CRUD; that's /admin/users.
             abort_if(
-                $user->roles->whereIn('name', ['global_manager', 'local_manager'])->isNotEmpty(),
+                $user->roles->whereIn('name', ['national_admin', 'regional_admin', 'district_admin', 'local_admin'])->isNotEmpty(),
                 404
             );
 
@@ -84,30 +88,66 @@ class extends Component
             $primaryId = $churchIds[0];
         }
 
-        $payload = [
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'] ?: null,
-            'birthdate' => $data['birthdate'] ?: null,
-            'member_type' => $data['member_type'],
-            'church_id' => $primaryId,
-            'locale' => $data['locale'],
-        ];
+        $user = DB::transaction(function () use ($isCreating, $data, $primaryId) {
+            $personPayload = [
+                'name' => $data['name'],
+                'birthdate' => $data['birthdate'] ?: null,
+                'natures' => [$data['nature']],
+                'managing_church_id' => $primaryId,
+            ];
 
-        if (! empty($data['password'])) {
-            $payload['password'] = Hash::make($data['password']);
-        }
+            if ($isCreating) {
+                $person = Person::create($personPayload + [
+                    'person_type' => PersonType::Individual->value,
+                ]);
+            } else {
+                $person = $this->form->user->person ?? Person::create($personPayload + [
+                    'person_type' => PersonType::Individual->value,
+                ]);
+                $person->fill($personPayload)->save();
+            }
 
-        if ($isCreating) {
-            $payload['appearance'] = 'system';
-            $payload['email_verified_at'] = now();
-            $user = User::create($payload);
-            $this->form->user = $user;
-        } else {
-            $this->form->user->update($payload);
-            $user = $this->form->user;
-        }
+            $userPayload = [
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'locale' => $data['locale'],
+            ];
 
+            if (! empty($data['password'])) {
+                $userPayload['password'] = Hash::make($data['password']);
+            }
+
+            if ($isCreating) {
+                $user = User::create($userPayload + [
+                    'person_id' => $person->id,
+                    'appearance' => 'system',
+                    'email_verified_at' => now(),
+                ]);
+            } else {
+                $this->form->user->update($userPayload + ['person_id' => $person->id]);
+                $user = $this->form->user;
+            }
+
+            $phone = $data['phone'] ?: null;
+            $existing = $person->contacts()->where('type', PersonContactType::Phone->value)->first();
+            if ($phone) {
+                if ($existing) {
+                    $existing->update(['value' => $phone, 'is_primary' => true]);
+                } else {
+                    $person->contacts()->create([
+                        'type' => PersonContactType::Phone->value,
+                        'value' => $phone,
+                        'is_primary' => true,
+                    ]);
+                }
+            } elseif ($existing) {
+                $existing->delete();
+            }
+
+            return $user;
+        });
+
+        $this->form->user = $user;
         $user->syncRoles(['user']);
 
         // Preserve church attachments outside the actor's manageable scope.
