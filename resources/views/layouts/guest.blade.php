@@ -49,7 +49,7 @@
         </header>
 
         <main class="relative z-10 flex min-h-[calc(100vh-200px)] items-start justify-center px-6 pb-20 pt-6">
-            <div class="w-full max-w-md rounded-2xl bg-white/95 p-8 shadow-2xl ring-1 ring-white/15 backdrop-blur-sm dark:bg-zinc-900/95 dark:ring-white/10">
+            <div class="w-full {{ $maxWidth ?? 'max-w-md' }} rounded-2xl bg-white/95 p-8 shadow-2xl ring-1 ring-white/15 backdrop-blur-sm dark:bg-zinc-900/95 dark:ring-white/10">
                 <div class="text-zinc-900 dark:text-zinc-100">
                     {{ $slot }}
                 </div>

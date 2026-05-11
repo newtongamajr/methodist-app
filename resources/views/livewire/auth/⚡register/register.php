@@ -1,6 +1,8 @@
 <?php
 
 use App\Enums\AppLocale;
+use App\Enums\Country;
+use App\Enums\Gender;
 use App\Enums\MaritalStatus;
 use App\Enums\PersonContactType;
 use App\Enums\PersonNature;
@@ -23,7 +25,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new
-#[Layout('layouts.guest')]
+#[Layout('layouts.guest', ['maxWidth' => 'max-w-2xl'])]
 class extends Component
 {
     public string $name = '';
@@ -45,6 +47,8 @@ class extends Component
     public string $locale = '';
 
     public string $phone = '';
+
+    public string $phone_country = 'BR';
 
     public string $birthdate = '';
 
@@ -141,14 +145,15 @@ class extends Component
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
-            'nature' => ['required', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, PersonNature::cases()))],
+            'nature' => ['required', 'string', 'in:'.implode(',', array_keys(PersonNature::individualOptions()))],
             'region_id' => ['nullable', 'integer', 'exists:ecclesiastical_regions,id'],
             'district_id' => ['nullable', 'integer', 'exists:districts,id'],
             'church_id' => ['nullable', 'integer', 'exists:churches,id'],
             'locale' => ['required', 'string', 'in:'.implode(',', AppLocale::values())],
             'phone' => ['nullable', 'string', 'max:32'],
+            'phone_country' => ['required', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, Country::cases()))],
             'birthdate' => ['nullable', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', 'in:female,male,other'],
+            'gender' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, Gender::cases()))],
             'marital_status' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, MaritalStatus::cases()))],
             'tax_id' => ['nullable', 'string', 'max:32'],
         ]);
@@ -186,9 +191,11 @@ class extends Component
             ]);
 
             if (! empty($validated['phone'])) {
+                $country = Country::from($validated['phone_country']);
                 $person->contacts()->create([
-                    'type' => PersonContactType::Phone->value,
-                    'value' => $validated['phone'],
+                    'type' => PersonContactType::Mobile->value,
+                    'value' => '+'.$country->phoneCode().' '.$validated['phone'],
+                    'country' => $country->value,
                     'is_primary' => true,
                 ]);
             }

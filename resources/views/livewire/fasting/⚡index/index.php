@@ -111,8 +111,16 @@ class extends Component
             return collect();
         }
 
+        // Read by person — the calendar reflects the acted-as Person's fasts,
+        // not the recording User's. When not acting-as, this is the user's own
+        // Person, so the visible behavior is unchanged for solo users.
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return collect();
+        }
+
         return FastingEntry::query()
-            ->where('user_id', auth()->id())
+            ->where('person_id', $person->id)
             ->where('fasting_campaign_id', $this->campaign->id)
             ->get()
             ->keyBy(fn ($e) => $e->date->format('Y-m-d'));
@@ -151,9 +159,12 @@ class extends Component
             return [];
         }
 
+        // Count distinct Persons (one fast per Person per day), not Users — a
+        // single User logging fasts for themselves and a child should count as
+        // two participants on a shared day.
         return FastingEntry::query()
             ->where('fasting_campaign_id', $this->campaign->id)
-            ->selectRaw('`date` as day, COUNT(DISTINCT user_id) as total')
+            ->selectRaw('`date` as day, COUNT(DISTINCT person_id) as total')
             ->groupBy('date')
             ->pluck('total', 'day')
             ->all();
@@ -207,13 +218,21 @@ class extends Component
             return;
         }
 
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return;
+        }
+
         FastingEntry::updateOrCreate(
             [
-                'user_id' => auth()->id(),
+                'person_id' => $person->id,
                 'fasting_campaign_id' => $campaign->id,
                 'date' => $data['editingDate'],
             ],
             [
+                // user_id = who clicked save (may differ from person_id when
+                // a parent records a fast on their child's behalf).
+                'user_id' => auth()->id(),
                 'type' => $data['type'],
                 'restrictions' => $data['restrictions'] ?: null,
                 'notes' => $data['notes'] ?: null,
@@ -231,7 +250,12 @@ class extends Component
             return;
         }
 
-        FastingEntry::where('user_id', auth()->id())
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return;
+        }
+
+        FastingEntry::where('person_id', $person->id)
             ->where('fasting_campaign_id', $this->campaign->id)
             ->where('date', $date)
             ->delete();

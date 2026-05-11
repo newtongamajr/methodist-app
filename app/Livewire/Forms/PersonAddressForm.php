@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Forms;
 
+use App\Enums\BrazilianState;
+use App\Enums\Country;
 use App\Models\PersonAddress;
 use Livewire\Form;
 
@@ -43,9 +45,9 @@ class PersonAddressForm extends Form
             'complement' => ['nullable', 'string', 'max:255'],
             'neighborhood' => ['nullable', 'string', 'max:255'],
             'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'max:2'],
+            'state' => ['nullable', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, BrazilianState::cases()))],
             'zip' => ['nullable', 'string', 'max:16'],
-            'country' => ['required', 'string', 'size:2'],
+            'country' => ['required', 'string', 'in:'.implode(',', array_map(fn ($c) => $c->value, Country::cases()))],
             'is_primary' => ['boolean'],
         ];
     }
@@ -68,6 +70,17 @@ class PersonAddressForm extends Form
 
     public function save(): PersonAddress
     {
+        // Couple state and country before validation so the UI can't submit a
+        // real UF + non-BR country, or "Foreign" + BR. The state select is the
+        // single source of truth — country follows.
+        if ($this->state === BrazilianState::Foreign->value) {
+            if ($this->country === 'BR') {
+                $this->country = 'US';
+            }
+        } elseif ($this->state !== '') {
+            $this->country = 'BR';
+        }
+
         $data = $this->validate();
         foreach (['label', 'street', 'number', 'complement', 'neighborhood', 'city', 'state', 'zip'] as $k) {
             if (($data[$k] ?? null) === '') {

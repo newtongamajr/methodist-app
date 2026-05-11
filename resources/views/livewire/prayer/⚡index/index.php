@@ -119,7 +119,11 @@ class extends Component
             ->where('church_id', $this->churchId)
             ->where('prayer_campaign_id', $this->campaignId)
             ->whereDate('starts_at', $this->selectedDate)
-            ->with(['confirmedSignups.user:id,name'])
+            // person.name is the participant; user.name is the actor that
+            // recorded the row (parent recording for a child differs). The
+            // user's person_id lets the Blade compare it against the signup's
+            // person_id to detect proxy entries without an extra query.
+            ->with(['confirmedSignups.user:id,name,person_id', 'confirmedSignups.person:id,name'])
             ->orderBy('starts_at')
             ->get();
     }
@@ -127,8 +131,16 @@ class extends Component
     #[Computed]
     public function mySignups(): array
     {
+        // Reflect signups for the acted-as Person (or the user's own Person
+        // when not acting-as). The same parent toggling between themselves
+        // and a child sees only that one's slots highlighted at a time.
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return [];
+        }
+
         return PrayerSignup::query()
-            ->where('user_id', auth()->id())
+            ->where('person_id', $person->id)
             ->where('status', SignupStatus::Confirmed)
             ->pluck('prayer_slot_id')
             ->all();
@@ -199,8 +211,13 @@ class extends Component
 
     public function leave(int $slotId): void
     {
+        $person = auth()->user()?->effectivePerson();
+        if (! $person) {
+            return;
+        }
+
         PrayerSignup::where('prayer_slot_id', $slotId)
-            ->where('user_id', auth()->id())
+            ->where('person_id', $person->id)
             ->delete();
 
         unset($this->daySlots, $this->mySignups, $this->suggestions);
@@ -239,30 +256,43 @@ class extends Component
         $isSelf = $userId === $actor->id;
         if ($isSelf) {
             abort_unless($slot->church_id === $this->churchId, 403);
+            // When the actor is acting-as a minor, route the signup to that
+            // Person; otherwise fall back to the actor's own Person.
+            $personId = $actor->effectivePerson()?->id;
         } else {
             abort_unless($actor->canManageChurch($slot->church_id), 403);
-            $isMember = User::whereKey($userId)
+            $assignee = User::whereKey($userId)
                 ->whereHas('churches', fn ($q) => $q->where('churches.id', $slot->church_id))
-                ->exists();
-            if (! $isMember) {
+                ->first();
+            if (! $assignee) {
                 $this->addError('slot', __('This user is not registered at this church.'));
+
                 return;
             }
+            $personId = $assignee->person_id;
         }
 
         if ($slot->starts_at->isPast()) {
             $this->addError('slot', __('This slot has already started.'));
+
             return;
         }
 
         if ($slot->confirmed_signups_count >= $slot->capacity) {
             $this->addError('slot', __('This slot is full.'));
+
             return;
         }
 
         PrayerSignup::updateOrCreate(
-            ['prayer_slot_id' => $slot->id, 'user_id' => $userId],
-            ['status' => SignupStatus::Confirmed->value],
+            ['prayer_slot_id' => $slot->id, 'person_id' => $personId],
+            [
+                // user_id captures who saved the row; person_id is who the
+                // signup is for. They differ when a parent records on behalf
+                // of a minor.
+                'user_id' => $userId,
+                'status' => SignupStatus::Confirmed->value,
+            ],
         );
 
         unset($this->daySlots, $this->mySignups, $this->suggestions);

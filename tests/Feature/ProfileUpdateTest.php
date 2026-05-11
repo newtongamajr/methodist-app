@@ -2,6 +2,7 @@
 
 use App\Models\Church;
 use App\Models\EcclesiasticalRegion;
+use App\Models\Person;
 use App\Models\User;
 use Database\Seeders\RolesAndPermissionsSeeder;
 use Livewire\Livewire;
@@ -64,20 +65,37 @@ it('clears the church when the region changes to one that does not contain it', 
         ->assertSet('church_id', null);
 });
 
-it('persists contact fields', function () {
+it('lets a non-admin user manage their own contacts via the People components on profile', function () {
+    // The legacy single-field profile.update-contact component was replaced
+    // by the full Contacts tab on the profile, which delegates to the same
+    // admin.people.contacts component admins use. The mount gate now allows
+    // a non-admin to render that component when personId matches their own.
     $user = User::factory()->create();
     $this->actingAs($user);
 
-    Livewire::test('profile.update-contact')
-        ->set('phone', '(21) 88888-0000')
-        ->set('birthdate', '2010-05-01')
-        ->call('updateContact')
+    Livewire::test('admin.people.contacts', ['personId' => $user->person->id])
+        ->call('openCreate')
+        ->set('form.type', 'phone')
+        ->set('form.country', 'BR')
+        ->set('form.value', '(21) 88888-0000')
+        ->call('save')
         ->assertHasNoErrors();
 
     $user->refresh()->load('person.contacts');
 
-    expect($user->person->contacts()->where('type', 'phone')->value('value'))->toBe('(21) 88888-0000');
-    expect($user->person->birthdate->format('Y-m-d'))->toBe('2010-05-01');
+    // Phone contacts are stored with the country prefix baked in.
+    expect($user->person->contacts()->where('type', 'phone')->value('value'))
+        ->toBe('+55 (21) 88888-0000');
+});
+
+it('blocks a non-admin from managing someone else\'s contacts', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $otherPerson = Person::factory()->create();
+
+    Livewire::test('admin.people.contacts', ['personId' => $otherPerson->id])
+        ->assertStatus(403);
 });
 
 it('persists preferences and reflects them in the session', function () {

@@ -1,8 +1,21 @@
 import Cropper from 'cropperjs';
 import 'cropperjs/dist/cropper.css';
 
+/**
+ * Generic square-image cropper backed by Cropper.js.
+ *
+ * Used by both the user-avatar editor and the Person photo editor — each call
+ * site provides its own modal name, wire property, and wire save method via
+ * config. Modal-show/close events are dispatched on `document` (not window) so
+ * Flux v2 modal listeners (`x-on:modal-show.document`) can pick them up; that
+ * was the bug that broke the cropper after the Flux upgrade.
+ */
 document.addEventListener('alpine:init', () => {
-    window.Alpine.data('avatarCropper', () => ({
+    const factory = (config = {}) => ({
+        modal: config.modal || 'image-cropper',
+        wireProperty: config.wireProperty || 'newImage',
+        wireSave: config.wireSave || 'saveImage',
+        outputName: config.outputName || 'image.png',
         cropper: null,
         srcUrl: null,
         saving: false,
@@ -15,7 +28,7 @@ document.addEventListener('alpine:init', () => {
             const reader = new FileReader();
             reader.onload = (e) => {
                 this.srcUrl = e.target.result;
-                window.dispatchEvent(new CustomEvent('modal-show', { detail: { name: 'avatar-cropper' } }));
+                document.dispatchEvent(new CustomEvent('modal-show', { detail: { name: this.modal } }));
                 this.$nextTick(() => this.mount());
             };
             reader.readAsDataURL(file);
@@ -68,13 +81,13 @@ document.addEventListener('alpine:init', () => {
             });
 
             const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png', 0.92));
-            const file = new File([blob], 'avatar.png', { type: 'image/png' });
+            const file = new File([blob], this.outputName, { type: 'image/png' });
 
             this.$wire.upload(
-                'newAvatar',
+                this.wireProperty,
                 file,
                 () => {
-                    this.$wire.saveAvatar();
+                    this.$wire.call(this.wireSave);
                     this.saving = false;
                     this.close();
                 },
@@ -85,7 +98,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         close() {
-            window.dispatchEvent(new CustomEvent('modal-close', { detail: { name: 'avatar-cropper' } }));
+            document.dispatchEvent(new CustomEvent('modal-close', { detail: { name: this.modal } }));
             this.srcUrl = null;
             this.destroy();
         },
@@ -96,5 +109,17 @@ document.addEventListener('alpine:init', () => {
                 this.cropper = null;
             }
         },
+    });
+
+    // Generic factory for any image-cropper instance.
+    window.Alpine.data('imageCropper', factory);
+
+    // Backward-compat: existing call sites that already use `avatarCropper`
+    // continue to work with the Avatar-tab defaults baked in.
+    window.Alpine.data('avatarCropper', () => factory({
+        modal: 'avatar-cropper',
+        wireProperty: 'newAvatar',
+        wireSave: 'saveAvatar',
+        outputName: 'avatar.png',
     }));
 });

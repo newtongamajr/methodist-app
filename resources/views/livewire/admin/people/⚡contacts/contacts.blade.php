@@ -55,16 +55,55 @@
     @endif
 
     <flux:modal wire:model.self="showModal" class="md:max-w-lg">
-        <form wire:submit="save" class="space-y-4">
+        <form
+            wire:submit="save"
+            class="space-y-4"
+            x-data="{
+                phoneTypes: ['phone', 'mobile', 'whatsapp'],
+                mobileTypes: ['mobile', 'whatsapp'],
+                masks: @js(\App\Enums\Country::cases()
+                    ? collect(\App\Enums\Country::cases())->mapWithKeys(fn ($c) => [$c->value => [
+                        'fixed' => $c->fixedMask(),
+                        'mobile' => $c->mobileMask(),
+                    ]])->all()
+                    : []),
+                isPhone() { return this.phoneTypes.includes($wire.form.type); },
+                phoneMask() {
+                    const country = $wire.form.country || 'BR';
+                    const kind = this.mobileTypes.includes($wire.form.type) ? 'mobile' : 'fixed';
+                    return (this.masks[country] && this.masks[country][kind]) || '';
+                },
+            }"
+        >
             <flux:heading size="lg">{{ $form->contact ? __('Edit contact') : __('Add contact') }}</flux:heading>
 
-            <flux:select wire:model="form.type" :label="__('Type')" required>
+            <flux:select wire:model.live="form.type" :label="__('Type')" required>
                 @foreach (\App\Enums\PersonContactType::cases() as $t)
                     <option value="{{ $t->value }}">{{ $t->label() }}</option>
                 @endforeach
             </flux:select>
 
-            <flux:input wire:model="form.value" :label="__('Value')" required />
+            <div x-show="isPhone()" x-cloak>
+                <flux:select
+                    wire:model.live="form.country"
+                    variant="listbox"
+                    searchable
+                    :label="__('Country')"
+                    :placeholder="__('Pick a country…')"
+                >
+                    @foreach (\App\Enums\Country::options() as $iso => $name)
+                        <flux:select.option :value="$iso">{{ $name }} (+{{ \App\Enums\Country::from($iso)->phoneCode() }})</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+
+            <flux:input
+                wire:model="form.value"
+                :label="__('Value')"
+                required
+                x-mask:dynamic="isPhone() ? phoneMask() : ''"
+                x-bind:placeholder="isPhone() ? phoneMask() : ''"
+            />
             <flux:input wire:model="form.label" :label="__('Label')" :placeholder="__('e.g. Personal, Work')" />
             <flux:checkbox wire:model="form.is_primary" :label="__('Primary contact for this type')" />
 

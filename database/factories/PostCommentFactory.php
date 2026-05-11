@@ -18,6 +18,8 @@ class PostCommentFactory extends Factory
         return [
             'post_id' => Post::factory(),
             'user_id' => User::factory(),
+            // Default to the recording user's own Person — the non-act-as case.
+            'person_id' => fn (array $attrs) => User::find($attrs['user_id'])?->person_id,
             'body' => fake()->paragraph(),
             'status' => CommentStatus::Pending->value,
         ];
