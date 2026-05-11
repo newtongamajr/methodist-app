@@ -7,6 +7,7 @@ namespace App\Livewire\Forms;
 use App\Enums\ChurchType;
 use App\Enums\LocationMode;
 use App\Models\Church;
+use App\Models\District;
 use Illuminate\Validation\Rule;
 use Livewire\Form;
 
@@ -52,11 +53,29 @@ class ChurchForm extends Form
 
     public string $master_password = '';
 
+    /**
+     * District is required iff the chosen region has at least one active
+     * district seeded. Phase-5 rule: if there's nowhere to slot a church
+     * in a region without districts, the field stays nullable. Once the
+     * region grows a district, every church in that region must pick one.
+     */
+    public function districtIsRequired(): bool
+    {
+        if (! $this->ecclesiastical_region_id) {
+            return false;
+        }
+
+        return District::query()
+            ->where('ecclesiastical_region_id', $this->ecclesiastical_region_id)
+            ->where('is_active', true)
+            ->exists();
+    }
+
     public function rules(): array
     {
         $rules = [
             'ecclesiastical_region_id' => ['required', 'integer', 'exists:ecclesiastical_regions,id'],
-            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
+            'district_id' => [$this->districtIsRequired() ? 'required' : 'nullable', 'integer', 'exists:districts,id'],
             'type' => ['required', 'in:'.implode(',', ChurchType::values())],
             'name' => ['required', 'string', 'max:255'],
             'slug' => ['nullable', 'string', 'max:255', Rule::unique('churches', 'slug')->ignore($this->church?->id)],
