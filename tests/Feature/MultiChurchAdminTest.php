@@ -139,10 +139,12 @@ it('local schedule editor scopes the church dropdown to manageable churches', fu
 
     $this->actingAs($manager);
 
+    // Create-mode now picks one or more dates via the multi-date pillbox
+    // (`form.dates`); the editor fans out one PrayerSchedule per date.
     Livewire::test('admin.prayer-schedules.editor')
         ->set('form.church_id', $b->id)
         ->set('form.prayer_campaign_id', $campaign->id)
-        ->set('form.date', now()->addDay()->toDateString())
+        ->set('form.dates', [now()->addDay()->toDateString()])
         ->set('form.start_time', '06:00')
         ->set('form.end_time', '07:00')
         ->set('form.slot_minutes', 60)

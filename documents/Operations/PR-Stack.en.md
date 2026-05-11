@@ -1,12 +1,14 @@
-# PR stack — code review through Person/profile polish
+# PR stack — code review through Pastor-asked changes
 
-Seventeen stacked PRs ship the entire trajectory from `main` up through
+Eighteen stacked PRs ship the entire trajectory from `main` up through
 Phase 8 of the Person Architecture plus the Admin menu reorg, the Admin
-user polish, and the Person/profile polish (act-as plumbing for shared
-records, profile parity, contact-aware data) layered on top. They are
-stacked (each PR's base is the head of the next one down), not parallel,
-because each builds on its predecessor. Trying to merge them out of
-order will produce conflicts.
+user polish, the Person/profile polish (act-as plumbing for shared
+records, profile parity, contact-aware data), and the Pastor-asked
+prayer-feature changes (terminology refresh, multi-date schedule
+create, /prayer bulk sign-up + report, mode filter) layered on top.
+They are stacked (each PR's base is the head of the next one down),
+not parallel, because each builds on its predecessor. Trying to merge
+them out of order will produce conflicts.
 
 ## Merge order (bottom up)
 
@@ -29,8 +31,9 @@ order will produce conflicts.
 | 15 | `persons-admin-reorg` | `persons-phase-8` | Admin menu reorg (Posts management / Structure / People / Miscellaneous submenus); drop persons.photo_path → MediaLibrary photo collection; User-account tab on Person editor; Schedules action on Prayer Campaign rows |
 | 16 | `persons-admin-user-polish` | `persons-admin-reorg` | Admin user editor polish: drop phone, password confirm + view toggle, custom `App\Models\Role` w/ description column, appearance field; church management moved to `/admin/users/{id}/churches` page with searchable add + per-row primary toggle; `ChurchUser` pivot model + observer enforce single-primary |
 | 17 | `persons-act-as-and-photos` | `persons-admin-user-polish` | Act-as plumbing for fasting / prayer / posts (`person_id` on the four shared tables, `:author in the name of :person` display); profile parity with People (Identity / Contacts / Addresses / Documents / Family delegate to admin components, gated for the owner); cropper-backed Person photo + avatar→Person mirror; new `Gender` / `BrazilianState` / `Country` enums driving the register form, contact masks, and address state↔country coupling; expanded family-graph derivations (siblings / grandparents / aunts/uncles / nieces/nephews / cousins / parents/children/siblings-in-law / stepparents/stepchildren) with gender-aware labels |
+| 18 | `pastor-asked-changes` | `persons-act-as-and-photos` | Prayer-feature pastor-asked polish: terminology refresh (`slot` → `schedule`; `prayers` → `people of praying` in count contexts) across source and translations; multi-date `PrayerSchedule` create via `<flux:pillbox multiple>` (one row per picked date, `DD/MM/YY` tags); `/prayer` bulk sign-up callout + modal that fan-out a single (mode, start time) across a date range with a localized skip-reason report (`not_found` / `full` / `already` / `past` / `out_of_window`); new Mode hard-filter (Any / At the church / From home) on the day calendar; suggestions list now excludes already-joined slots so clicks aren't idempotent no-ops |
 
-**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17.**
+**Merge order: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11 → #12 → #13 → #14 → #15 → #16 → #17 → #18.**
 As each PR merges, GitHub will auto-retarget the next one in the chain to
 `main` (or to whatever the new base is). Do not squash-merge — preserve the
 commit history so the layered intent stays legible in `git log`.
@@ -54,6 +57,7 @@ PR URLs:
 - https://github.com/newtongamajr/methodist-app/pull/15
 - https://github.com/newtongamajr/methodist-app/pull/16
 - https://github.com/newtongamajr/methodist-app/pull/17
+- https://github.com/newtongamajr/methodist-app/pull/18
 
 ## Why stacked, not one big PR
 
@@ -90,9 +94,9 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 
 ## Verification before merging the chain
 
-- [ ] All seventeen PRs are open, in the right order, against the right base
+- [ ] All eighteen PRs are open, in the right order, against the right base
 - [ ] CI green on each (or at minimum on the topmost one — once merging starts the bases will retarget and CI re-runs)
-- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#17) — proves the whole chain composes
-- [ ] `php artisan test --compact` is green at HEAD of #17 (276 tests / 641 assertions at last run)
-- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #17
-- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 719 keys at HEAD of #17
+- [ ] `php artisan migrate:fresh --seed` succeeds against the **head of the topmost PR** (#18) — proves the whole chain composes
+- [ ] `php artisan test --compact` is green at HEAD of #18 (276 tests / 641 assertions at last run)
+- [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #18
+- [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 741 keys at HEAD of #18

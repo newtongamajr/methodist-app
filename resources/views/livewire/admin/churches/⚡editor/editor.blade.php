@@ -78,7 +78,7 @@
 
                 <div class="grid gap-4 sm:grid-cols-3">
                     <flux:input wire:model="form.timezone" :label="__('Timezone')" />
-                    <flux:input wire:model="form.max_prayers_per_slot" :label="__('Max prayers per slot')" type="number" min="1" max="200" required />
+                    <flux:input wire:model="form.max_prayers_per_slot" :label="__('Max people of praying per schedule')" type="number" min="1" max="200" required />
                     <flux:select wire:model="form.default_mode" :label="__('Default mode')">
                         @foreach (\App\Enums\LocationMode::cases() as $m)
                             <option value="{{ $m->value }}">{{ $m->label() }}</option>
@@ -185,7 +185,7 @@
 
                             <div class="grid gap-4 sm:grid-cols-3">
                                 <flux:input wire:model="form.timezone" :label="__('Timezone')" />
-                                <flux:input wire:model="form.max_prayers_per_slot" :label="__('Max prayers per slot')" type="number" min="1" max="200" required />
+                                <flux:input wire:model="form.max_prayers_per_slot" :label="__('Max people of praying per schedule')" type="number" min="1" max="200" required />
                                 <flux:select wire:model="form.default_mode" :label="__('Default mode')">
                                     @foreach (\App\Enums\LocationMode::cases() as $m)
                                         <option value="{{ $m->value }}">{{ $m->label() }}</option>

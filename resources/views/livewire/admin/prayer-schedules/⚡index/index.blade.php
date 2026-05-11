@@ -32,7 +32,7 @@
                 <flux:table.column sortable :sorted="$sortBy === 'date'" :direction="$sortDir" wire:click="sort('date')">{{ __('Date') }}</flux:table.column>
                 <flux:table.column>{{ __('Window') }}</flux:table.column>
                 <flux:table.column sortable :sorted="$sortBy === 'mode'" :direction="$sortDir" wire:click="sort('mode')">{{ __('Mode') }}</flux:table.column>
-                <flux:table.column sortable :sorted="$sortBy === 'slots_count'" :direction="$sortDir" wire:click="sort('slots_count')">{{ __('Slots') }}</flux:table.column>
+                <flux:table.column sortable :sorted="$sortBy === 'slots_count'" :direction="$sortDir" wire:click="sort('slots_count')">{{ __('Schedules') }}</flux:table.column>
                 <flux:table.column>{{ __('Campaign') }}</flux:table.column>
                 <flux:table.column>{{ __('Church') }}</flux:table.column>
                 <flux:table.column align="end">&nbsp;</flux:table.column>
