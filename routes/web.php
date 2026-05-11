@@ -58,6 +58,10 @@ Route::middleware(['auth', EnsureCanManageChurches::class])->prefix('admin')->na
     Route::livewire('districts', 'admin.districts.index')->name('districts.index');
     Route::livewire('districts/create', 'admin.districts.editor')->name('districts.create');
     Route::livewire('districts/{districtId}/edit', 'admin.districts.editor')->name('districts.edit');
+
+    Route::livewire('groups', 'admin.groups.index')->name('groups.index');
+    Route::livewire('groups/create', 'admin.groups.editor')->name('groups.create');
+    Route::livewire('groups/{groupId}/edit', 'admin.groups.editor')->name('groups.edit');
 });
 
 Route::middleware(['auth', EnsureCanManageUsers::class])->prefix('admin')->name('admin.')->group(function () {

@@ -79,6 +79,33 @@ new class extends Component
             ->get(['id', 'name', 'city', 'state']);
     }
 
+    #[Computed]
+    public function groupsForFunction()
+    {
+        $function = $this->selectedFunction;
+        if (! $function) {
+            return collect();
+        }
+
+        // The group must be of a kind compatible with this function's applies_to.
+        $kinds = collect([
+            FunctionAppliesTo::Council->value,
+            FunctionAppliesTo::Ministry->value,
+            FunctionAppliesTo::Commission->value,
+        ])->filter(fn ($k) => $function->appliesTo($k))->all();
+
+        if (empty($kinds)) {
+            return collect();
+        }
+
+        return \App\Models\Group::query()
+            ->where('is_active', true)
+            ->whereIn('kind', $kinds)
+            ->orderBy('kind')
+            ->orderBy('name')
+            ->get(['id', 'kind', 'name']);
+    }
+
     public function openCreate(): void
     {
         $this->form->reset();

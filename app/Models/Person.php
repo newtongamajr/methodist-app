@@ -263,6 +263,41 @@ class Person extends Model
             ->values();
     }
 
+    // ─── Group helpers (Phase 6) ────────────────────────────────────────────
+
+    /** All groups this person is currently active in. */
+    public function activeGroups(): Collection
+    {
+        $today = now()->toDateString();
+
+        return $this->roleAssignments()
+            ->whereNotNull('group_id')
+            ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>=', $today))
+            ->with('group:id,name,kind')
+            ->get()
+            ->map(fn (PersonRoleAssignment $a) => $a->group)
+            ->filter()
+            ->unique('id')
+            ->values();
+    }
+
+    /** Groups where this person currently holds a "lead" or "co_lead" function. */
+    public function groupsAsLeader(): Collection
+    {
+        $today = now()->toDateString();
+
+        return $this->roleAssignments()
+            ->whereNotNull('group_id')
+            ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>=', $today))
+            ->whereHas('function', fn ($q) => $q->whereIn('slug', ['lead', 'co_lead']))
+            ->with('group:id,name,kind')
+            ->get()
+            ->map(fn (PersonRoleAssignment $a) => $a->group)
+            ->filter()
+            ->unique('id')
+            ->values();
+    }
+
     /**
      * Depth-bounded family tree centered on this Person, suitable for the
      * Family tab UI. Default depth = 2 covers grandparents → grandchildren.

@@ -45,4 +45,9 @@ class District extends Model
     {
         return $this->hasMany(Church::class);
     }
+
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class);
+    }
 }

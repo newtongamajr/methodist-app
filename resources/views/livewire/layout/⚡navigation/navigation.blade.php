@@ -80,6 +80,12 @@
                                         <flux:menu.item :href="route('admin.districts.index')" wire:navigate icon="map">
                                             {{ __('Districts') }}
                                         </flux:menu.item>
+                                        <flux:menu.submenu :heading="__('Groups')" icon="user-group">
+                                            <flux:menu.item :href="route('admin.groups.index')" wire:navigate>{{ __('All groups') }}</flux:menu.item>
+                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'council'])" wire:navigate>{{ __('Councils') }}</flux:menu.item>
+                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'ministry'])" wire:navigate>{{ __('Ministries') }}</flux:menu.item>
+                                            <flux:menu.item :href="route('admin.groups.index', ['kind' => 'commission'])" wire:navigate>{{ __('Commissions') }}</flux:menu.item>
+                                        </flux:menu.submenu>
                                     @endcan
 
                                     @can('prayer.schedule.manage')
@@ -237,6 +243,7 @@
                         @can('church.manage')
                             <flux:sidebar.item :href="route('admin.regions.index')" wire:navigate>{{ __('Ecclesiastical regions') }}</flux:sidebar.item>
                             <flux:sidebar.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:sidebar.item>
+                            <flux:sidebar.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
                         @endcan
                         @can('prayer.schedule.manage')
                             <flux:sidebar.item :href="route('admin.prayer-schedules.index')" wire:navigate>{{ __('Prayer schedules') }}</flux:sidebar.item>
@@ -326,6 +333,7 @@
                             @can('church.manage')
                                 <flux:command.item icon="globe-americas" x-on:click="Livewire.navigate('{{ route('admin.regions.index') }}')">{{ __('Ecclesiastical regions') }}</flux:command.item>
                                 <flux:command.item icon="map" x-on:click="Livewire.navigate('{{ route('admin.districts.index') }}')">{{ __('Districts') }}</flux:command.item>
+                                <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.groups.index') }}')">{{ __('Groups') }}</flux:command.item>
                             @endcan
                             @can('prayer.schedule.manage')
                                 <flux:command.item icon="clock" x-on:click="Livewire.navigate('{{ route('admin.prayer-schedules.index') }}')">{{ __('Prayer schedules') }}</flux:command.item>

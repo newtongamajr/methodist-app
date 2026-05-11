@@ -1,10 +1,9 @@
-# Stack de PRs — code review até a unificação Orgs-as-Persons
+# Stack de PRs — code review até a Phase 6 da Person Architecture
 
-Dez PRs empilhados entregam toda a trajetória entre `main` e a unificação
-Orgs-as-Persons (a extensão arquitetural que entrou entre a Phase 5 e a
-Phase 6 da Person Architecture). Eles estão **empilhados** (a base de cada
-PR é o head do PR de baixo), não são paralelos, porque cada um depende do
-anterior. Tentar mergear fora de ordem vai gerar conflitos.
+Onze PRs empilhados entregam toda a trajetória entre `main` e a Phase 6 da
+Person Architecture. Eles estão **empilhados** (a base de cada PR é o head do
+PR de baixo), não são paralelos, porque cada um depende do anterior. Tentar
+mergear fora de ordem vai gerar conflitos.
 
 ## Ordem de merge (de baixo para cima)
 
@@ -20,10 +19,11 @@ anterior. Tentar mergear fora de ordem vai gerar conflitos.
 | 8 | `persons-phase-4` | `persons-phase-3` | Person Architecture Phase 4 (`PersonRoleAssignmentForm` genérico + enforcement de `max_holders` + tab Roles) |
 | 9 | `persons-phase-5` | `persons-phase-4` | Person Architecture Phase 5 (regra condicional de `district_id` required no editor de church + testes dedicados de CRUD) |
 | 10 | `persons-orgs-unification` | `persons-phase-5` | Unificação Orgs-as-Persons (Region / District / Church cada um respaldado por um Org-Person; Sede Nacional como uma ER especial) |
+| 11 | `persons-phase-6` | `persons-orgs-unification` | Person Architecture Phase 6 (admin de Groups — councils / ministries / commissions em 4 níveis com assignments de membros + helpers) |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10.** À
-medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base do
-próximo da fila para `main` (ou para a nova base, se aplicável). Não use
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6 → #7 → #8 → #9 → #10 → #11.**
+À medida que cada PR é mergeado, o GitHub re-aponta automaticamente a base
+do próximo da fila para `main` (ou para a nova base, se aplicável). Não use
 squash-merge — preserve o histórico de commits para que a intenção em
 camadas continue legível no `git log`.
 
@@ -39,6 +39,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/8
 - https://github.com/newtongamajr/methodist-app/pull/9
 - https://github.com/newtongamajr/methodist-app/pull/10
+- https://github.com/newtongamajr/methodist-app/pull/11
 
 ## Por que empilhado, e não um PR único
 
@@ -50,33 +51,33 @@ que o trabalho foi executado.
 
 ## O que *não* está nesta stack
 
-O PR Orgs-as-Persons adiciona 4 natures novas (`national_headquarters`,
-`ecclesiastical_region`, `district`, `church`), adiciona uma FK `person_id`
-(NOT NULL + unique) em cada tabela de org com backfill criando um Org-Person
-por linha existente, adiciona `code` em `churches` e seeda a Sede Nacional
-como uma row de ER especial via `RegionKind::NationalHeadquarters`. A index
-de People esconde os org-Persons por padrão; um toggle "Include organizations"
-permite incluí-los. Os editors de Region/District/Church ganham um botão
-"Open as Person" que leva para `/admin/people/{personId}/edit` para que
-admins gerenciem contacts / addresses / documents do Org Person pelas tabs
-existentes, sem composição inline.
+A Phase 6 entrega o admin completo de Groups: CRUD em `/admin/groups` com
+filtros de kind / level / scope, um editor com pickers de scope condicionais
+ao level escolhido, uma section embedada de Members com modal de
+add/edit, helpers em Group / Person / Church / EcclesiasticalRegion /
+District (`members`, `functionHolder`, `groupsAsLeader`, `groupsByKind`,
+escopo `national`), e a tab People → Roles agora seleciona um group real
+para functions de council/ministry/commission no lugar do callout de
+placeholder da Phase 6. A decisão sobre CRUD de Functions (Phase 6 plan §6)
+ficou na **opção 2**: o seed cobre todos os casos reais até agora, não
+entra `/admin/functions` neste PR; pode crescer depois se aparecer demanda
+real.
 
-Continuam adiados a partir da Phase 6:
+Continuam adiados para a Phase 7 + Phase 8:
 
-- **Remover as colunas duplicadas** `name` / `email` / `phone` / `address` nas tabelas de org — atualmente são um cache denormalizado que o `save()` dos editors mantém em sync; a migração completa para "Person é a única fonte" pode entrar depois
-- **Composição inline das Person tabs nos editors de org** — atualmente você clica "Open as Person" para trocar de contexto; uma iteração futura pode embedar Contacts / Addresses / Documents dentro do editor de church
-- **Admin de Groups** (Council / Ministry / Commission) + assignments com escopo de group (Phase 6)
-- **CRUD de Functions** — decisão adiada para a Phase 6 conforme a nota no plano
 - **Children / Teenagers / Visitors** com UI ativa + fluxo de act-as parental (Phase 7)
 - **Tab Family no `/profile`** (Phase 7, junto com act-as)
+- **Remover as colunas duplicadas em cache** nas tabelas de org (Phase 8 — ver plano)
+- **Composição inline das Person tabs** nos editores de Region / District / Church (Phase 8 — atualmente o botão "Open as Person" é a ponte)
+- **CRUD de Functions** — fica seeded-only a menos que apareça demanda real; revisita se for o caso
 
 Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os dez PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os onze PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#10) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #10 (215 tests / 515 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #10
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 525 keys no HEAD do #10
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#11) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #11 (225 tests / 543 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #11
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 547 keys no HEAD do #11

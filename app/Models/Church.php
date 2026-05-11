@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\ChurchType;
+use App\Enums\GroupKind;
 use App\Enums\LocationMode;
 use Database\Factories\ChurchFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -84,5 +85,18 @@ class Church extends Model
         return $this->belongsToMany(User::class)
             ->withPivot('is_primary')
             ->withTimestamps();
+    }
+
+    /** Groups scoped to this church (church-level councils/ministries/commissions). */
+    public function groups(): HasMany
+    {
+        return $this->hasMany(Group::class);
+    }
+
+    public function groupsByKind(GroupKind|string $kind): HasMany
+    {
+        $value = $kind instanceof GroupKind ? $kind->value : $kind;
+
+        return $this->groups()->where('kind', $value);
     }
 }
