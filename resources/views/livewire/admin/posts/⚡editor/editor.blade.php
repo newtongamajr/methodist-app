@@ -237,25 +237,76 @@
                 />
             </flux:file-upload>
             <flux:error name="newImages.*" />
+
+            {{-- Pending uploads: rendered before persist so the user
+                 sees the pick land. Cleared once Save runs. --}}
+            @if (! empty($newImages))
+                <div class="space-y-2 rounded-md border border-dashed border-amber-300 bg-amber-50 p-3 dark:border-amber-700 dark:bg-amber-900/20">
+                    <flux:text class="text-xs font-medium text-amber-700 dark:text-amber-200">
+                        {{ __('Pending — click Save to attach :count file(s)', ['count' => count($newImages)]) }}
+                    </flux:text>
+                    <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                        @foreach ($newImages as $i => $upload)
+                            <div wire:key="pending-img-{{ $i }}-{{ $upload?->getFilename() }}" class="group relative">
+                                <img src="{{ $upload->temporaryUrl() }}" alt="" class="h-24 w-full rounded-md object-cover" />
+                                <flux:tooltip :content="__('Remove')">
+                                    <flux:button
+                                        type="button"
+                                        variant="danger"
+                                        icon="x-mark"
+                                        size="sm"
+                                        class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
+                                        wire:click="removePending('newImages', {{ $i }})"
+                                    />
+                                </flux:tooltip>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
             <flux:heading size="md">{{ __('Videos') }}</flux:heading>
             @if ($videos->isNotEmpty())
-                <ul class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     @foreach ($videos as $media)
-                        <li wire:key="vid-{{ $media->id }}" class="flex items-center justify-between py-2 text-sm">
-                            <div class="flex items-center gap-2">
-                                <flux:icon.film class="size-4 text-zinc-500" />
-                                <span>{{ $media->file_name }}</span>
-                                <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
-                            </div>
+                        @php
+                            $thumbUrl = $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : null;
+                        @endphp
+                        <div wire:key="vid-{{ $media->id }}" class="group relative overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                            <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" class="block">
+                                <div class="relative flex aspect-video items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900">
+                                    @if ($thumbUrl)
+                                        <img src="{{ $thumbUrl }}" alt="" loading="lazy" class="h-full w-full object-cover" />
+                                    @else
+                                        <flux:icon.film class="size-12 text-zinc-400 dark:text-zinc-500" />
+                                    @endif
+                                    {{-- Play-button overlay so the tile reads
+                                         as a video regardless of whether the
+                                         thumb came through. --}}
+                                    <span class="absolute inset-0 flex items-center justify-center bg-black/0 transition group-hover:bg-black/30">
+                                        <flux:icon.play-circle class="size-10 text-white/90 opacity-0 transition group-hover:opacity-100" />
+                                    </span>
+                                </div>
+                                <div class="space-y-0.5 border-t border-zinc-200 px-2 py-1.5 text-xs dark:border-zinc-700">
+                                    <div class="truncate font-medium">{{ $media->file_name }}</div>
+                                    <div class="text-zinc-500">{{ $media->human_readable_size }}</div>
+                                </div>
+                            </a>
                             <flux:tooltip :content="__('Remove video')">
-                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                                <flux:button
+                                    type="button"
+                                    variant="danger"
+                                    icon="trash"
+                                    size="sm"
+                                    class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
+                                    wire:click="removeMedia({{ $media->id }})"
+                                />
                             </flux:tooltip>
-                        </li>
+                        </div>
                     @endforeach
-                </ul>
+                </div>
             @endif
             <flux:file-upload wire:model="newVideos" accept="video/mp4,video/webm,video/ogg,video/quicktime" multiple>
                 <flux:file-upload.dropzone
@@ -266,6 +317,23 @@
                 />
             </flux:file-upload>
             <flux:error name="newVideos.*" />
+
+            @if (! empty($newVideos))
+                <ul class="divide-y divide-amber-200 rounded-md border border-dashed border-amber-300 bg-amber-50 dark:divide-amber-700 dark:border-amber-700 dark:bg-amber-900/20">
+                    <li class="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-200">
+                        {{ __('Pending — click Save to attach :count file(s)', ['count' => count($newVideos)]) }}
+                    </li>
+                    @foreach ($newVideos as $i => $upload)
+                        <li wire:key="pending-vid-{{ $i }}-{{ $upload?->getFilename() }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                            <div class="flex min-w-0 items-center gap-2">
+                                <flux:icon.film class="size-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                <span class="truncate">{{ $upload->getClientOriginalName() }}</span>
+                            </div>
+                            <flux:button type="button" variant="ghost" icon="x-mark" size="sm" wire:click="removePending('newVideos', {{ $i }})" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
@@ -295,25 +363,60 @@
                 />
             </flux:file-upload>
             <flux:error name="newAudios.*" />
+
+            @if (! empty($newAudios))
+                <ul class="divide-y divide-amber-200 rounded-md border border-dashed border-amber-300 bg-amber-50 dark:divide-amber-700 dark:border-amber-700 dark:bg-amber-900/20">
+                    <li class="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-200">
+                        {{ __('Pending — click Save to attach :count file(s)', ['count' => count($newAudios)]) }}
+                    </li>
+                    @foreach ($newAudios as $i => $upload)
+                        <li wire:key="pending-aud-{{ $i }}-{{ $upload?->getFilename() }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                            <div class="flex min-w-0 items-center gap-2">
+                                <flux:icon.musical-note class="size-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                <span class="truncate">{{ $upload->getClientOriginalName() }}</span>
+                            </div>
+                            <flux:button type="button" variant="ghost" icon="x-mark" size="sm" wire:click="removePending('newAudios', {{ $i }})" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
             <flux:heading size="md">{{ __('PDF documents') }}</flux:heading>
             @if ($documents->isNotEmpty())
-                <ul class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach ($documents as $media)
-                        <li wire:key="doc-{{ $media->id }}" class="flex items-center justify-between py-2 text-sm">
-                            <div class="flex items-center gap-2">
-                                <flux:icon.document class="size-4 text-zinc-500" />
-                                <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" class="hover:underline">{{ $media->file_name }}</a>
-                                <span class="text-xs text-zinc-500">({{ $media->human_readable_size }})</span>
-                            </div>
+                        @php
+                            $thumbUrl = $media->hasGeneratedConversion('thumb') ? $media->getUrl('thumb') : null;
+                        @endphp
+                        <div wire:key="doc-{{ $media->id }}" class="group relative overflow-hidden rounded-md border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-900">
+                            <a href="{{ $media->getUrl() }}" target="_blank" rel="noopener" class="block">
+                                <div class="flex aspect-[3/4] items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900">
+                                    @if ($thumbUrl)
+                                        <img src="{{ $thumbUrl }}" alt="" loading="lazy" class="h-full w-full object-contain" />
+                                    @else
+                                        <flux:icon.document-text class="size-12 text-zinc-400 dark:text-zinc-500" />
+                                    @endif
+                                </div>
+                                <div class="space-y-0.5 border-t border-zinc-200 px-2 py-1.5 text-xs dark:border-zinc-700">
+                                    <div class="truncate font-medium">{{ $media->file_name }}</div>
+                                    <div class="text-zinc-500">{{ $media->human_readable_size }}</div>
+                                </div>
+                            </a>
                             <flux:tooltip :content="__('Remove document')">
-                                <flux:button type="button" variant="danger" icon="trash" size="sm" wire:click="removeMedia({{ $media->id }})" />
+                                <flux:button
+                                    type="button"
+                                    variant="danger"
+                                    icon="trash"
+                                    size="sm"
+                                    class="absolute right-1 top-1 opacity-0 group-hover:opacity-100"
+                                    wire:click="removeMedia({{ $media->id }})"
+                                />
                             </flux:tooltip>
-                        </li>
+                        </div>
                     @endforeach
-                </ul>
+                </div>
             @endif
             <flux:file-upload wire:model="newDocuments" accept="application/pdf" multiple>
                 <flux:file-upload.dropzone
@@ -324,6 +427,23 @@
                 />
             </flux:file-upload>
             <flux:error name="newDocuments.*" />
+
+            @if (! empty($newDocuments))
+                <ul class="divide-y divide-amber-200 rounded-md border border-dashed border-amber-300 bg-amber-50 dark:divide-amber-700 dark:border-amber-700 dark:bg-amber-900/20">
+                    <li class="px-3 py-2 text-xs font-medium text-amber-700 dark:text-amber-200">
+                        {{ __('Pending — click Save to attach :count file(s)', ['count' => count($newDocuments)]) }}
+                    </li>
+                    @foreach ($newDocuments as $i => $upload)
+                        <li wire:key="pending-doc-{{ $i }}-{{ $upload?->getFilename() }}" class="flex items-center justify-between gap-3 px-3 py-2 text-sm">
+                            <div class="flex min-w-0 items-center gap-2">
+                                <flux:icon.document class="size-4 shrink-0 text-amber-700 dark:text-amber-300" />
+                                <span class="truncate">{{ $upload->getClientOriginalName() }}</span>
+                            </div>
+                            <flux:button type="button" variant="ghost" icon="x-mark" size="sm" wire:click="removePending('newDocuments', {{ $i }})" />
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
         </div>
 
         <div class="space-y-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">

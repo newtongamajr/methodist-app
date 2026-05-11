@@ -59,29 +59,58 @@ The master user can then sign in and create more `local_manager` admins for
 **their** church only via the same `/admin/users` page (church + role are
 pinned server-side).
 
+## System-level dependencies
+
+Two shell scripts under `scripts/` handle the bits that need `sudo` on a
+fresh host. They're idempotent — running them twice is harmless.
+
+```bash
+# PHP upload limits (100M / 100M), php-fpm reload, storage/ + bootstrap/cache
+# perms for the www-data Docker user.
+sudo bash scripts/setup-host.sh
+
+# Media pipeline: php8.4-imagick + imagemagick + ghostscript + ffmpeg, plus
+# the ImageMagick policy patch that unlocks PDF rendering. After this lands,
+# Spatie's Pdf and Video image generators produce first-page / first-frame
+# thumbs for every PDF and video upload.
+sudo bash scripts/install-media-deps.sh
+```
+
+The composer packages those generators depend on (`spatie/pdf-to-image`,
+`php-ffmpeg/php-ffmpeg`) ride with the project — `composer install` is
+enough on the application side.
+
 ## Suggested first-time deployment sequence
 
 ```bash
 # 0. Configure .env (DB credentials, APP_KEY, MAIL_*, TINYMCE_API_KEY)
 
-# 1. Composer + Node deps
+# 1. System dependencies (sudo)
+sudo bash scripts/setup-host.sh
+sudo bash scripts/install-media-deps.sh
+
+# 2. Composer + Node deps
 composer install --no-dev --optimize-autoloader
 npm ci && npm run build
 
-# 2. App caches
+# 3. App caches
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
-# 3. Database
+# 4. Database
 php artisan app:install
 
-# 4. Promote the first super user
+# 5. Promote the first super user
 php artisan app:make-super --email=admin@yourdomain.com
 
-# 5. Storage symlink (one-time)
+# 6. Storage symlink (one-time)
 php artisan storage:link
+
+# 7. (Optional) backfill thumb conversions for any media already in the DB,
+#     e.g. when adding the media stack to a host that already had uploads.
+php artisan media-library:regenerate
 ```
 
-After step 4 the super user can sign in at `/login` and start configuring
+After step 5 the super user can sign in at `/login` and start configuring
 churches and master users from the admin UI.

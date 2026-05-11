@@ -135,26 +135,59 @@
         @endif
 
         @if ($documents->isNotEmpty())
-            <section class="space-y-2" x-data="{ src: '' }">
-                @foreach ($documents as $doc)
-                    <button
-                        type="button"
-                        wire:key="doc-{{ $doc->id }}"
-                        @click.prevent="src = '{{ $doc->getUrl() }}'; $dispatch('modal-show', { name: 'doc-viewer' })"
-                        class="flex w-full items-center gap-3 rounded-lg border border-zinc-200 p-3 text-left hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-                    >
-                        <flux:icon.document-text class="size-6 text-zinc-500" />
-                        <span class="flex-1 truncate font-medium">{{ $doc->name }}</span>
-                        <span class="text-xs text-zinc-500">{{ $doc->human_readable_size }}</span>
-                    </button>
-                @endforeach
+            <section x-data="{ src: '' }">
+                {{-- Card grid: each PDF gets a tile with a prominent
+                     document-icon "thumb" and the filename + size below.
+                     Click anywhere on the tile to open the full viewer. --}}
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    @foreach ($documents as $doc)
+                        @php
+                            // Inline @php() with a ?: ternary trips Blade's
+                            // naive paren matcher (it stops compiling the
+                            // rest of the loop). Use the block form so the
+                            // assignment compiles to plain PHP.
+                            $thumbUrl = $doc->hasGeneratedConversion('thumb') ? $doc->getUrl('thumb') : null;
+                        @endphp
+                        <button
+                            type="button"
+                            wire:key="doc-{{ $doc->id }}"
+                            @click.prevent="src = '{{ $doc->getUrl() }}'; $dispatch('modal-show', { name: 'doc-viewer' })"
+                            class="group flex flex-col overflow-hidden rounded-lg border border-zinc-200 bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:border-accent hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-rose-400"
+                        >
+                            <div class="flex aspect-[3/4] items-center justify-center overflow-hidden bg-gradient-to-br from-zinc-50 to-zinc-100 dark:from-zinc-800 dark:to-zinc-900">
+                                @if ($thumbUrl)
+                                    {{-- First-page preview rendered by Spatie's
+                                         PDF image generator (imagick + gs). --}}
+                                    <img src="{{ $thumbUrl }}" alt="" loading="lazy" class="h-full w-full object-contain transition group-hover:scale-[1.02]" />
+                                @else
+                                    {{-- Fallback when the thumb conversion
+                                         hasn't been generated (e.g. imagick
+                                         not installed on this host). --}}
+                                    <flux:icon.document-text class="size-16 text-zinc-400 transition group-hover:text-accent dark:text-zinc-500 dark:group-hover:text-rose-300" />
+                                @endif
+                            </div>
+                            <div class="space-y-1 border-t border-zinc-200 px-3 py-2 dark:border-zinc-700">
+                                <div class="truncate text-sm font-medium">{{ $doc->name }}</div>
+                                <div class="flex items-center justify-between text-xs text-zinc-500">
+                                    <span>{{ $doc->human_readable_size }}</span>
+                                    <span class="inline-flex items-center gap-1 font-semibold text-accent transition group-hover:gap-2 dark:text-rose-300">
+                                        {{ __('Open') }}
+                                        <flux:icon.arrow-right class="size-3" />
+                                    </span>
+                                </div>
+                            </div>
+                        </button>
+                    @endforeach
+                </div>
 
-                <flux:modal name="doc-viewer" class="md:max-w-5xl">
+                {{-- The viewer modal expands to nearly the full viewport
+                     so a PDF page reads comfortably without the 5xl cap. --}}
+                <flux:modal name="doc-viewer" class="w-[95vw] max-w-[1400px]!">
                     <div class="space-y-3">
                         <flux:heading size="md">{{ __('Document viewer') }}</flux:heading>
                         <iframe
                             :src="src"
-                            class="h-[80vh] w-full rounded-md bg-white"
+                            class="h-[85vh] w-full rounded-md bg-white"
                             loading="lazy"
                             title="{{ __('Document viewer') }}"
                         ></iframe>

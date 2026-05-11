@@ -175,16 +175,47 @@ class Post extends Model implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        // quality(95) matches the User / Person conversions. Spatie's
+        // default JPEG quality (~75) is noticeably soft on a hero image,
+        // and the bump only adds a handful of KB per file at these sizes.
         $this->addMediaConversion('thumb')
             ->performOnCollections('cover', 'images')
-            ->fit(Fit::Crop, 320, 200);
+            ->fit(Fit::Crop, 320, 200)
+            ->quality(95);
 
         $this->addMediaConversion('card')
             ->performOnCollections('cover', 'images')
-            ->fit(Fit::Crop, 800, 500);
+            ->fit(Fit::Crop, 800, 500)
+            ->quality(95);
 
         $this->addMediaConversion('hero')
             ->performOnCollections('cover', 'images')
-            ->fit(Fit::Max, 1600, 900);
+            ->fit(Fit::Max, 1600, 900)
+            ->quality(95);
+
+        // PDF first-page preview. Requires the `spatie/pdf-to-image`
+        // composer package + the imagick PHP extension + the imagemagick
+        // / ghostscript binaries (and an ImageMagick policy that allows
+        // PDF reads). Missing any one of those makes Spatie's Pdf
+        // generator skip silently; the document tile then falls back to
+        // an icon. Re-run `php artisan media-library:regenerate` after
+        // the stack is in place to backfill existing PDFs.
+        $this->addMediaConversion('thumb')
+            ->performOnCollections('documents')
+            ->fit(Fit::Contain, 320, 400)
+            ->quality(95)
+            ->nonQueued();
+
+        // Video first-frame preview. Requires the `php-ffmpeg/php-ffmpeg`
+        // composer package + the `ffmpeg` / `ffprobe` binaries on PATH.
+        // Spatie's Video generator extracts a frame at second 1 by
+        // default; setting it explicitly makes the convention obvious.
+        // Same skip-on-missing-stack behavior as the PDF thumb above.
+        $this->addMediaConversion('thumb')
+            ->performOnCollections('videos')
+            ->extractVideoFrameAtSecond(1)
+            ->fit(Fit::Contain, 320, 200)
+            ->quality(95)
+            ->nonQueued();
     }
 }

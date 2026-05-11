@@ -294,28 +294,33 @@ class User extends Authenticatable implements HasMedia
 
     public function registerMediaConversions(?Media $media = null): void
     {
+        // quality(95) on every conversion: Spatie's default JPEG quality is
+        // ~75 which renders the avatar visibly soft at any size. 95 keeps
+        // the file size reasonable (≈40 KB for 256×256) without the
+        // pixelation. md / lg run synchronously too because the menubar
+        // avatar URL uses `md` and would otherwise need a queue worker.
         $this->addMediaConversion('thumb')
             ->performOnCollections('avatar')
             ->fit(Fit::Crop, 64, 64)
+            ->quality(95)
             ->nonQueued();
 
         $this->addMediaConversion('sm')
             ->performOnCollections('avatar')
             ->fit(Fit::Crop, 128, 128)
+            ->quality(95)
             ->nonQueued();
 
-        // `md` and `lg` run synchronously too: the avatar URL on the
-        // menubar uses `md` and breaks if it's queued without a worker
-        // running. Each resize is a few hundred ms; cheap enough to do
-        // inline at upload time.
         $this->addMediaConversion('md')
             ->performOnCollections('avatar')
             ->fit(Fit::Crop, 256, 256)
+            ->quality(95)
             ->nonQueued();
 
         $this->addMediaConversion('lg')
             ->performOnCollections('avatar')
             ->fit(Fit::Crop, 512, 512)
+            ->quality(95)
             ->nonQueued();
     }
 
