@@ -23,23 +23,30 @@
     @endif
 
     <form wire:submit="save" class="space-y-5">
-        <flux:radio.group wire:model.live="form.pastorMode" :label="__('Pastor')">
+        <flux:radio.group wire:model.live="personMode" :label="__('Pastor')">
             <flux:radio value="existing" :label="__('Existing pastor')" />
             <flux:radio value="new" :label="__('Create a new pastor record')" />
         </flux:radio.group>
 
-        @if ($form->pastorMode === 'existing')
-            <flux:select wire:model="form.person_id" :label="__('Choose a pastor')" required>
-                <option value="">{{ __('— Select —') }}</option>
+        @if ($personMode === 'existing')
+            <flux:select
+                wire:model="form.person_id"
+                variant="listbox"
+                searchable
+                clearable
+                :label="__('Choose a pastor')"
+                :placeholder="__('Pick a pastor…')"
+                required
+            >
                 @foreach ($this->pastors as $p)
-                    <option value="{{ $p->id }}">{{ $p->name }}</option>
+                    <flux:select.option :value="$p->id">{{ $p->name }}</flux:select.option>
                 @endforeach
             </flux:select>
         @else
             <div class="grid gap-4 sm:grid-cols-3">
-                <flux:input wire:model="form.person_name" :label="__('Name')" required />
-                <flux:input wire:model="form.person_email" :label="__('Email')" type="email" />
-                <flux:input wire:model="form.person_phone" :label="__('Phone')" type="tel" />
+                <flux:input wire:model="person_name" :label="__('Name')" required />
+                <flux:input wire:model="person_email" :label="__('Email')" type="email" />
+                <flux:input wire:model="person_phone" :label="__('Phone')" type="tel" />
             </div>
         @endif
 
@@ -49,8 +56,8 @@
                     <option value="{{ $fn->id }}">{{ $fn->name }}</option>
                 @endforeach
             </flux:select>
-            <flux:date-picker wire:model="form.start_date" :label="__('Start date')" />
-            <flux:date-picker wire:model="form.end_date" :label="__('End date')" :placeholder="__('Active')" />
+            <flux:date-picker wire:model="form.started_at" :label="__('Start date')" />
+            <flux:date-picker wire:model="form.ended_at" :label="__('End date')" :placeholder="__('Active')" />
         </div>
 
         <div class="flex justify-end gap-2">

@@ -505,6 +505,7 @@ Schema in place. This phase wires the group management UI.
 3. Group-member UI: assign Person to Group with a function via `PersonRoleAssignmentForm` (`group_id` = group, `function_id` = function from seeded list, region/district/church denormalized from group's scope by the observer).
 4. Function holder queries: `$group->functionHolder('treasurer')`, `$group->members()`, `$person->groupsAsLeader()`, `$church->groupsByKind('ministry')`, `$region->nationalGroups()`, etc.
 5. Tests: group CRUD per level, level-rule enforcement, assignment lifecycle, function-uniqueness when `max_holders=1`.
+6. **Functions CRUD — decide here.** If the seeded function list (4 admin + 3 pastor + 6 group functions from Phase 1) covers every real group case, leave `functions` as a seeded-only config table. If a real need surfaces in Phase 6 to let church staff add custom functions (e.g. "Worship Leader"), grow a small `/admin/functions` CRUD as part of this phase. `assignment_roles` stays empty until a genuine two-axis case appears — its CRUD comes only if/when that table starts holding rows.
 
 ### Phase 7 — Children/Teenagers/Visitors + parental supervision
 

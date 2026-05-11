@@ -3,7 +3,7 @@
 use App\Enums\PersonContactType;
 use App\Enums\PersonNature;
 use App\Enums\PersonType;
-use App\Livewire\Forms\PastorAssignmentForm;
+use App\Livewire\Forms\PersonRoleAssignmentForm;
 use App\Models\Church;
 use App\Models\FunctionRole;
 use App\Models\Person;
@@ -19,14 +19,24 @@ class extends Component
 {
     public Church $church;
 
-    public PastorAssignmentForm $form;
+    public PersonRoleAssignmentForm $form;
+
+    /** existing | new — controls the person picker vs. inline create. */
+    public string $personMode = 'existing';
+
+    public string $person_name = '';
+
+    public string $person_email = '';
+
+    public string $person_phone = '';
 
     public function mount(int $churchId, ?int $assignmentId = null): void
     {
         abort_unless(auth()->user()?->can('church.manage'), 403);
 
         $this->church = Church::findOrFail($churchId);
-        $this->form->start_date = now()->toDateString();
+        $this->form->church_id = $this->church->id;
+        $this->form->started_at = now()->toDateString();
         $this->form->function_id = $this->pastorFunctions->first()?->id;
 
         if ($assignmentId) {
@@ -56,50 +66,44 @@ class extends Component
 
     public function save(): void
     {
-        $data = $this->form->validate();
+        $this->form->church_id = $this->church->id;
 
-        $personId = $data['person_id'] ?? null;
+        // For "new" mode, create the Person first (and contacts) before
+        // running the form validator so person_id is populated.
+        DB::transaction(function () {
+            if ($this->personMode === 'new' && ! $this->form->person_id) {
+                $this->validate([
+                    'person_name' => ['required', 'string', 'max:255'],
+                    'person_email' => ['nullable', 'email', 'max:255'],
+                    'person_phone' => ['nullable', 'string', 'max:32'],
+                ]);
 
-        DB::transaction(function () use ($data, &$personId) {
-            if ($this->form->pastorMode === 'new') {
                 $person = Person::create([
                     'person_type' => PersonType::Individual->value,
-                    'name' => $data['person_name'],
+                    'name' => $this->person_name,
                     'natures' => [PersonNature::Pastor->value],
                     'managing_church_id' => $this->church->id,
                 ]);
 
-                if (! empty($data['person_email'])) {
+                if ($this->person_email !== '') {
                     $person->contacts()->create([
                         'type' => PersonContactType::Email->value,
-                        'value' => $data['person_email'],
+                        'value' => $this->person_email,
                         'is_primary' => true,
                     ]);
                 }
-                if (! empty($data['person_phone'])) {
+                if ($this->person_phone !== '') {
                     $person->contacts()->create([
                         'type' => PersonContactType::Phone->value,
-                        'value' => $data['person_phone'],
+                        'value' => $this->person_phone,
                         'is_primary' => true,
                     ]);
                 }
 
-                $personId = $person->id;
+                $this->form->person_id = $person->id;
             }
 
-            $payload = [
-                'person_id' => $personId,
-                'function_id' => $data['function_id'],
-                'church_id' => $this->church->id,
-                'started_at' => $data['start_date'] ?: null,
-                'ended_at' => $data['end_date'] ?: null,
-            ];
-
-            if ($this->form->assignment) {
-                $this->form->assignment->update($payload);
-            } else {
-                $this->form->assignment = PersonRoleAssignment::create($payload);
-            }
+            $this->form->save();
         });
 
         session()->flash('status', __('Assignment saved.'));

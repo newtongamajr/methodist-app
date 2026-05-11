@@ -26,6 +26,7 @@
                 <flux:tab name="addresses" icon="map-pin">{{ __('Addresses') }}</flux:tab>
                 <flux:tab name="documents" icon="document-text">{{ __('Documents') }}</flux:tab>
                 <flux:tab name="family" icon="users">{{ __('Family') }}</flux:tab>
+                <flux:tab name="roles" icon="briefcase">{{ __('Roles') }}</flux:tab>
             </flux:tabs>
 
             <flux:tab.panel name="identity">
@@ -55,6 +56,12 @@
             <flux:tab.panel name="family">
                 <div class="rounded-lg bg-white p-6 shadow-xs dark:bg-zinc-800 sm:p-8">
                     <livewire:admin.people.family :person-id="$person->id" :wire:key="'family-'.$person->id" />
+                </div>
+            </flux:tab.panel>
+
+            <flux:tab.panel name="roles">
+                <div class="rounded-lg bg-white p-6 shadow-xs dark:bg-zinc-800 sm:p-8">
+                    <livewire:admin.people.roles :person-id="$person->id" :wire:key="'roles-'.$person->id" />
                 </div>
             </flux:tab.panel>
         </flux:tab.group>
