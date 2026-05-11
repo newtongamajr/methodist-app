@@ -107,3 +107,16 @@ See `documents/PersonArchitecture/README.en.md` § "Phased rollout" for the full
 - [ ] `php artisan test --compact` is green at HEAD of #20 (276 tests / 644 assertions at last run)
 - [ ] `vendor/bin/pint --test --format agent` clean at HEAD of #20
 - [ ] Translation parity: `en.json` / `pt_BR.json` / `es.json` all 749 keys at HEAD of #20
+
+## Post-Alpha-01 follow-ups (no longer stacked)
+
+Once the Alpha-01 chain above lands on `main`, subsequent PRs sit
+directly on `main` again — the stack closes. Tagging convention: each
+post-baseline PR cuts an annotated `vX.YZ` tag at the point it's
+opened.
+
+| # | Branch | Tag | Base | Scope |
+|---|---|---|---|---|
+| 21 | `posts-improvements` | `v1.01` | `main` | Editor pending-file previews; PDF + video thumb conversions via `spatie/pdf-to-image` + `php-ffmpeg/php-ffmpeg` (with `install-media-deps.sh` covering the system-side `imagick` / `imagemagick` / `ghostscript` / `ffmpeg` install + ImageMagick PDF-policy patch); `quality(95)` on every image conversion across User / Person / Post; Livewire temp upload cap lifted from the 12 MB default to 100 MB so video uploads stop being silently rejected; `APP_TIMEZONE` defaults to `America/Sao_Paulo` so `datetime-local` `published_at` writes the wall-clock the admin actually picked; public post show document viewer widened to 95vw / 1400px with thumb card grid; cover image swapped to the generic `imageCropper` Alpine factory locked at 16:9 |
+
+PR URL: https://github.com/newtongamajr/methodist-app/pull/21
