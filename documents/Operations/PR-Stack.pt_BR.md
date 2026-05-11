@@ -1,6 +1,6 @@
-# Stack de PRs — code review até a Phase 1 da Person Architecture
+# Stack de PRs — code review até a Phase 2 da Person Architecture
 
-Cinco PRs empilhados entregam toda a trajetória entre `main` e a Phase 1 da
+Seis PRs empilhados entregam toda a trajetória entre `main` e a Phase 2 da
 Person Architecture. Eles estão **empilhados** (a base de cada PR é o head do
 PR de baixo), não são paralelos, porque cada um depende do anterior. Tentar
 mergear fora de ordem vai gerar conflitos.
@@ -14,11 +14,13 @@ mergear fora de ordem vai gerar conflitos.
 | 4 | `stage-5-flux-pickers` | `stage-4-flux-tables` | Flux pickers, file-upload, modal, kanban dos comentários |
 | 5 | `stage-6-cleanup` | `stage-5-flux-pickers` | Sweep de cleanup + ⌘K command palette + plano da Person Architecture |
 | 1 | `persons-phase-1` | `stage-6-cleanup` | Person Architecture Phase 1 (schema + foundation + admin scopes + districts) |
+| 6 | `persons-phase-2` | `persons-phase-1` | Person Architecture Phase 2 (editor `/admin/people` com tabs + trait `ManagesPersons` + UI dos satellites) |
 
-**Ordem de merge: #2 → #3 → #4 → #5 → #1.** À medida que cada PR é mergeado,
-o GitHub re-aponta automaticamente a base do próximo da fila para `main` (ou
-para a nova base, se aplicável). Não use squash-merge — preserve o histórico
-de commits para que a intenção em camadas continue legível no `git log`.
+**Ordem de merge: #2 → #3 → #4 → #5 → #1 → #6.** À medida que cada PR é
+mergeado, o GitHub re-aponta automaticamente a base do próximo da fila para
+`main` (ou para a nova base, se aplicável). Não use squash-merge — preserve
+o histórico de commits para que a intenção em camadas continue legível no
+`git log`.
 
 URLs dos PRs:
 
@@ -27,6 +29,7 @@ URLs dos PRs:
 - https://github.com/newtongamajr/methodist-app/pull/4
 - https://github.com/newtongamajr/methodist-app/pull/5
 - https://github.com/newtongamajr/methodist-app/pull/1
+- https://github.com/newtongamajr/methodist-app/pull/6
 
 ## Por que empilhado, e não um PR único
 
@@ -38,17 +41,23 @@ que o trabalho foi executado.
 
 ## O que *não* está nesta stack
 
-A Phase 1 da Person Architecture entrega apenas **schema + foundation +
-wiring de admin scope + Districts CRUD**. As telas do Person editor, os
-helpers de family tree, o admin de groups e o fluxo de act-as ficam para as
-Phases 2–7 (ver `documents/PersonArchitecture/README.en.md` § "Phased
-rollout").
+A Phase 2 entrega o editor central de Person com tabs **Identity / Contacts /
+Addresses / Documents** e o trait `ManagesPersons` que os managers
+per-nature vão reusar no futuro. Continuam adiados para as Phases 3–7:
+
+- **Tab Family** + helpers de query da family tree (Phase 3)
+- **Admin de Pastor** reescrito sobre `PersonRoleAssignment` filtrado para functions de pastor (Phase 4 — o rewire mínimo da Phase 1 segue valendo até lá)
+- **Admin de Groups** (Council / Ministry / Commission) (Phase 6)
+- **Children / Teenagers / Visitors** com UI ativa + fluxo de act-as parental (Phase 7)
+- **Campos additional per-nature** (`PersonFieldDefinition`) — adiado por padrão da Q3; a v1 mantém a tab Identity genérica
+
+Detalhes em `documents/PersonArchitecture/README.en.md` § "Phased rollout".
 
 ## Verificação antes de mergear a stack
 
-- [ ] Os cinco PRs estão abertos, na ordem certa, contra a base certa
+- [ ] Os seis PRs estão abertos, na ordem certa, contra a base certa
 - [ ] CI verde em cada um (ou no mínimo no topo — assim que o merge começa, as bases re-apontam e o CI roda de novo)
-- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#1) — prova que a stack inteira compõe
-- [ ] `php artisan test --compact` verde no HEAD do #1 (171 tests / 406 assertions na última execução)
-- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #1
-- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 427 keys no HEAD do #1
+- [ ] `php artisan migrate:fresh --seed` roda do início ao fim no **head do PR do topo** (#6) — prova que a stack inteira compõe
+- [ ] `php artisan test --compact` verde no HEAD do #6 (181 tests / 437 assertions na última execução)
+- [ ] `vendor/bin/pint --test --format agent` limpo no HEAD do #6
+- [ ] Paridade de traduções: `en.json` / `pt_BR.json` / `es.json` todos com 490 keys no HEAD do #6
