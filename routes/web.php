@@ -62,6 +62,11 @@ Route::middleware(['auth', EnsureCanManageChurches::class])->prefix('admin')->na
     Route::livewire('groups', 'admin.groups.index')->name('groups.index');
     Route::livewire('groups/create', 'admin.groups.editor')->name('groups.create');
     Route::livewire('groups/{groupId}/edit', 'admin.groups.editor')->name('groups.edit');
+
+    Route::livewire('assignment-roles', 'admin.assignment-roles.index')->name('assignment-roles.index');
+    Route::livewire('assignment-roles/create', 'admin.assignment-roles.editor')->name('assignment-roles.create');
+    Route::livewire('assignment-roles/{assignmentRoleId}/edit', 'admin.assignment-roles.editor')->name('assignment-roles.edit');
+    Route::livewire('assignment-roles/{assignmentRoleId}/people', 'admin.assignment-roles.people')->name('assignment-roles.people');
 });
 
 Route::middleware(['auth', EnsureCanManageUsers::class])->prefix('admin')->name('admin.')->group(function () {

@@ -40,6 +40,7 @@
                                     <flux:menu.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:menu.item>
                                     <flux:menu.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:menu.item>
                                     <flux:menu.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:menu.item>
+                                    <flux:menu.item :href="route('admin.assignment-roles.index')" wire:navigate>{{ __('Assignment roles') }}</flux:menu.item>
                                 </flux:menu.submenu>
                             @endcan
 
@@ -200,6 +201,7 @@
                         <flux:sidebar.item :href="route('admin.districts.index')" wire:navigate>{{ __('Districts') }}</flux:sidebar.item>
                         <flux:sidebar.item :href="route('admin.churches.index')" wire:navigate>{{ __('Churches') }}</flux:sidebar.item>
                         <flux:sidebar.item :href="route('admin.groups.index')" wire:navigate>{{ __('Groups') }}</flux:sidebar.item>
+                        <flux:sidebar.item :href="route('admin.assignment-roles.index')" wire:navigate>{{ __('Assignment roles') }}</flux:sidebar.item>
                     </flux:sidebar.group>
                 @endcan
 
@@ -300,6 +302,7 @@
                             <flux:command.item icon="map" x-on:click="Livewire.navigate('{{ route('admin.districts.index') }}')">{{ __('Districts') }}</flux:command.item>
                             <flux:command.item icon="building-library" x-on:click="Livewire.navigate('{{ route('admin.churches.index') }}')">{{ __('Churches') }}</flux:command.item>
                             <flux:command.item icon="user-group" x-on:click="Livewire.navigate('{{ route('admin.groups.index') }}')">{{ __('Groups') }}</flux:command.item>
+                            <flux:command.item icon="identification" x-on:click="Livewire.navigate('{{ route('admin.assignment-roles.index') }}')">{{ __('Assignment roles') }}</flux:command.item>
                         @endcan
 
                         @if (auth()->user()->can('users.manage') || auth()->user()->can('users.manage.local'))
